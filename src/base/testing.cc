@@ -14,6 +14,7 @@
 
 #include <chrono>
 
+#include "base/env.h"
 #include "base/testing.h"
 
 #include <glog/logging.h>
@@ -29,6 +30,14 @@ uint32_t BaseTest::SeedRandom() {
   }
   LOG(INFO) << "Using random seed: " << seed;
   return static_cast<uint32_t>(seed);
+}
+
+WritableFile *BaseTest::OpenFileForWrite(const std::string &fname, Env::CreateMode mode,
+                                         bool sync_on_close) {
+  auto sw = Env::Default()->NewWritableFile(fname, mode, sync_on_close);
+  if (!sw.GetStatus().IsOK())
+    DLOG(FATAL) << sw.GetStatus();
+  return sw.GetValue();
 }
 
 }  // namespace consensus

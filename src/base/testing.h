@@ -22,6 +22,8 @@ namespace consensus {
 
 using ::testing::FLAGS_gtest_random_seed;
 
+class WritableFile;
+
 #define ASSERT_OK(status)                        \
   do {                                           \
     const Status& _s = status;                   \
@@ -43,6 +45,10 @@ class BaseTest : public ::testing::Test {
   }
 
   uint32_t SeedRandom();
+
+  WritableFile* OpenFileForWrite(const std::string& fname,
+                                 Env::CreateMode mode = Env::CREATE_IF_NON_EXISTING_TRUNCATE,
+                                 bool sync_on_close = false);
 
  private:
   std::string initTestDir() {

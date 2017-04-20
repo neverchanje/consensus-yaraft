@@ -24,13 +24,10 @@ class TestEnv : public BaseTest {
  public:
   TestEnv() : rng_(SeedRandom()) {}
 
-  void TestAppendVector(size_t num_slices, size_t slice_size, Env::CreateMode mode,
-                        bool sync_on_close) {
+  void TestAppendVector(size_t num_slices, size_t slice_size) {
     const string kTestPath = GetTestDir() + "/test_env_appendvec_read_append";
 
-    auto sw = Env::Default()->NewWritableFile(kTestPath, mode, sync_on_close);
-    ASSERT_OK(sw.GetStatus());
-    unique_ptr<WritableFile> file(sw.GetValue());
+    unique_ptr<WritableFile> wf(OpenFileForWrite(kTestPath));
 
     vector<Slice> slices(num_slices);
     LOG(INFO) << fmt::format(
@@ -44,11 +41,16 @@ class TestEnv : public BaseTest {
       slices[i] = dataSet[i];
     }
 
-    ASSERT_OK(file->AppendVector(slices));
+    ASSERT_OK(wf->AppendVector(slices));
+    ASSERT_OK(wf->Close());
 
-    // Verify the entire file
-    ASSERT_OK(file->Close());
+    string testData;
+    for (string& s : dataSet) {
+      testData += s;
+    }
+    ASSERT_EQ(testData.size(), num_slices * slice_size);
 
+    ReadAndVerifyTestData(kTestPath, 0, testData.size(), testData);
   }
 
   void ReadAndVerifyTestData(const string& filePath, size_t offset, size_t n,
@@ -60,7 +62,6 @@ class TestEnv : public BaseTest {
 
     ReadAndVerifyTestData(raf.get(), offset, n, testData);
   }
-
 
   void ReadAndVerifyTestData(RandomAccessFile* raf, size_t offset, size_t n,
                              const string& testData) {
@@ -109,5 +110,7 @@ TEST_F(TestEnv, ReadFully) {
 }
 
 TEST_F(TestEnv, AppendVector) {
-
+  ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
+  TestAppendVector(2000, 1024);
+  ASSERT_OK(Env::Default()->DeleteRecursively(GetTestDir()));
 }
