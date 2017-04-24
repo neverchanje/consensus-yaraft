@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "base/env.h"
+
 #include <fmt/format.h>
 #include <gflags/gflags.h>
 #include <gtest/gtest.h>

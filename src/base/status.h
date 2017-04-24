@@ -31,6 +31,9 @@ class Error {
     NotFound,
     AlreadyPresent,
     NotSupported,
+    Corruption,
+    LogCompacted,
+    OutOfBound,
   };
 
  private:
@@ -79,13 +82,14 @@ class StatusWith {
   boost::optional<T> value_;
 };
 
-#define ASSIGN_IF_OK(sw, var)                                                                  \
-  do {                                                                                         \
-    const auto &_sw = (sw);                                                                    \
-    RETURN_NOT_OK(_sw.GetStatus());                                                            \
-    static_assert(std::is_convertible<decltype(var), decltype(_sw.GetValue())>::value == true, \
-                  #var " cannot be converted to " #sw ".GetValue()");                          \
-    var = _sw.GetValue();                                                                      \
+#define ASSIGN_IF_OK(sw, var)                                                                   \
+  do {                                                                                          \
+    const auto &_sw = (sw);                                                                     \
+    auto &_var = (var);                                                                         \
+    RETURN_NOT_OK(_sw.GetStatus());                                                             \
+    static_assert(std::is_convertible<decltype(_var), decltype(_sw.GetValue())>::value == true, \
+                  #var " cannot be converted to " #sw ".GetValue()");                           \
+    _var = _sw.GetValue();                                                                      \
   } while (0)
 
 }  // namespace consensus

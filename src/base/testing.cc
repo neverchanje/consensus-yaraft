@@ -35,8 +35,7 @@ uint32_t BaseTest::SeedRandom() {
 WritableFile *BaseTest::OpenFileForWrite(const std::string &fname, Env::CreateMode mode,
                                          bool sync_on_close) {
   auto sw = Env::Default()->NewWritableFile(fname, mode, sync_on_close);
-  if (!sw.GetStatus().IsOK())
-    DLOG(FATAL) << sw.GetStatus();
+  CHECK(sw.GetStatus().IsOK()) << sw.GetStatus();
   return sw.GetValue();
 }
 
