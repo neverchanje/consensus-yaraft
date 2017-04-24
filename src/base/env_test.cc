@@ -87,7 +87,7 @@ class TestEnv : public BaseTest {
     unique_ptr<WritableFile> wf(sw.GetValue());
 
     (*testData) = RandomString(size, &rng_);
-    ASSERT_OK(wf->Append(Slice(*testData)));
+    ASSERT_OK(wf->Append(*testData));
     ASSERT_OK(wf->Close());
   }
 
@@ -99,13 +99,16 @@ TEST_F(TestEnv, ReadFully) {
   ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
 
   const int kFileSize = 64 * 1024;
+  const int kTrialNum = 1000;
   const string kTestPath = GetTestDir() + "/test";
 
-  string testData;
-  WriteTestFile(kTestPath, kFileSize, &testData);
-  ASSERT_NO_FATAL_FAILURE();
-  ReadAndVerifyTestData(kTestPath, 0, kFileSize, testData);
-
+  for (int i = 0; i < kTrialNum; i++) {
+    string testData;
+    WriteTestFile(kTestPath, kFileSize, &testData);
+    ReadAndVerifyTestData(kTestPath, 0, kFileSize, testData);
+    Env::Default()->DeleteFile(kTestPath);
+    ASSERT_NO_FATAL_FAILURE();
+  }
   ASSERT_OK(Env::Default()->DeleteRecursively(GetTestDir()));
 }
 

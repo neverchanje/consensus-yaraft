@@ -23,6 +23,7 @@
 namespace consensus {
 namespace env_util {
 
+// Read the full content of `file` into `scratch`.
 Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *result, char *scratch) {
   bool first_read = true;
 
@@ -33,9 +34,9 @@ Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *resul
     RETURN_NOT_OK(file->Read(offset, remain, &this_result, dst));
     DCHECK_LE(this_result.size(), remain);
     if (this_result.size() == 0) {
-      // EOF
-      return Status::Make(Error::IOError,
-                          fmt::format("EOF trying to read {} bytes at offset {}", n, offset));
+      // read EOF will not cause error.
+      DLOG(WARNING) << fmt::format("EOF trying to read {} bytes at offset {}", n, offset);
+      return Status::OK();
     }
 
     if (first_read && this_result.size() == n) {
@@ -54,6 +55,12 @@ Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *resul
   DCHECK_EQ(0, remain);
   *result = Slice(scratch, n);
   return Status::OK();
+}
+
+Status ReadFully(const Slice &fname, Slice *result, char *scratch) {
+  RandomAccessFile *raf;
+  ASSIGN_IF_OK(Env::Default()->NewRandomAccessFile(fname), raf);
+  return ReadFully(raf, 0, std::numeric_limits<size_t>::max(), result, scratch);
 }
 
 }  // namespace env_util
