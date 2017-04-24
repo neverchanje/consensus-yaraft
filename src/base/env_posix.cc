@@ -46,11 +46,11 @@ using std::string;
       return IOError(code.message(), code.value()); \
   } while (0)
 
-Status StatusWithErrno(Error::ErrorCodes code, const std::string& context, int err_number) {
+Status StatusWithErrno(Error::ErrorCodes code, const Slice& context, int err_number) {
   return Status::Make(code, context) << ": " << ErrnoToString(err_number);
 }
 
-static Status IOError(const std::string& context, int err_number) {
+static Status IOError(const Slice& context, int err_number) {
   switch (err_number) {
     case ENOENT:
       return StatusWithErrno(Error::NotFound, context, err_number);
@@ -62,14 +62,14 @@ static Status IOError(const std::string& context, int err_number) {
   return StatusWithErrno(Error::IOError, context, err_number);
 }
 
-static Status DoSync(int fd, const string& filename) {
+static Status DoSync(int fd, const Slice& filename) {
   if (fdatasync(fd) < 0) {
     return IOError(filename, errno);
   }
   return Status::OK();
 }
 
-static StatusWith<int> DoOpen(const string& filename, Env::CreateMode mode) {
+static StatusWith<int> DoOpen(const Slice& filename, Env::CreateMode mode) {
   int flags = O_RDWR;
   switch (mode) {
     case Env::CREATE_IF_NON_EXISTING_TRUNCATE:
@@ -83,16 +83,16 @@ static StatusWith<int> DoOpen(const string& filename, Env::CreateMode mode) {
     default:
       return Status::Make(Error::NotSupported, fmt::format("Unknown create mode {}", mode));
   }
-  const int f = open(filename.c_str(), flags, 0666);
+  const int f = open(filename.data(), flags, 0666);
   if (f < 0) {
     return IOError(filename, errno);
   }
   return f;
 }
 
-StatusWith<uint64_t> DoGetFileSize(const std::string& fname) {
+StatusWith<uint64_t> DoGetFileSize(const Slice& fname) {
   struct stat sbuf;
-  if (stat(fname.c_str(), &sbuf) != 0) {
+  if (stat(fname.data(), &sbuf) != 0) {
     return IOError(fname, errno);
   } else {
     return static_cast<uint64_t>(sbuf.st_size);
@@ -108,8 +108,8 @@ StatusWith<uint64_t> DoGetFileSize(const std::string& fname) {
 // order to further improve Sync() performance.
 class PosixWritableFile : public WritableFile {
  public:
-  PosixWritableFile(std::string fname, int fd, uint64_t file_size, bool sync_on_close)
-      : filename_(std::move(fname)),
+  PosixWritableFile(const Slice& fname, int fd, uint64_t file_size, bool sync_on_close)
+      : filename_(fname.ToString()),
         fd_(fd),
         sync_on_close_(sync_on_close),
         filesize_(file_size),
@@ -122,26 +122,46 @@ class PosixWritableFile : public WritableFile {
     }
   }
 
-  virtual Status Append(const Slice& data) override {
+  Status Append(const Slice& data) override {
     vector<Slice> data_vector;
     data_vector.push_back(data);
     return AppendVector(data_vector);
   }
 
-  virtual Status AppendVector(const vector<Slice>& data_vector) override {
+  Status AppendVector(const vector<Slice>& data_vector) override {
     static const size_t kIovMaxElements = IOV_MAX;
 
     Status s;
     for (size_t i = 0; i < data_vector.size() && s.OK(); i += kIovMaxElements) {
       size_t n = std::min(data_vector.size() - i, kIovMaxElements);
-      s = DoWritev(data_vector, i, n);
+      s = doWritev(data_vector, i, n);
     }
 
     pending_sync_ = true;
     return s;
   }
 
-  virtual Status PreAllocate(uint64_t size) override {
+  Status PositionedAppend(const Slice& data, uint64_t offset) override {
+    DLOG_ASSERT(offset <= std::numeric_limits<off_t>::max());
+    const char* src = data.data();
+    size_t left = data.size();
+    while (left != 0) {
+      ssize_t done = pwrite(fd_, src, left, static_cast<off_t>(offset));
+      if (done < 0) {
+        if (errno == EINTR) {
+          continue;
+        }
+        return IOError(filename_, errno);
+      }
+      left -= done;
+      offset += done;
+      src += done;
+    }
+    filesize_ = offset;
+    return Status::OK();
+  }
+
+  Status PreAllocate(uint64_t size) override {
     uint64_t offset = std::max(filesize_, pre_allocated_size_);
     if (fallocate(fd_, 0, offset, size) < 0) {
       if (errno == EOPNOTSUPP) {
@@ -156,7 +176,7 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual Status Close() override {
+  Status Close() override {
     Status s;
 
     // If we've allocated more space than we used, truncate to the
@@ -190,7 +210,7 @@ class PosixWritableFile : public WritableFile {
     return s;
   }
 
-  virtual Status Flush(FlushMode mode) override {
+  Status Flush(FlushMode mode) override {
 #if defined(__linux__)
     unsigned int flags = SYNC_FILE_RANGE_WRITE;
     if (mode == FLUSH_SYNC) {
@@ -208,7 +228,7 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual Status Sync() override {
+  Status Sync() override {
     if (pending_sync_) {
       pending_sync_ = false;
       RETURN_NOT_OK(DoSync(fd_, filename_));
@@ -216,16 +236,27 @@ class PosixWritableFile : public WritableFile {
     return Status::OK();
   }
 
-  virtual uint64_t Size() const override {
+  uint64_t Size() const override {
     return filesize_;
   }
 
-  virtual const string& filename() const override {
+  Status Truncate(size_t size) override {
+    Status s;
+    int r = ftruncate(fd_, size);
+    if (r < 0) {
+      s = IOError(filename_, errno);
+    } else {
+      filesize_ = size;
+    }
+    return s;
+  }
+
+  const string& filename() const override {
     return filename_;
   }
 
  private:
-  Status DoWritev(const vector<Slice>& data_vector, size_t offset, size_t n) {
+  Status doWritev(const vector<Slice>& data_vector, size_t offset, size_t n) {
 #if defined(__linux__)
     DCHECK_LE(n, IOV_MAX);
 
@@ -301,7 +332,7 @@ class PosixRandomAccessFile : public RandomAccessFile {
   int fd_;
 
  public:
-  PosixRandomAccessFile(std::string fname, int fd) : filename_(std::move(fname)), fd_(fd) {}
+  PosixRandomAccessFile(const Slice& fname, int fd) : filename_(fname.ToString()), fd_(fd) {}
   virtual ~PosixRandomAccessFile() {
     close(fd_);
   }
@@ -322,7 +353,7 @@ class PosixRandomAccessFile : public RandomAccessFile {
     return DoGetFileSize(filename_);
   }
 
-  virtual const string& filename() const override {
+  virtual const std::string& filename() const override {
     return filename_;
   }
 };
@@ -332,7 +363,7 @@ class PosixEnv final : public Env {
   PosixEnv() = default;
   ~PosixEnv() = default;
 
-  StatusWith<WritableFile*> NewWritableFile(const std::string& fname,
+  StatusWith<WritableFile*> NewWritableFile(const Slice& fname,
                                             CreateMode mode = CREATE_IF_NON_EXISTING_TRUNCATE,
                                             bool sync_on_close = false) override {
     uint64_t file_size = 0;
@@ -346,35 +377,42 @@ class PosixEnv final : public Env {
     return new PosixWritableFile(fname, fd, file_size, sync_on_close);
   }
 
-  StatusWith<RandomAccessFile*> NewRandomAccessFile(const std::string& fname) override {
-    int fd = open(fname.c_str(), O_RDONLY);
+  StatusWith<RandomAccessFile*> NewRandomAccessFile(const Slice& fname) override {
+    int fd = open(fname.data(), O_RDONLY);
     if (fd < 0) {
       return IOError(fname, errno);
     }
     return new PosixRandomAccessFile(fname, fd);
   }
 
-  StatusWith<uint64_t> GetFileSize(const std::string& fname) override {
+  StatusWith<uint64_t> GetFileSize(const Slice& fname) override {
     return DoGetFileSize(fname);
   }
 
-  Status CreateDir(const std::string& dirname) override {
+  Status CreateDir(const Slice& dirname) override {
     boost::system::error_code code;
-    boost::filesystem::create_directory(dirname, code);
+    boost::filesystem::create_directory(dirname.data(), code);
     RETURN_BOOST_EC(code);
     return Status::OK();
   }
 
-  Status CreateDirIfMissing(const std::string& dirname) override {
+  Status CreateDirIfMissing(const Slice& dirname) override {
     boost::system::error_code code;
-    boost::filesystem::create_directories(dirname, code);
+    boost::filesystem::create_directories(dirname.data(), code);
     RETURN_BOOST_EC(code);
     return Status::OK();
   }
 
-  Status DeleteRecursively(const std::string& name) override {
+  Status DeleteRecursively(const Slice& name) override {
     boost::system::error_code code;
-    boost::filesystem::remove_all(name, code);
+    boost::filesystem::remove_all(name.data(), code);
+    RETURN_BOOST_EC(code);
+    return Status::OK();
+  }
+
+  Status DeleteFile(const Slice& fname) override {
+    boost::system::error_code code;
+    boost::filesystem::remove(fname.data(), code);
     RETURN_BOOST_EC(code);
     return Status::OK();
   }

@@ -38,6 +38,30 @@ class WritableFile {
   // implementation source code (e.g., env_posix.cc)
   virtual Status AppendVector(const std::vector<Slice> &data_vector) = 0;
 
+  // PositionedAppend data to the specified offset. The new EOF after append
+  // must be larger than the previous EOF. This is to be used when writes are
+  // not backed by OS buffers and hence has to always start from the start of
+  // the sector. The implementation thus needs to also rewrite the last
+  // partial sector.
+  // Note: PositionAppend does not guarantee moving the file offset after the
+  // write. A WritableFile object must support either Append or
+  // PositionedAppend, so the users cannot mix the two.
+  //
+  // PositionedAppend() can only happen on the page/sector boundaries. For that
+  // reason, if the last write was an incomplete sector we still need to rewind
+  // back to the nearest sector/page and rewrite the portion of it with whatever
+  // we need to add. We need to keep where we stop writing.
+  //
+  // PositionedAppend() can only write whole sectors. For that reason we have to
+  // pad with zeros for the last write and trim the file when closing according
+  // to the position we keep in the previous step.
+  //
+  // PositionedAppend() requires aligned buffer to be passed in. The alignment
+  // required is queried via GetRequiredBufferAlignment()
+  virtual Status PositionedAppend(const Slice &data, uint64_t offset) {
+    return Status::Make(Error::NotSupported);
+  }
+
   // Pre-allocates 'size' bytes for the file in the underlying filesystem.
   // size bytes are added to the current pre-allocated size or to the current
   // offset, whichever is bigger. In no case is the file truncated by this
@@ -61,6 +85,14 @@ class WritableFile {
   virtual Status Sync() = 0;
 
   virtual uint64_t Size() const = 0;
+
+  // Truncate is necessary to trim the file to the correct size
+  // before closing. It is not always possible to keep track of the file
+  // size due to whole pages writes. The behavior is undefined if called
+  // with other writes to follow.
+  virtual Status Truncate(uint64_t size) {
+    return Status::Make(Error::NotSupported);
+  }
 
   // Returns the filename provided when the WritableFile was constructed.
   virtual const std::string &filename() const = 0;
@@ -124,7 +156,7 @@ class Env {
   //
   // The returned file will only be accessed by one thread at a time.
   virtual StatusWith<WritableFile *> NewWritableFile(
-      const std::string &fname, CreateMode mode = CREATE_IF_NON_EXISTING_TRUNCATE,
+      const Slice &fname, CreateMode mode = CREATE_IF_NON_EXISTING_TRUNCATE,
       bool sync_on_close = false) = 0;
 
   // Create a brand new random access read-only file with the
@@ -134,20 +166,23 @@ class Env {
   // status.
   //
   // The returned file may be concurrently accessed by multiple threads.
-  virtual StatusWith<RandomAccessFile *> NewRandomAccessFile(const std::string &fname) = 0;
+  virtual StatusWith<RandomAccessFile *> NewRandomAccessFile(const Slice &fname) = 0;
 
   // Return the logical size of fname.
-  virtual StatusWith<uint64_t> GetFileSize(const std::string &fname) = 0;
+  virtual StatusWith<uint64_t> GetFileSize(const Slice &fname) = 0;
 
   // Create the specified directory. Returns error if directory exists.
-  virtual Status CreateDir(const std::string &dirname) = 0;
+  virtual Status CreateDir(const Slice &dirname) = 0;
 
   // Creates directory if missing. Return OK if it exists, or successful in creating.
-  virtual Status CreateDirIfMissing(const std::string &dirname) = 0;
+  virtual Status CreateDirIfMissing(const Slice &dirname) = 0;
 
   // Recursively delete the specified directory.
   // This should operate safely, not following any symlinks, etc.
-  virtual Status DeleteRecursively(const std::string &name) = 0;
+  virtual Status DeleteRecursively(const Slice &name) = 0;
+
+  // Delete the named file.
+  virtual Status DeleteFile(const Slice &fname) = 0;
 };
 
 }  // namespace consensus
