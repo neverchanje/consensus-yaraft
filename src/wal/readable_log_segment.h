@@ -32,7 +32,8 @@ namespace wal {
 class ReadableLogSegment {
  public:
   ~ReadableLogSegment() {
-    delete buf_;
+    delete[] buf_;
+    buf_ = nullptr;
   }
 
   static StatusWith<ReadableLogSegment *> Create(const SegmentMetaData *meta) {
@@ -41,7 +42,7 @@ class ReadableLogSegment {
     memset(buf, static_cast<int>(bufLen), '\0');
 
     Slice s;
-    RETURN_NOT_OK(env_util::ReadFully(meta->fileName, &s, buf));
+    RETURN_NOT_OK(env_util::ReadFullyToAllocatedBuffer(meta->fileName, &s, buf));
     return new ReadableLogSegment(meta, buf);
   }
 
@@ -49,6 +50,7 @@ class ReadableLogSegment {
       : meta_(meta), buf_(segment), offset_(0) {}
 
   Status SkipHeader() {
+    CHECK_EQ(offset_, 0);
     offset_ += kSegmentHeaderSize;
     return Status::OK();
   }
@@ -62,7 +64,8 @@ class ReadableLogSegment {
     size = DecodeFixed32(buf_ + offset_);
     offset_ += 4;
 
-    std::string entryBuf(buf_ + offset_, meta_->fileSize - 8);
+    std::string entryBuf(buf_ + offset_, size);
+    offset_ += size;
 
     boost::crc_32_type crc;
     crc.process_bytes(entryBuf.data(), size);
@@ -72,6 +75,7 @@ class ReadableLogSegment {
 
     yaraft::pb::Entry ent;
     ent.ParseFromString(entryBuf);
+    DCHECK_EQ(ent.ByteSize(), size);
     return ent;
   }
 
