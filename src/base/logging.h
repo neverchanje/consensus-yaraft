@@ -23,8 +23,8 @@ namespace consensus {
 /// @brief Emit a warning if @c to_call returns a bad status.
 #define WARN_NOT_OK(to_call, warning_prefix)                     \
   do {                                                           \
-    const ::consensus::Status& _s = (to_call);                   \
-    if (PREDICT_FALSE(!_s.OK())) {                               \
+    const auto& _s = (to_call);                                  \
+    if (PREDICT_FALSE(!_s.IsOK())) {                             \
       LOG(WARNING) << (warning_prefix) << ": " << _s.ToString(); \
     }                                                            \
   } while (0);

@@ -73,8 +73,12 @@ class StatusWith {
     return status_;
   }
 
-  bool OK() const {
+  bool IsOK() const {
     return status_.IsOK();
+  }
+
+  std::string ToString() const {
+    return status_.ToString();
   }
 
  private:
