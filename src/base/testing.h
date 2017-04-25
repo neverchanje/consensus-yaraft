@@ -39,12 +39,18 @@ class Random;
 
 class BaseTest : public ::testing::Test {
  public:
-  BaseTest() : test_dir_(initTestDir()) {}
+  BaseTest() {
+    initTestDir();
+  }
 
   virtual ~BaseTest() = default;
 
-  std::string GetTestDir() {
+  std::string GetTestDir() const {
     return test_dir_;
+  }
+
+  std::string GetParentDir() const {
+    return parent_dir_;
   }
 
   uint32_t SeedRandom();
@@ -57,9 +63,10 @@ class BaseTest : public ::testing::Test {
   void WriteTestFile(const Slice& path, size_t size, std::string* testData, Random* rng);
 
  private:
-  std::string initTestDir() {
-    return fmt::format("/tmp/consensus-wal-test-{}/{}.{}", static_cast<int>(geteuid()),
-                       testInfo()->test_case_name(), testInfo()->name());
+  void initTestDir() {
+    parent_dir_ = fmt::format("/tmp/consensus-wal-test-{}", static_cast<int>(geteuid()));
+    test_dir_ =
+        parent_dir_ + fmt::format("/{}.{}", testInfo()->test_case_name(), testInfo()->name());
   }
 
   const ::testing::TestInfo* const testInfo() {
@@ -68,6 +75,7 @@ class BaseTest : public ::testing::Test {
 
  private:
   std::string test_dir_;
+  std::string parent_dir_;
 };
 
 }  // namespace consensus

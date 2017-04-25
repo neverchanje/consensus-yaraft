@@ -56,7 +56,7 @@ class TestEnv : public BaseTest {
   void ReadAndVerifyTestData(const string& filePath, const string& testData) {
     Slice s;
     std::string scratch;
-    ASSERT_OK(env_util::ReadFully(filePath, &s, &scratch));
+    ASSERT_OK(env_util::ReadFullyToString(filePath, &s, &scratch));
 
     ASSERT_EQ(s.data(), scratch.data());
     ASSERT_EQ(testData, scratch);
@@ -87,11 +87,11 @@ TEST_F(TestEnv, ReadFully) {
     Env::Default()->DeleteFile(kTestPath);
     ASSERT_NO_FATAL_FAILURE();
   }
-  ASSERT_OK(Env::Default()->DeleteRecursively(GetTestDir()));
+  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
 }
 
 TEST_F(TestEnv, AppendVector) {
   ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
   TestAppendVector(2000, 1024);
-  ASSERT_OK(Env::Default()->DeleteRecursively(GetTestDir()));
+  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
 }
