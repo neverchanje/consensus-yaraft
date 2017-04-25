@@ -42,10 +42,13 @@ TEST_F(SegmentMetaTest, EncodeAndDecode) {
     SegmentMetaData meta;
 
     char* s = new char[kSegmentHeaderSize + kEntryHeaderSize + expect.ByteSize()];
-    s[0] = '\0';
-    EncodedToArray(expect, &s, &meta.fileSize);
+    s[0] = 0;
+
+    char* p = s + kSegmentHeaderSize;
+    EncodedToAllocatedArray(expect, p, &meta.fileSize);
 
     ReadableLogSegment seg(&meta, s);
+    seg.SkipHeader();
     yaraft::pb::Entry actual;
     {
       auto sw = seg.ReadEntry();
