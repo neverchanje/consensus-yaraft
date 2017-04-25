@@ -27,7 +27,8 @@ set(BASE_SOURCES
 set(WAL_SOURCES
         ${WAL_SOURCE_DIR}/segment_meta.cc
         ${WAL_SOURCE_DIR}/options.cc
-        ${WAL_SOURCE_DIR}/log_writer.cc)
+        ${WAL_SOURCE_DIR}/log_writer.cc
+        ${WAL_SOURCE_DIR}/log_manager.cc)
 
 function(ADD_BASE_TEST TEST_NAME)
     add_executable(${TEST_NAME}
@@ -53,3 +54,5 @@ ADD_BASE_TEST(coding_test)
 ADD_WAL_TEST(segment_meta_test)
 
 ADD_WAL_TEST(log_writer_test)
+
+ADD_WAL_TEST(log_manager_test)

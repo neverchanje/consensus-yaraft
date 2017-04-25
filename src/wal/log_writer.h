@@ -16,8 +16,8 @@
 
 #include "base/env.h"
 #include "base/logging.h"
-#include "wal/segment_meta.h"
 #include "wal/options.h"
+#include "wal/segment_meta.h"
 #include "wal/wal.h"
 
 #include <silly/likely.h>
