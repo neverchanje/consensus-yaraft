@@ -36,9 +36,12 @@ class SegmentMetaTest : public BaseTest {
     auto msg = PBMessage().Entries(vec).v;
     const auto& entries = msg.entries();
 
+    auto* segMeta = new SegmentMetaData;
+    segMeta->fileName = path.ToString();
+
     WritableFile* wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(path), wf);
-    std::unique_ptr<LogWriter> writer(new LogWriter(wf));
+    std::unique_ptr<LogWriter> writer(new LogWriter(wf, segMeta));
 
     writer->MarkCommitted(0);
 
@@ -49,9 +52,6 @@ class SegmentMetaTest : public BaseTest {
     CHECK(!writer->Oversize());
     RETURN_NOT_OK(writer->Finish());
 
-    auto* segMeta = new SegmentMetaData;
-    segMeta->fileName = path.ToString();
-    segMeta->fileSize = writer->TotalSize();
     return segMeta;
   }
 

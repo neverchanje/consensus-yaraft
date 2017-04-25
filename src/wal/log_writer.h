@@ -16,6 +16,7 @@
 
 #include "base/env.h"
 #include "base/logging.h"
+#include "wal/segment_meta.h"
 #include "wal/options.h"
 #include "wal/wal.h"
 
@@ -30,7 +31,7 @@ void EncodedToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_
 
 struct LogWriter {
  public:
-  explicit LogWriter(WritableFile *f) : file_(f) {}
+  explicit LogWriter(WritableFile *f, SegmentMetaData *meta) : file_(f), meta_(meta) {}
 
   Status MarkCommitted(bool c) {
     char committed[1] = {static_cast<char>(c)};
@@ -59,6 +60,7 @@ struct LogWriter {
   }
 
   Status Finish() {
+    meta_->fileSize = TotalSize();
     return file_->Close();
   }
 
@@ -66,8 +68,13 @@ struct LogWriter {
     return FLAGS_log_segment_size <= file_->Size();
   }
 
+  size_t TotalSize() {
+    return file_->Size();
+  }
+
  private:
   std::unique_ptr<WritableFile> file_;
+  SegmentMetaData *meta_;
 };
 
 }  // namespace wal
