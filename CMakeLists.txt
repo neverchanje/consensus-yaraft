@@ -36,10 +36,10 @@ message("-- Found ${SILLY_LIBRARY}")
 find_library(FMT_LIBRARY fmt PATH ${DEPS_LIB_DIR})
 message("-- Found ${FMT_LIBRARY}")
 
+find_library(YARAFT_LIBRARY yaraft PATH ${DEPS_LIB_DIR})
+message("-- Found ${YARAFT_LIBRARY}")
+
 include_directories(build/third_parties/include)
 include_directories(src)
 
 add_subdirectory(src)
-
-file(GLOB YARAFT_SOURCE "src/*/*.h" "src/base/status.cc")
-add_library(fuck_clion ${YARAFT_SOURCE})
