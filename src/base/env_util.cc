@@ -43,7 +43,7 @@ Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *resul
   return Status::OK();
 }
 
-Status ReadFully(const Slice &fname, Slice *result, std::string *scratch) {
+Status ReadFullyToString(const Slice &fname, Slice *result, std::string *scratch) {
   RandomAccessFile *raf;
   ASSIGN_IF_OK(Env::Default()->NewRandomAccessFile(fname), raf);
 
@@ -52,6 +52,16 @@ Status ReadFully(const Slice &fname, Slice *result, std::string *scratch) {
   scratch->resize(n);
 
   return ReadFully(raf, 0, n, result, &(*scratch)[0]);
+}
+
+Status ReadFullyToAllocatedBuffer(const Slice &fname, Slice *result, char *scratch) {
+  RandomAccessFile *raf;
+  ASSIGN_IF_OK(Env::Default()->NewRandomAccessFile(fname), raf);
+
+  size_t n;
+  ASSIGN_IF_OK(raf->Size(), n);
+
+  return ReadFully(raf, 0, n, result, scratch);
 }
 
 }  // namespace env_util
