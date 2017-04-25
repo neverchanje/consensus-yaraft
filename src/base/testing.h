@@ -25,11 +25,12 @@ namespace consensus {
 using ::testing::FLAGS_gtest_random_seed;
 
 class WritableFile;
+class Random;
 
 #define ASSERT_OK(status)                        \
   do {                                           \
-    const Status& _s = status;                   \
-    if (_s) {                                    \
+    const auto& _s = status;                     \
+    if (_s.IsOK()) {                             \
       SUCCEED();                                 \
     } else {                                     \
       FAIL() << "Bad status: " << _s.ToString(); \
@@ -51,6 +52,9 @@ class BaseTest : public ::testing::Test {
   WritableFile* OpenFileForWrite(const std::string& fname,
                                  Env::CreateMode mode = Env::CREATE_IF_NON_EXISTING_TRUNCATE,
                                  bool sync_on_close = false);
+
+  // Write 'size' bytes of data to a file, with a simple pattern stored in it.
+  void WriteTestFile(const Slice& path, size_t size, std::string* testData, Random* rng);
 
  private:
   std::string initTestDir() {

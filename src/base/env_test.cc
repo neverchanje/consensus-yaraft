@@ -50,26 +50,15 @@ class TestEnv : public BaseTest {
     }
     ASSERT_EQ(testData.size(), num_slices * slice_size);
 
-    ReadAndVerifyTestData(kTestPath, 0, testData.size(), testData);
+    ReadAndVerifyTestData(kTestPath, testData);
   }
 
-  void ReadAndVerifyTestData(const string& filePath, size_t offset, size_t n,
-                             const string& testData) {
-    // Reopen for read
-    auto sw = Env::Default()->NewRandomAccessFile(filePath);
-    ASSERT_OK(sw.GetStatus());
-    unique_ptr<RandomAccessFile> raf(sw.GetValue());
-
-    ReadAndVerifyTestData(raf.get(), offset, n, testData);
-  }
-
-  void ReadAndVerifyTestData(RandomAccessFile* raf, size_t offset, size_t n,
-                             const string& testData) {
-    string scratch(n, '\0');
+  void ReadAndVerifyTestData(const string& filePath, const string& testData) {
     Slice s;
-    ASSERT_OK(env_util::ReadFully(raf, offset, n, &s, &scratch[0]));
+    std::string scratch;
+    ASSERT_OK(env_util::ReadFully(filePath, &s, &scratch));
+
     ASSERT_EQ(s.data(), scratch.data());
-    ASSERT_EQ(n, s.size());
     ASSERT_EQ(testData, scratch);
   }
 
@@ -80,18 +69,7 @@ class TestEnv : public BaseTest {
     }
   }
 
-  // Write 'size' bytes of data to a file, with a simple pattern stored in it.
-  void WriteTestFile(const string& path, size_t size, string* testData) {
-    auto sw = Env::Default()->NewWritableFile(path);
-    ASSERT_OK(sw.GetStatus());
-    unique_ptr<WritableFile> wf(sw.GetValue());
-
-    (*testData) = RandomString(size, &rng_);
-    ASSERT_OK(wf->Append(*testData));
-    ASSERT_OK(wf->Close());
-  }
-
- private:
+ protected:
   Random rng_;
 };
 
@@ -104,8 +82,8 @@ TEST_F(TestEnv, ReadFully) {
 
   for (int i = 0; i < kTrialNum; i++) {
     string testData;
-    WriteTestFile(kTestPath, kFileSize, &testData);
-    ReadAndVerifyTestData(kTestPath, 0, kFileSize, testData);
+    WriteTestFile(kTestPath, kFileSize, &testData, &rng_);
+    ReadAndVerifyTestData(kTestPath, testData);
     Env::Default()->DeleteFile(kTestPath);
     ASSERT_NO_FATAL_FAILURE();
   }

@@ -16,6 +16,7 @@
 
 #include "base/env.h"
 #include "base/testing.h"
+#include "random.h"
 
 #include <glog/logging.h>
 
@@ -32,11 +33,21 @@ uint32_t BaseTest::SeedRandom() {
   return static_cast<uint32_t>(seed);
 }
 
-WritableFile *BaseTest::OpenFileForWrite(const std::string &fname, Env::CreateMode mode,
+WritableFile* BaseTest::OpenFileForWrite(const std::string& fname, Env::CreateMode mode,
                                          bool sync_on_close) {
   auto sw = Env::Default()->NewWritableFile(fname, mode, sync_on_close);
   CHECK(sw.GetStatus().IsOK()) << sw.GetStatus();
   return sw.GetValue();
+}
+
+void BaseTest::WriteTestFile(const Slice& path, size_t size, std::string* testData, Random* rng) {
+  auto sw = Env::Default()->NewWritableFile(path);
+  ASSERT_OK(sw.GetStatus());
+  std::unique_ptr<WritableFile> wf(sw.GetValue());
+
+  (*testData) = RandomString(size, rng);
+  ASSERT_OK(wf->Append(*testData));
+  ASSERT_OK(wf->Close());
 }
 
 }  // namespace consensus
