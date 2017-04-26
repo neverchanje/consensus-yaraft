@@ -63,24 +63,6 @@ class LogManager : public WriteAheadLog {
     return Status::OK();
   }
 
-  // Create a new log segment and create a WritableFile for it.
-  // NOTE: SegmentMetaData::fileSize will only be set after LogWriter finishing.
-  StatusWith<WritableFile*> NewSegment() {
-    uint64_t newSegId = files_.size();
-    uint64_t newSegStart = lastIndex_ + 1;
-    std::string fname = SegmentFileName(newSegId, newSegStart);
-
-    SegmentMetaData segMeta;
-    segMeta.fileName = fname;
-    segMeta.committed = false;
-    segMeta.range = std::make_pair(newSegStart, newSegStart);
-    files_.push_back(segMeta);
-
-    WritableFile* wf;
-    ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
-    return wf;
-  }
-
   StatusWith<size_t> FindSegmentId(uint64_t logIndex) const {
     if (files_.empty() || logIndex < files_.begin()->range.first) {
       return Status::Make(Error::LogCompacted, "");
@@ -97,16 +79,17 @@ class LogManager : public WriteAheadLog {
         return i;
       }
     }
+    // NotFound is a fatal error.
     return Status::Make(Error::NotFound, "");
   }
 
  private:
   // Append entries into log. It's guaranteed that there's no conflicted entry between MsgApp
   // and current log.
-  Status doAppend(PBEntriesIterator begin, PBEntriesIterator end) {
+  Status doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end) {
     DLOG_ASSERT(!current_);
 
-    PBEntriesIterator it = begin;
+    auto it = begin;
     while (it != end) {
       ASSIGN_IF_OK(current_->AppendEntries(it, end), it);
       if (current_->Oversize()) {
@@ -125,12 +108,32 @@ class LogManager : public WriteAheadLog {
 
   Status updateLogWriter() {
     WritableFile* wf;
-    ASSIGN_IF_OK(NewSegment(), wf);
+    ASSIGN_IF_OK(newSegment(), wf);
     current_.reset(new LogWriter(wf, &lastSegmentMeta()));
     return Status::OK();
   }
 
+  // Create a new log segment and create a WritableFile for it.
+  // NOTE: SegmentMetaData::fileSize will only be set after LogWriter finishing.
+  StatusWith<WritableFile*> newSegment() {
+    uint64_t newSegId = files_.size();
+    uint64_t newSegStart = lastIndex_ + 1;
+    std::string fname = SegmentFileName(newSegId, newSegStart);
+
+    SegmentMetaData segMeta;
+    segMeta.fileName = fname;
+    segMeta.committed = false;
+    segMeta.range = std::make_pair(newSegStart, newSegStart);
+    files_.push_back(segMeta);
+
+    WritableFile* wf;
+    ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
+    return wf;
+  }
+
  private:
+  friend class LogManagerTest;
+
   std::unique_ptr<LogWriter> current_;
   std::vector<SegmentMetaData> files_;
 

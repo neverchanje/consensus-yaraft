@@ -39,7 +39,9 @@ class WriteAheadLog {
   // Do GC work to compact unused logs,
   //
   // On some implementation, GC can be simply done by deleting the unused log files.
-  virtual Status GC(CompactionHint* hint) = 0;
+  virtual Status GC(CompactionHint* hint) {
+    return Status::Make(Error::NotSupported);
+  }
 };
 
 }  // namespace wal

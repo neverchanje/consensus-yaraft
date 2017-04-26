@@ -15,9 +15,5 @@
 #include "wal/log_manager.h"
 
 namespace consensus {
-namespace wal {
-
-
-
-}  // namespace wal
+namespace wal {}  // namespace wal
 }  // namespace consensus
