@@ -29,7 +29,7 @@ class TestEnv : public BaseTest {
 
     unique_ptr<WritableFile> wf(OpenFileForWrite(kTestPath));
 
-    vector<Slice> slices(num_slices);
+    std::string slices;
     LOG(INFO) << fmt::format(
         "appending a vector of slices(number of slices={}, size of slice={} b)", num_slices,
         slice_size);
@@ -38,10 +38,10 @@ class TestEnv : public BaseTest {
     RandomDataSet(num_slices, slice_size, &dataSet);
 
     for (int i = 0; i < num_slices; i++) {
-      slices[i] = dataSet[i];
+      slices += dataSet[i];
     }
 
-    ASSERT_OK(wf->AppendVector(slices));
+    ASSERT_OK(wf->Append(slices));
     ASSERT_OK(wf->Close());
 
     string testData;

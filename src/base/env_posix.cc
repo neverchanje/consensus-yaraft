@@ -122,23 +122,22 @@ class PosixWritableFile : public WritableFile {
     }
   }
 
-  Status Append(const Slice& data) override {
-    vector<Slice> data_vector;
-    data_vector.push_back(data);
-    return AppendVector(data_vector);
-  }
-
-  Status AppendVector(const vector<Slice>& data_vector) override {
-    static const size_t kIovMaxElements = IOV_MAX;
-
-    Status s;
-    for (size_t i = 0; i < data_vector.size() && s.OK(); i += kIovMaxElements) {
-      size_t n = std::min(data_vector.size() - i, kIovMaxElements);
-      s = doWritev(data_vector, i, n);
+  Status Append(const Slice& data) {
+    const char* src = data.data();
+    size_t left = data.size();
+    while (left != 0) {
+      ssize_t done = write(fd_, src, left);
+      if (done < 0) {
+        if (errno == EINTR) {
+          continue;
+        }
+        return IOError(filename_, errno);
+      }
+      left -= done;
+      src += done;
     }
-
-    pending_sync_ = true;
-    return s;
+    filesize_ += data.size();
+    return Status::OK();
   }
 
   Status PositionedAppend(const Slice& data, uint64_t offset) override {
@@ -253,67 +252,6 @@ class PosixWritableFile : public WritableFile {
 
   const string& filename() const override {
     return filename_;
-  }
-
- private:
-  Status doWritev(const vector<Slice>& data_vector, size_t offset, size_t n) {
-#if defined(__linux__)
-    DCHECK_LE(n, IOV_MAX);
-
-    struct iovec iov[n];
-    size_t j = 0;
-    size_t nbytes = 0;
-
-    for (size_t i = offset; i < offset + n; i++) {
-      const Slice& data = data_vector[i];
-
-      // TODO() Is it safe?
-      iov[j].iov_base = const_cast<char*>(data.data());
-      iov[j].iov_len = data.size();
-      nbytes += data.size();
-      ++j;
-    }
-
-    ssize_t written;
-    RETRY_ON_EINTR(written, pwritev(fd_, iov, static_cast<int>(n), filesize_));
-
-    if (PREDICT_FALSE(written == -1)) {
-      int err = errno;
-      return IOError(filename_, err);
-    }
-
-    filesize_ += written;
-
-    if (PREDICT_FALSE(written != nbytes)) {
-      return Status::Make(
-          Error::IOError,
-          fmt::format("pwritev error: expected to write {} bytes, wrote {} bytes instead"
-                      " (perhaps the disk is out of space)",
-                      nbytes, written));
-    }
-#else
-    for (size_t i = offset; i < offset + n; i++) {
-      const Slice& data = data_vector[i];
-      ssize_t written;
-      RETRY_ON_EINTR(written, pwrite(fd_, data.data(), data.size(), filesize_));
-      if (PREDICT_FALSE(written == -1)) {
-        int err = errno;
-        return IOError("pwrite error", err);
-      }
-
-      filesize_ += written;
-
-      if (PREDICT_FALSE(written != data.size())) {
-        return Status::Make(
-            Error::IOError,
-            fmt::format("pwritev error: expected to write {} bytes, wrote {} bytes instead"
-                        " (perhaps the disk is out of space)",
-                        nbytes, written));
-      }
-    }
-#endif
-
-    return Status::OK();
   }
 
  private:

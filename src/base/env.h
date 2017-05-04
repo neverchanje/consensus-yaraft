@@ -31,13 +31,6 @@ class WritableFile {
 
   virtual Status Append(const Slice &data) = 0;
 
-  // If possible, uses scatter-gather I/O to efficiently append
-  // multiple buffers to a file. Otherwise, falls back to regular I/O.
-  //
-  // For implementation specific quirks and details, see comments in
-  // implementation source code (e.g., env_posix.cc)
-  virtual Status AppendVector(const std::vector<Slice> &data_vector) = 0;
-
   // PositionedAppend data to the specified offset. The new EOF after append
   // must be larger than the previous EOF. This is to be used when writes are
   // not backed by OS buffers and hence has to always start from the start of
