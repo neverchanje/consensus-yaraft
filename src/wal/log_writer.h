@@ -31,7 +31,8 @@ void EncodedToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_
 
 struct LogWriter {
  public:
-  explicit LogWriter(WritableFile *f, SegmentMetaData *meta) : file_(f), meta_(meta) {}
+  // REQUIRED: both f and meta must not be null.
+  LogWriter(WritableFile *f, SegmentMetaData *meta) : file_(f), meta_(meta) {}
 
   Status MarkCommitted(bool c) {
     char committed[1] = {static_cast<char>(c)};
@@ -44,7 +45,7 @@ struct LogWriter {
   StatusWith<ConstPBEntriesIterator> AppendEntries(ConstPBEntriesIterator begin,
                                                    ConstPBEntriesIterator end) {
     std::string rawEntries;
-    size_t remains = FLAGS_log_segment_size - file_->Size();
+    ssize_t remains = FLAGS_log_segment_size - file_->Size();
     auto it = begin;
     for (; it != end; it++) {
       std::string entryBuf = EncodeToString(*it);
@@ -55,6 +56,7 @@ struct LogWriter {
         break;
       }
     }
+
     RETURN_NOT_OK(file_->Append(rawEntries));
     return it;
   }

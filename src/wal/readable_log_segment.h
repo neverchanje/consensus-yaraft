@@ -33,7 +33,6 @@ class ReadableLogSegment {
  public:
   ~ReadableLogSegment() {
     delete[] buf_;
-    buf_ = nullptr;
   }
 
   static StatusWith<ReadableLogSegment *> Create(const SegmentMetaData *meta) {
@@ -75,6 +74,7 @@ class ReadableLogSegment {
 
     yaraft::pb::Entry ent;
     ent.ParseFromString(entryBuf);
+
     DCHECK_EQ(ent.ByteSize(), size);
     return ent;
   }

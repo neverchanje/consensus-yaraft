@@ -17,4 +17,5 @@
 
 #include <gflags/gflags_declare.h>
 
+// NOTE: The maxium size of an entry is recommmanded not larger than log_segment_size.
 DECLARE_uint32(log_segment_size);
