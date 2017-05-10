@@ -39,6 +39,29 @@ class Random;
 
 class BaseTest : public ::testing::Test {
  public:
+  struct TestDirectoryGuard {
+    explicit TestDirectoryGuard(const BaseTest* base) : base_(base) {
+      acquire();
+    }
+
+    ~TestDirectoryGuard() {
+      release();
+    }
+
+   private:
+    void acquire() {
+      ASSERT_OK(Env::Default()->CreateDirIfMissing(base_->GetTestDir()));
+    }
+
+    void release() {
+      ASSERT_OK(Env::Default()->DeleteRecursively(base_->GetParentDir()));
+    }
+
+   private:
+    const BaseTest* base_;
+  };
+
+ public:
   BaseTest() {
     initTestDir();
   }
@@ -62,6 +85,10 @@ class BaseTest : public ::testing::Test {
   // Write 'size' bytes of data to a file, with a simple pattern stored in it.
   void WriteTestFile(const Slice& path, size_t size, std::string* testData, Random* rng);
 
+  TestDirectoryGuard* CreateTestDirGuard() const {
+    return new TestDirectoryGuard(this);
+  }
+
  private:
   void initTestDir() {
     parent_dir_ = fmt::format("/tmp/consensus-wal-test-{}", static_cast<int>(geteuid()));
@@ -77,5 +104,7 @@ class BaseTest : public ::testing::Test {
   std::string test_dir_;
   std::string parent_dir_;
 };
+
+typedef std::unique_ptr<BaseTest::TestDirectoryGuard> TestDirGuard;
 
 }  // namespace consensus

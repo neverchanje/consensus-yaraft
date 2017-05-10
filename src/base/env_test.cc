@@ -74,11 +74,11 @@ class TestEnv : public BaseTest {
 };
 
 TEST_F(TestEnv, ReadFully) {
-  ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
+  TestDirGuard g(CreateTestDirGuard());
 
   const int kFileSize = 64 * 1024;
   const int kTrialNum = 1000;
-  const string kTestPath = GetTestDir() + "/test";
+  const string kTestPath = GetTestDir() + "/test_" + fmt::format("{}", rng_.Next());
 
   for (int i = 0; i < kTrialNum; i++) {
     string testData;
@@ -87,11 +87,30 @@ TEST_F(TestEnv, ReadFully) {
     Env::Default()->DeleteFile(kTestPath);
     ASSERT_NO_FATAL_FAILURE();
   }
-  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
 }
 
 TEST_F(TestEnv, AppendVector) {
-  ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
+  TestDirGuard g(CreateTestDirGuard());
   TestAppendVector(2000, 1024);
-  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
+}
+
+TEST_F(TestEnv, GetChildren) {
+  TestDirGuard g(CreateTestDirGuard());
+  const int kFileNum = 10;
+
+  uint32_t randNum = rng_.Next();
+
+  vector<string> files;
+  for (int i = 0; i < kFileNum; i++) {
+    // create empty test files
+    string fileName(fmt::format("test_{}_{:02d}", randNum, i));
+    unique_ptr<WritableFile> wf(OpenFileForWrite(GetTestDir() + "/" + fileName));
+    wf->Close();
+    files.push_back(fileName);
+  }
+
+  vector<string> result;
+  ASSERT_OK(Env::Default()->GetChildren(GetTestDir(), &result));
+
+  ASSERT_EQ(files, result);
 }

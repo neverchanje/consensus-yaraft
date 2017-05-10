@@ -11,6 +11,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Copyright (c) 2011-2017, Facebook, Inc.  All rights reserved.
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+//
+// Copyright (c) 2011 The LevelDB Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file. See the AUTHORS file for names of contributors.
 
 #pragma once
 
@@ -176,6 +185,15 @@ class Env {
 
   // Delete the named file.
   virtual Status DeleteFile(const Slice &fname) = 0;
+
+  // Store in *result the names of the children of the specified directory.
+  // The names are relative to "dir".
+  // Original contents of *results are dropped.
+  // Returns OK if "dir" exists and "*result" contains its children.
+  //         NotFound if "dir" does not exist, the calling process does not have
+  //                  permission to access "dir", or if "dir" is invalid.
+  //         IOError if an IO Error was encountered
+  virtual Status GetChildren(const std::string &dir, std::vector<std::string> *result) = 0;
 };
 
 }  // namespace consensus

@@ -25,6 +25,7 @@
 #include "base/port.h"
 
 #include <boost/filesystem.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <fmt/format.h>
 #include <silly/likely.h>
 
@@ -40,6 +41,7 @@ using std::string;
     (err) = (expr);                                                                                \
   } while ((err) == -1 && errno == EINTR)
 
+// Return IOError if error code is not null.
 #define RETURN_BOOST_EC(code)                       \
   do {                                              \
     if (PREDICT_FALSE(bool(code)))                  \
@@ -353,6 +355,19 @@ class PosixEnv final : public Env {
     boost::system::error_code code;
     boost::filesystem::remove(fname.data(), code);
     RETURN_BOOST_EC(code);
+    return Status::OK();
+  }
+
+  Status GetChildren(const std::string& dir, std::vector<std::string>* result) override {
+    boost::system::error_code code;
+    bool isDir = boost::filesystem::is_directory(dir, code);
+    RETURN_BOOST_EC(code);
+    CHECK(isDir);
+
+    boost::filesystem::path p(dir);
+    for (auto& e : boost::make_iterator_range(boost::filesystem::directory_iterator(p), {})) {
+      result->push_back(e.path().filename().string());
+    }
     return Status::OK();
   }
 };
