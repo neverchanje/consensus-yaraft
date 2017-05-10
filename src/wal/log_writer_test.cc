@@ -22,14 +22,20 @@
 #include <gtest/gtest.h>
 #include <yaraft/fluent_pb.h>
 
-using namespace consensus;
-using namespace consensus::wal;
+namespace consensus {
+namespace wal {
 
 class LogWriterTest : public BaseTest {
  public:
   LogWriterTest() = default;
+
+  LogWriter ConstructLogWriter(WritableFile* wf, SegmentMetaData meta) {
+    return LogWriter(wf, meta);
+  }
 };
 
+// LogWriterTest.AppendEntries ensures that LogWriter::AppendEntries stops writing
+// when entries is out of bound.
 TEST_F(LogWriterTest, AppendEntries) {
   using namespace yaraft;
 
@@ -47,7 +53,7 @@ TEST_F(LogWriterTest, AppendEntries) {
 
   SegmentMetaData meta;
   auto wf = new MockWritableFile;
-  LogWriter writer(wf, &meta);
+  auto writer = ConstructLogWriter(wf, meta);
   ConstPBEntriesIterator it;
   {
     auto sw = writer.AppendEntries(msg.entries().begin(), msg.entries().end());
@@ -58,6 +64,7 @@ TEST_F(LogWriterTest, AppendEntries) {
   ASSERT_EQ(std::distance(msg.entries().begin(), it), entriesPerSegment);
 }
 
+// This test verifies that pb being encoded can be correctly decoded.
 TEST_F(LogWriterTest, EncodeAndDecode) {
   using namespace yaraft;
 
@@ -65,11 +72,9 @@ TEST_F(LogWriterTest, EncodeAndDecode) {
   {
     char* s;
     size_t len;
-    EncodedToArray(e, &s, &len);
+    EncodeToArray(e, &s, &len);
 
-    SegmentMetaData meta;
-    meta.fileSize = len;
-    ReadableLogSegment reader(&meta, s);
+    ReadableLogSegment reader(s, len);
 
     auto sw = reader.ReadEntry();
     ASSERT_OK(sw);
@@ -79,14 +84,15 @@ TEST_F(LogWriterTest, EncodeAndDecode) {
   {
     size_t len = e.ByteSize() + kEntryHeaderSize;
     char* s = new char[len];
-    EncodedToAllocatedArray(e, s, &len);
+    EncodeToAllocatedArray(e, s, &len);
 
-    SegmentMetaData meta;
-    meta.fileSize = len;
-    ReadableLogSegment reader(&meta, s);
+    ReadableLogSegment reader(s, len);
 
     auto sw = reader.ReadEntry();
     ASSERT_OK(sw);
     ASSERT_EQ(sw.GetValue().SerializeAsString(), e.SerializeAsString());
   }
 }
+
+}  // namespace wal
+}  // namespace consensus

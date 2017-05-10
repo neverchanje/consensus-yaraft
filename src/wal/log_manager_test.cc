@@ -14,8 +14,13 @@
 
 #include "wal/log_manager.h"
 #include "base/testing.h"
+#include "wal/format.h"
+#include "wal/log_writer.h"
+#include "wal/options.h"
+#include "wal/segment_meta.h"
 
 #include <gtest/gtest.h>
+#include <yaraft/fluent_pb.h>
 
 namespace consensus {
 namespace wal {
@@ -23,40 +28,29 @@ namespace wal {
 class LogManagerTest : public BaseTest {
  public:
   LogManagerTest() {}
-
-  void AppendSegMeta(LogManager& m, SegmentMetaData& meta) {
-    m.files_.push_back(std::move(meta));
-  }
 };
 
-TEST_F(LogManagerTest, FindSegmentId) {
-  LogManager manager;
+TEST_F(LogManagerTest, AppendEntries) {
+  using namespace yaraft;
 
-  struct TestData {
-    std::vector<std::pair<uint64_t, uint64_t>> ranges;
+  ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
+  LogManager manager(GetTestDir());
 
-    Error::ErrorCodes code;
-  } tests[] = {
-      {{{1, 5}, {6, 10}}, Error::OK},
-      {{{1, 3}, {4, 7}}, Error::OutOfBound},
-      {{{9, 12}, {13, 16}}, Error::LogCompacted},
-  };
+  size_t totalEntries = 100;
+  size_t entriesPerSegment = 10;
 
-  for (auto t : tests) {
-    for (auto r : t.ranges) {
-      SegmentMetaData meta;
-      meta.range = r;
-      AppendSegMeta(manager, meta);
-    }
+  size_t emptyEntrySize = PBEntry().Index(1).Term(1).v.ByteSize();
+  FLAGS_log_segment_size = (emptyEntrySize + kEntryHeaderSize) * entriesPerSegment;
 
-    auto sw = manager.FindSegmentId(8);
-
-    if (!sw.IsOK()) {
-      ASSERT_EQ(sw.GetStatus().Code(), t.code);
-    } else {
-      ASSERT_EQ(sw.GetValue(), 1);
-    }
+  EntryVec vec;
+  for (int i = 1; i <= totalEntries; i++) {
+    vec.push_back(PBEntry().Index(i).Term(i).v);
   }
+
+  manager.AppendEntries(PBMessage().Entries(vec).v);
+  ASSERT_EQ(manager.SegmentNum(), totalEntries / entriesPerSegment);
+
+  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
 }
 
 }  // namespace wal

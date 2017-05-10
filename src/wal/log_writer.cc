@@ -25,18 +25,18 @@ std::string EncodeToString(const yaraft::pb::Entry &entry) {
   char *p = &buf[0];
 
   size_t bufLen;
-  EncodedToAllocatedArray(entry, p, &bufLen);
+  EncodeToAllocatedArray(entry, p, &bufLen);
   CHECK_EQ(bufLen, buf.size());
 
   return buf;
 }
 
-void EncodedToArray(const yaraft::pb::Entry &entry, char **result, size_t *len) {
+void EncodeToArray(const yaraft::pb::Entry &entry, char **result, size_t *len) {
   (*result) = new char[entry.ByteSize() + 8];
-  EncodedToAllocatedArray(entry, *result, len);
+  EncodeToAllocatedArray(entry, *result, len);
 }
 
-void EncodedToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len) {
+void EncodeToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len) {
   char *p = result;
   entry.SerializeToArray(p + 8, entry.ByteSize());
 

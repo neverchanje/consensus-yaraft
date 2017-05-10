@@ -122,7 +122,7 @@ class PosixWritableFile : public WritableFile {
     }
   }
 
-  Status Append(const Slice& data) {
+  Status Append(const Slice& data) override {
     const char* src = data.data();
     size_t left = data.size();
     while (left != 0) {
@@ -239,6 +239,7 @@ class PosixWritableFile : public WritableFile {
     return filesize_;
   }
 
+  // NOTE: The file offset will not be changed.
   Status Truncate(size_t size) override {
     Status s;
     int r = ftruncate(fd_, size);

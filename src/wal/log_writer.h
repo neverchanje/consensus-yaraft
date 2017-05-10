@@ -16,23 +16,42 @@
 
 #include "base/env.h"
 #include "base/logging.h"
+#include "wal/log_manager.h"
 #include "wal/options.h"
 #include "wal/segment_meta.h"
 #include "wal/wal.h"
 
+#include <fmt/format.h>
 #include <silly/likely.h>
 
 namespace consensus {
 namespace wal {
 
 std::string EncodeToString(const yaraft::pb::Entry &entry);
-void EncodedToArray(const yaraft::pb::Entry &entry, char **result, size_t *len);
-void EncodedToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len);
+void EncodeToArray(const yaraft::pb::Entry &entry, char **result, size_t *len);
+void EncodeToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len);
 
-struct LogWriter {
+class LogWriter {
  public:
-  // REQUIRED: both f and meta must not be null.
-  LogWriter(WritableFile *f, SegmentMetaData *meta) : file_(f), meta_(meta) {}
+  // Create a log writer for the new log segment.
+  static StatusWith<LogWriter *> New(LogManager *manager) {
+    uint64_t newSegId = manager->files_.size() + 1;
+    uint64_t newSegStart = manager->lastIndex_ + 1;
+    std::string fname = manager->logsDir_ + "/" + SegmentFileName(newSegId, newSegStart);
+    LOG(INFO) << fmt::format("creating new segment segId: {}, firstId: {}", newSegId, newSegStart);
+
+    SegmentMetaData meta;
+    meta.fileName = fname;
+    meta.committed = false;
+    meta.range = std::make_pair(newSegStart, 0);
+
+    WritableFile *wf;
+    ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
+
+    return new LogWriter(wf, meta);
+  }
+
+  LogWriter(WritableFile *wf, SegmentMetaData meta) : file_(wf), meta_(meta) {}
 
   Status MarkCommitted(bool c) {
     char committed[1] = {static_cast<char>(c)};
@@ -40,8 +59,8 @@ struct LogWriter {
   }
 
   // Append log entries in range [begin, end) into the underlying segment.
-  // If current write is beyond the configured segment size, it returns a
-  // iterator points at the last entry appended.
+  // If the current write is beyond the configured segment size, it returns a
+  // iterator points at the next entry to be appended.
   StatusWith<ConstPBEntriesIterator> AppendEntries(ConstPBEntriesIterator begin,
                                                    ConstPBEntriesIterator end) {
     std::string rawEntries;
@@ -58,25 +77,36 @@ struct LogWriter {
     }
 
     RETURN_NOT_OK(file_->Append(rawEntries));
+    entriesNum_ += std::distance(begin, it);
+    meta_.range.second = meta_.range.first + entriesNum_;
     return it;
   }
 
-  Status Finish() {
-    meta_->fileSize = TotalSize();
-    return file_->Close();
+  StatusWith<SegmentMetaData> Finish() {
+    meta_.fileSize = TotalSize();
+    RETURN_NOT_OK(file_->Close());
+    return meta_;
   }
 
-  bool Oversize() {
+  bool Oversize() const {
     return FLAGS_log_segment_size <= file_->Size();
   }
 
-  size_t TotalSize() {
+  size_t TotalSize() const {
     return file_->Size();
   }
 
+  uint64_t LastIndex() const {
+    return meta_.range.second;
+  }
+
+ private:
+  friend class LogWriterTest;
+
  private:
   std::unique_ptr<WritableFile> file_;
-  SegmentMetaData *meta_;
+  SegmentMetaData meta_;
+  size_t entriesNum_;
 };
 
 }  // namespace wal

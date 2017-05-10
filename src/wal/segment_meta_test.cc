@@ -31,26 +31,27 @@ class SegmentMetaTest : public BaseTest {
 
   ~SegmentMetaTest() = default;
 
-  ::consensus::StatusWith<SegmentMetaData*> WriteTestSegment(const Slice& path,
-                                                             const EntryVec& vec) {
+  // write a vector of random entries into wal
+  ::consensus::StatusWith<SegmentMetaData> WriteTestSegment(const Slice& path,
+                                                            const EntryVec& vec) {
     auto msg = PBMessage().Entries(vec).v;
     const auto& entries = msg.entries();
 
-    auto* segMeta = new SegmentMetaData;
-    segMeta->fileName = path.ToString();
+    SegmentMetaData segMeta;
+    segMeta.fileName = path.ToString();
 
     WritableFile* wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(path), wf);
-    std::unique_ptr<LogWriter> writer(new LogWriter(wf, segMeta));
+    LogWriter writer(wf, segMeta);
 
-    writer->MarkCommitted(0);
+    writer.MarkCommitted(0);
 
     ConstPBEntriesIterator it;
-    ASSIGN_IF_OK(writer->AppendEntries(entries.begin(), entries.end()), it);
+    ASSIGN_IF_OK(writer.AppendEntries(entries.begin(), entries.end()), it);
 
     CHECK(it == entries.end());
-    CHECK(!writer->Oversize());
-    RETURN_NOT_OK(writer->Finish());
+    CHECK(!writer.Oversize());
+    RETURN_NOT_OK(writer.Finish());
 
     return segMeta;
   }
@@ -76,54 +77,19 @@ class SegmentMetaTest : public BaseTest {
   Random rng_;
 };
 
-TEST_F(SegmentMetaTest, TruncateLogAfterIndex) {
-  ASSERT_OK(Env::Default()->CreateDirIfMissing(GetTestDir()));
-
-  std::string kTestPath = GetTestDir() + '/' + SegmentFileName(1, 1);
-  auto vec = RandomEntryVec();
-
-  SegmentMetaData* meta;
-  {
-    auto sw = WriteTestSegment(kTestPath, vec);
-    ASSERT_OK(sw);
-    meta = sw.GetValue();
-  }
-  std::unique_ptr<SegmentMetaData> d_meta(meta);
-
-  uint64_t truncatedIndex = vec.size() / 2;
-  meta->TruncateLogAfterIndex(truncatedIndex);
-
-  ReadableLogSegment* seg;
-  {
-    auto sw = ReadableLogSegment::Create(meta);
-    ASSERT_OK(sw);
-    seg = sw.GetValue();
-  }
-  std::unique_ptr<ReadableLogSegment> d_seg(seg);
-
-  seg->SkipHeader();
-  for (int i = 0; i < truncatedIndex; i++) {
-    auto sw = seg->ReadEntry();
-    ASSERT_OK(sw);
-
-    ASSERT_EQ(sw.GetValue().SerializeAsString(), vec[i].SerializeAsString());
-  }
-  ASSERT_OK(Env::Default()->DeleteRecursively(GetParentDir()));
-}
-
 // This test verifies an encoded entry can be decoded correctly.
 TEST_F(SegmentMetaTest, EncodeAndDecode) {
   for (int i = 0; i < 1000; i++) {
     auto expect = yaraft::PBEntry().Index(1).Term(2).Data(RandomString(20, &rng_)).v;
-    SegmentMetaData meta;
 
+    SegmentMetaData meta;
     char* s = new char[kSegmentHeaderSize + kEntryHeaderSize + expect.ByteSize()];
     s[0] = 0;
 
-    char* p = s + kSegmentHeaderSize;
-    EncodedToAllocatedArray(expect, p, &meta.fileSize);
+    EncodeToAllocatedArray(expect, s + kSegmentHeaderSize, &meta.fileSize);
+    meta.fileSize += kSegmentHeaderSize;
 
-    ReadableLogSegment seg(&meta, s);
+    ReadableLogSegment seg(s, meta.fileSize);
     seg.SkipHeader();
     yaraft::pb::Entry actual;
     {

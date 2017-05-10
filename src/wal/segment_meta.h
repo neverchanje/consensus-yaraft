@@ -21,8 +21,6 @@
 namespace consensus {
 namespace wal {
 
-Status Truncate(const std::string& fileName, size_t size);
-
 struct SegmentMetaData {
   std::string fileName;
   bool committed;
@@ -30,8 +28,6 @@ struct SegmentMetaData {
   size_t fileSize;
 
   SegmentMetaData() = default;
-
-  Status TruncateLogAfterIndex(uint64_t logIndex);
 };
 
 std::string SegmentFileName(uint64_t segmentId, uint64_t firstIdx);

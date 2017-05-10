@@ -29,42 +29,46 @@
 namespace consensus {
 namespace wal {
 
+// ReadableLogSegment saves all data of a segment into memory.
 class ReadableLogSegment {
  public:
   ~ReadableLogSegment() {
     delete[] buf_;
   }
 
-  static StatusWith<ReadableLogSegment *> Create(const SegmentMetaData *meta) {
-    auto bufLen = meta->fileSize;
+  static StatusWith<ReadableLogSegment *> Create(const SegmentMetaData &meta) {
+    auto bufLen = meta.fileSize;
     auto buf = new char[bufLen];
     memset(buf, static_cast<int>(bufLen), '\0');
 
     Slice s;
-    RETURN_NOT_OK(env_util::ReadFullyToAllocatedBuffer(meta->fileName, &s, buf));
-    return new ReadableLogSegment(meta, buf);
+    RETURN_NOT_OK(env_util::ReadFullyToAllocatedBuffer(meta.fileName, &s, buf));
+    return new ReadableLogSegment(buf, bufLen);
   }
 
-  ReadableLogSegment(const SegmentMetaData *meta, char *segment)
-      : meta_(meta), buf_(segment), offset_(0) {}
+  ReadableLogSegment(char *buf, size_t len) : buf_(buf), offset_(0), remain_(len) {}
 
   Status SkipHeader() {
     CHECK_EQ(offset_, 0);
-    offset_ += kSegmentHeaderSize;
+    CHECK_GE(remain_, kSegmentHeaderSize);
+    advance(kSegmentHeaderSize);
     return Status::OK();
   }
 
   StatusWith<yaraft::pb::Entry> ReadEntry() {
+    CHECK_GE(remain_, 8);
+
     uint32_t crc32;
     crc32 = DecodeFixed32(buf_ + offset_);
-    offset_ += 4;
+    advance(4);
 
     uint32_t size;
     size = DecodeFixed32(buf_ + offset_);
-    offset_ += 4;
+    advance(4);
 
+    CHECK_GE(remain_, size);
     std::string entryBuf(buf_ + offset_, size);
-    offset_ += size;
+    advance(size);
 
     boost::crc_32_type crc;
     crc.process_bytes(entryBuf.data(), size);
@@ -84,9 +88,15 @@ class ReadableLogSegment {
   }
 
  private:
-  const SegmentMetaData *meta_;
+  void advance(size_t len) {
+    offset_ += len;
+    remain_ -= len;
+  }
+
+ private:
   char *buf_;
   size_t offset_;
+  size_t remain_;
 };
 
 }  // namespace wal

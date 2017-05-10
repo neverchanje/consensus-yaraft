@@ -22,34 +22,8 @@
 namespace consensus {
 namespace wal {
 
-Status Truncate(const std::string& fileName, size_t size) {
-  WritableFile* wf;
-  ASSIGN_IF_OK(Env::Default()->NewWritableFile(fileName, Env::CREATE_NON_EXISTING), wf);
-  RETURN_NOT_OK(wf->Truncate(size));
-  RETURN_NOT_OK(wf->Close());
-  return Status::OK();
-}
-
 std::string SegmentFileName(uint64_t segmentId, uint64_t firstIdx) {
   return fmt::format("{}-{}.wal", segmentId, firstIdx);
-}
-
-Status SegmentMetaData::TruncateLogAfterIndex(uint64_t logIndex) {
-  ReadableLogSegment* seg;
-  ASSIGN_IF_OK(ReadableLogSegment::Create(this), seg);
-  std::unique_ptr<ReadableLogSegment> d(seg);
-
-  RETURN_NOT_OK(seg->SkipHeader());
-  while (true) {
-    yaraft::pb::Entry ent;
-    ASSIGN_IF_OK(seg->ReadEntry(), ent);
-
-    if (ent.index() == logIndex) {
-      RETURN_NOT_OK(Truncate(fileName, seg->Offset()));
-      break;
-    }
-  }
-  return Status::OK();
 }
 
 }  // namespace wal
