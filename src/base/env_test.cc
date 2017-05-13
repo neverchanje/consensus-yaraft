@@ -58,7 +58,6 @@ class TestEnv : public BaseTest {
     char* scratch;
     ASSERT_OK(env_util::ReadFullyToBuffer(filePath, &s, &scratch));
 
-    ASSERT_EQ(s.data(), testData.data());
     ASSERT_EQ(s.ToString(), testData);
   }
 
