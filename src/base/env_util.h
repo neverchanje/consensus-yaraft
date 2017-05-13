@@ -29,10 +29,8 @@ namespace env_util {
 // Read the full content of `file` into `scratch`.
 Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *result, char *scratch);
 
-Status ReadFullyToString(const Slice &fname, Slice *result, std::string *scratch);
-
-// Required: `scratch` must reserves enough space.
-Status ReadFullyToAllocatedBuffer(const Slice &fname, Slice *result, char *scratch);
+// Read data into an unallocated buffer.
+Status ReadFullyToBuffer(const Slice &fname, Slice *result, char **scratch);
 
 }  // namespace env_util
 }  // namespace consensus

@@ -55,11 +55,11 @@ class TestEnv : public BaseTest {
 
   void ReadAndVerifyTestData(const string& filePath, const string& testData) {
     Slice s;
-    std::string scratch;
-    ASSERT_OK(env_util::ReadFullyToString(filePath, &s, &scratch));
+    char* scratch;
+    ASSERT_OK(env_util::ReadFullyToBuffer(filePath, &s, &scratch));
 
-    ASSERT_EQ(s.data(), scratch.data());
-    ASSERT_EQ(testData, scratch);
+    ASSERT_EQ(s.data(), testData.data());
+    ASSERT_EQ(s.ToString(), testData);
   }
 
   void RandomDataSet(size_t num_slices, size_t slice_size, vector<string>* dataSet) {
