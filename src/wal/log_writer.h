@@ -43,7 +43,6 @@ class LogWriter {
     SegmentMetaData meta;
     meta.fileName = fname;
     meta.committed = false;
-    meta.range = std::make_pair(newSegStart, 0);
 
     WritableFile *wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
@@ -78,12 +77,11 @@ class LogWriter {
 
     RETURN_NOT_OK(file_->Append(rawEntries));
     entriesNum_ += std::distance(begin, it);
-    meta_.range.second = meta_.range.first + entriesNum_;
     return it;
   }
 
   StatusWith<SegmentMetaData> Finish() {
-    meta_.fileSize = TotalSize();
+    RETURN_NOT_OK(file_->Sync());
     RETURN_NOT_OK(file_->Close());
     return meta_;
   }
@@ -94,10 +92,6 @@ class LogWriter {
 
   size_t TotalSize() const {
     return file_->Size();
-  }
-
-  uint64_t LastIndex() const {
-    return meta_.range.second;
   }
 
  private:

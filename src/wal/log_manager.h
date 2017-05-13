@@ -17,6 +17,8 @@
 #include "base/status.h"
 #include "wal/wal.h"
 
+#include <yaraft/memory_storage.h>
+
 namespace consensus {
 
 class WritableFile;
@@ -30,17 +32,21 @@ class LogManager : public WriteAheadLog {
  public:
   explicit LogManager(const Slice& logsDir);
 
+  // Reconstruct the in-memory metadata of wal, as well as reading the data into `memstore`.
+  static StatusWith<LogManager*> Recover(const std::string& logsDir,
+                                         yaraft::MemoryStorage* memstore);
+
   ~LogManager();
 
   // Required: no holes between logs and msg.entries.
   Status AppendEntries(const yaraft::pb::Message& msg) override;
 
-  StatusWith<size_t> FindSegmentId(uint64_t logIndex) const;
-
   // the number of log segments
   size_t SegmentNum() const {
     return files_.size() + static_cast<size_t>(bool(current_));
   }
+
+  Status MarkCommitted(uint64_t segId) const;
 
  private:
   // Append entries into log. It's guaranteed that there's no conflicted entry between MsgApp
@@ -65,5 +71,17 @@ class LogManager : public WriteAheadLog {
 
   std::string logsDir_;
 };
+
+Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore);
+
+inline Status AppendToMemStore(yaraft::EntryVec& vec, yaraft::MemoryStorage* memstore) {
+  for (auto& e : vec) {
+    auto s = AppendToMemStore(e, memstore);
+    if (!s.IsOK())
+      return s;
+  }
+  return Status::OK();
+}
+
 }  // namespace wal
 }  // namespace consensus
