@@ -34,6 +34,7 @@ class Error {
     Corruption,
     LogCompacted,
     OutOfBound,
+    YARaftERR,
   };
 
  private:
