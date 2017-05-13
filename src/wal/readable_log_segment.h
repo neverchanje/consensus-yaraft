@@ -22,6 +22,7 @@
 #include "wal/segment_meta.h"
 
 #include <boost/crc.hpp>
+#include <fmt/format.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <silly/likely.h>
 #include <yaraft/raftpb.pb.h>
@@ -32,31 +33,36 @@ namespace wal {
 // ReadableLogSegment saves all data of a segment into memory.
 class ReadableLogSegment {
  public:
+  struct Header {
+    bool committed;
+  };
+
+ public:
   ~ReadableLogSegment() {
     delete[] buf_;
   }
 
-  static StatusWith<ReadableLogSegment *> Create(const SegmentMetaData &meta) {
-    auto bufLen = meta.fileSize;
-    auto buf = new char[bufLen];
-    memset(buf, static_cast<int>(bufLen), '\0');
-
+  static StatusWith<ReadableLogSegment *> Create(const Slice &fname) {
+    char *buf;
     Slice s;
-    RETURN_NOT_OK(env_util::ReadFullyToAllocatedBuffer(meta.fileName, &s, buf));
-    return new ReadableLogSegment(buf, bufLen);
+    RETURN_NOT_OK(env_util::ReadFullyToBuffer(fname, &s, &buf));
+    return new ReadableLogSegment(buf, s.Len());
   }
 
   ReadableLogSegment(char *buf, size_t len) : buf_(buf), offset_(0), remain_(len) {}
 
-  Status SkipHeader() {
+  StatusWith<Header> ReadHeader() {
     CHECK_EQ(offset_, 0);
-    CHECK_GE(remain_, kSegmentHeaderSize);
+    RETURN_NOT_OK(checkEnough(kSegmentHeaderSize));
+
+    Header header;
+    header.committed = static_cast<bool>(buf_[0]);
     advance(kSegmentHeaderSize);
-    return Status::OK();
+    return header;
   }
 
   StatusWith<yaraft::pb::Entry> ReadEntry() {
-    CHECK_GE(remain_, 8);
+    RETURN_NOT_OK(checkEnough(8));
 
     uint32_t crc32;
     crc32 = DecodeFixed32(buf_ + offset_);
@@ -66,7 +72,7 @@ class ReadableLogSegment {
     size = DecodeFixed32(buf_ + offset_);
     advance(4);
 
-    CHECK_GE(remain_, size);
+    RETURN_NOT_OK(checkEnough(size));
     std::string entryBuf(buf_ + offset_, size);
     advance(size);
 
@@ -87,10 +93,21 @@ class ReadableLogSegment {
     return offset_;
   }
 
+  bool Eof() const {
+    return remain_ == 0;
+  }
+
  private:
   void advance(size_t len) {
     offset_ += len;
     remain_ -= len;
+  }
+
+  inline Status checkEnough(size_t need) const {
+    if (remain_ < need) {
+      return Status::Make(Error::Corruption, fmt::format("remain_({}) < {}", remain_, need));
+    }
+    return Status::OK();
   }
 
  private:
