@@ -24,8 +24,6 @@ namespace wal {
 struct SegmentMetaData {
   std::string fileName;
   bool committed;
-  std::pair<uint64_t, uint64_t> range;
-  size_t fileSize;
 
   SegmentMetaData() = default;
 };

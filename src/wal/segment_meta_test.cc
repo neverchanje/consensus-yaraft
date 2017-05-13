@@ -82,15 +82,16 @@ TEST_F(SegmentMetaTest, EncodeAndDecode) {
   for (int i = 0; i < 1000; i++) {
     auto expect = yaraft::PBEntry().Index(1).Term(2).Data(RandomString(20, &rng_)).v;
 
+    size_t bufLen = kSegmentHeaderSize + kEntryHeaderSize + expect.ByteSize();
     SegmentMetaData meta;
-    char* s = new char[kSegmentHeaderSize + kEntryHeaderSize + expect.ByteSize()];
+    char* s = new char[bufLen];
     s[0] = 0;
 
-    EncodeToAllocatedArray(expect, s + kSegmentHeaderSize, &meta.fileSize);
-    meta.fileSize += kSegmentHeaderSize;
+    size_t tmp;
+    EncodeToAllocatedArray(expect, s + kSegmentHeaderSize, &tmp);
 
-    ReadableLogSegment seg(s, meta.fileSize);
-    seg.SkipHeader();
+    ReadableLogSegment seg(s, bufLen);
+    ASSERT_OK(seg.ReadHeader());
     yaraft::pb::Entry actual;
     {
       auto sw = seg.ReadEntry();
