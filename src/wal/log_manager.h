@@ -48,6 +48,8 @@ class LogManager : public WriteAheadLog {
 
   Status MarkCommitted(uint64_t segId) const;
 
+  Status Close();
+
  private:
   // Append entries into log. It's guaranteed that there's no conflicted entry between MsgApp
   // and current log.

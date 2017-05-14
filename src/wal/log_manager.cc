@@ -32,6 +32,10 @@ static bool isWal(const std::string& fname) {
   return len > 4 && fname.substr(len - 4, 4) == ".wal";
 }
 
+static void parseWalName(const std::string& fname, uint64_t* segId, uint64_t* segStart) {
+  sscanf(fname.c_str(), "%zu-%zu.wal", segId, segStart);
+}
+
 // Returns: Error::YARaftERR / OK
 Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore) {
   auto& vec = memstore->TEST_Entries();
@@ -77,10 +81,12 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
   RETURN_NOT_OK(Env::Default()->GetChildren(logsDir, &files));
 
   // finds all files with suffix ".wal"
-  std::set<std::string> wals;
+  std::map<uint64_t, uint64_t> wals;  // ordered by segId
   for (const auto& f : files) {
     if (isWal(f)) {
-      wals.insert(f);
+      uint64_t segId, segStart;
+      parseWalName(f, &segId, &segStart);
+      wals[segId] = segStart;
     }
   }
 
@@ -92,12 +98,14 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
 
   m->empty_ = false;
 
-  LOG(INFO) << fmt::format("Recovering from {} wals, starts from {}, ends at {}", wals.size(),
-                           *wals.begin(), *wals.rbegin());
+  LOG(INFO) << fmt::format("Recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
+                           wals.begin()->first, wals.begin()->second, wals.rbegin()->first,
+                           wals.rbegin()->second);
 
   for (auto it = wals.begin(); it != wals.end(); it++) {
     ReadableLogSegment* seg;
-    ASSIGN_IF_OK(ReadableLogSegment::Create(*it), seg);
+    std::string fname = logsDir + "/" + fmt::format("{}-{}.wal", it->first, it->second);
+    ASSIGN_IF_OK(ReadableLogSegment::Create(fname), seg);
     std::unique_ptr<ReadableLogSegment> d(seg);
 
     bool head = true;
@@ -107,10 +115,9 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
         ASSIGN_IF_OK(seg->ReadHeader(), header);
 
         SegmentMetaData meta;
-        meta.fileName = std::move(*it);
+        meta.fileName = std::move(fname);
         meta.committed = header.committed;
         m->files_.push_back(std::move(meta));
-
         head = false;
         continue;
       }
@@ -121,7 +128,6 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
       RETURN_NOT_OK(AppendToMemStore(entry, memstore));
     }
   }
-
   LogWriter* writer;
   ASSIGN_IF_OK(LogWriter::New(m.get()), writer);
   m->current_.reset(writer);
@@ -181,6 +187,13 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
     files_.push_back(meta);
 
     segStart = it;
+  }
+  return Status::OK();
+}
+
+Status LogManager::Close() {
+  if (current_) {
+    return current_->Finish().GetStatus();
   }
   return Status::OK();
 }

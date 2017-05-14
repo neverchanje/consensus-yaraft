@@ -116,5 +116,19 @@ TEST_F(LogManagerTest, AppendToMemStore) {
   }
 }
 
+// This test verifies that no logs will be loaded when LogManager recovers from empty directory. 
+TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
+  TestDirGuard g(CreateTestDirGuard());
+  yaraft::MemoryStorage memstore;
+  std::unique_ptr<LogManager> m;
+  {
+    auto sw = LogManager::Recover(GetTestDir(), &memstore);
+    ASSERT_OK(sw);
+    m.reset(sw.GetValue());
+  }
+
+  ASSERT_EQ(memstore.TEST_Entries().size(), 1);
+}
+
 }  // namespace wal
 }  // namespace consensus

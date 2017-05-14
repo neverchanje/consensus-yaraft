@@ -93,6 +93,10 @@ class ReadableLogSegment {
     return offset_;
   }
 
+  size_t Remain() const {
+    return remain_;
+  }
+
   bool Eof() const {
     return remain_ == 0;
   }
