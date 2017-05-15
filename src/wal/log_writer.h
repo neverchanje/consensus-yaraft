@@ -47,15 +47,14 @@ class LogWriter {
     WritableFile *wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
 
+    // append uncommitted marker
+    std::string uncommitted(1, '\0');
+    wf->Append(uncommitted);
+
     return new LogWriter(wf, meta);
   }
 
   LogWriter(WritableFile *wf, SegmentMetaData meta) : file_(wf), meta_(meta) {}
-
-  Status MarkCommitted(bool c) {
-    char committed[1] = {static_cast<char>(c)};
-    return file_->PositionedAppend(Slice(committed, 1), 0);
-  }
 
   // Append log entries in range [begin, end) into the underlying segment.
   // If the current write is beyond the configured segment size, it returns a

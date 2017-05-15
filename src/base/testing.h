@@ -37,6 +37,13 @@ class Random;
     }                                            \
   } while (0)
 
+#define ASSIGN_IF_ASSERT_OK(statusWith, var) \
+  do {                                       \
+    auto _sw = statusWith;                   \
+    ASSERT_OK(_sw);                          \
+    (var) = _sw.GetValue();                  \
+  } while (0)
+
 class BaseTest : public ::testing::Test {
  public:
   struct TestDirectoryGuard {

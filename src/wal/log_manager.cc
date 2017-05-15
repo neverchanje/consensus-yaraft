@@ -164,6 +164,10 @@ Status LogManager::AppendEntries(const yaraft::pb::Message& msg) {
 }
 
 Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end) {
+  if (begin == end) {
+    return Status::OK();
+  }
+
   auto segStart = begin;
   auto it = segStart;
   while (true) {
@@ -174,8 +178,6 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
     }
 
     ASSIGN_IF_OK(current_->AppendEntries(segStart, end), it);
-    lastIndex_ = it->index();
-
     if (it == end) {
       // write complete
       break;
@@ -188,6 +190,7 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
 
     segStart = it;
   }
+  lastIndex_ = std::prev(end)->index();
   return Status::OK();
 }
 

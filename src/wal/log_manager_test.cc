@@ -17,6 +17,7 @@
 #include "wal/format.h"
 #include "wal/log_writer.h"
 #include "wal/options.h"
+#include "wal/readable_log_segment.h"
 #include "wal/segment_meta.h"
 
 #include <gtest/gtest.h>
@@ -57,26 +58,46 @@ class LogManagerTest : public BaseTest {
   LogManagerTest() {}
 };
 
-TEST_F(LogManagerTest, AppendEntries) {
+TEST_F(LogManagerTest, AppendToOneSegment) {
   using namespace yaraft;
 
-  TestDirGuard g(CreateTestDirGuard());
+  struct TestData {
+    size_t totalEntries;
+  } tests[] = {{10}, {50}, {100}, {1000}};
 
-  LogManager manager(GetTestDir());
+  for (auto t : tests) {
+    TestDirGuard g(CreateTestDirGuard());
 
-  size_t totalEntries = 100;
-  size_t entriesPerSegment = 10;
+    LogManager manager(GetTestDir());
 
-  size_t emptyEntrySize = PBEntry().Index(1).Term(1).v.ByteSize();
-  FLAGS_log_segment_size = (emptyEntrySize + kEntryHeaderSize) * entriesPerSegment;
+    // Always writes to only one segment
+    size_t emptyEntrySize = PBEntry().Index(1).Term(1).v.ByteSize();
+    FLAGS_log_segment_size = 1024 * 1024 * 64;  // sufficient enough to hold all logs in one segment
 
-  EntryVec vec;
-  for (int i = 1; i <= totalEntries; i++) {
-    vec.push_back(PBEntry().Index(i).Term(i).v);
+    EntryVec vec;
+    for (int i = 1; i <= t.totalEntries; i++) {
+      vec.push_back(PBEntry().Index(i).Term(i).v);
+    }
+    ASSERT_OK(manager.AppendEntries(PBMessage().Entries(vec).v));
+
+    // flush data into file
+    ASSERT_OK(manager.Close());
+
+    ReadableLogSegment* seg;
+    ASSIGN_IF_ASSERT_OK(ReadableLogSegment::Create(GetTestDir() + "/" + SegmentFileName(1, 1)),
+                        seg);
+    std::unique_ptr<ReadableLogSegment> d(seg);
+
+    ReadableLogSegment::Header h;
+    ASSIGN_IF_ASSERT_OK(seg->ReadHeader(), h);
+    ASSERT_FALSE(h.committed);
+
+    for (int i = 0; i < t.totalEntries; i++) {
+      auto sw = seg->ReadEntry();
+      ASSERT_OK(sw);
+      ASSERT_TRUE(sw.GetValue() == vec[i]);
+    }
   }
-
-  manager.AppendEntries(PBMessage().Entries(vec).v);
-  ASSERT_EQ(manager.SegmentNum(), totalEntries / entriesPerSegment);
 }
 
 TEST_F(LogManagerTest, AppendToMemStore) {
@@ -116,7 +137,7 @@ TEST_F(LogManagerTest, AppendToMemStore) {
   }
 }
 
-// This test verifies that no logs will be loaded when LogManager recovers from empty directory. 
+// This test verifies that no logs will be loaded when LogManager recovers from empty directory.
 TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
   TestDirGuard g(CreateTestDirGuard());
   yaraft::MemoryStorage memstore;
