@@ -151,5 +151,44 @@ TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
   ASSERT_EQ(memstore.TEST_Entries().size(), 1);
 }
 
+TEST_F(LogManagerTest, Recover) {
+  struct TestData {
+    int logsNum;
+  } tests[] = {
+      {10}, {100}, {1000},
+  };
+
+  for (auto t : tests) {
+    TestDirGuard g(CreateTestDirGuard());
+
+    FLAGS_log_segment_size = 1024;
+
+    EntryVec expected;
+    for (int i = 1; i <= t.logsNum; i++) {
+      expected.push_back(PBEntry().Index(i).Term(i).v);
+    }
+
+    size_t segNum;
+    {
+      LogManager m(GetTestDir());
+      ASSERT_OK(m.AppendEntries(yaraft::PBMessage().Entries(expected).v));
+      segNum = m.SegmentNum();
+      ASSERT_OK(m.Close());
+    }
+
+    yaraft::MemoryStorage memstore;
+    LogManager* m;
+    ASSIGN_IF_ASSERT_OK(LogManager::Recover(GetTestDir(), &memstore), m);
+    std::unique_ptr<LogManager> d(m);
+
+    ASSERT_EQ(segNum, m->SegmentNum());
+
+    auto& actual = memstore.TEST_Entries();
+    for (int i = 1; i < actual.size(); i++) {
+      ASSERT_TRUE(expected[i - 1] == actual[i]);
+    }
+  }
+}
+
 }  // namespace wal
 }  // namespace consensus

@@ -128,10 +128,6 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
       RETURN_NOT_OK(AppendToMemStore(entry, memstore));
     }
   }
-  LogWriter* writer;
-  ASSIGN_IF_OK(LogWriter::New(m.get()), writer);
-  m->current_.reset(writer);
-
   return m.release();
 }
 
@@ -178,11 +174,13 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
     }
 
     ASSIGN_IF_OK(current_->AppendEntries(segStart, end), it);
+    DCHECK(it != segStart);  // AppendEntries must have appended one entry.
     if (it == end) {
       // write complete
       break;
     }
 
+    lastIndex_ = std::prev(it)->index();
     SegmentMetaData meta;
     ASSIGN_IF_OK(current_->Finish(), meta);
     delete current_.release();
@@ -190,7 +188,6 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
 
     segStart = it;
   }
-  lastIndex_ = std::prev(end)->index();
   return Status::OK();
 }
 
