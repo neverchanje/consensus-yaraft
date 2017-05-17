@@ -39,7 +39,10 @@ class LogManager : public WriteAheadLog {
   ~LogManager();
 
   // Required: no holes between logs and msg.entries.
-  Status AppendEntries(const yaraft::pb::Message& msg) override;
+  Status AppendEntries(const PBEntryVec& vec) override;
+
+  // naive implementation: delete all committed segments.
+  Status GC(WriteAheadLog::CompactionHint* hint) override;
 
   // the number of log segments
   size_t SegmentNum() const {

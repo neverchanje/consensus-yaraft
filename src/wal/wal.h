@@ -21,27 +21,21 @@
 namespace consensus {
 namespace wal {
 
-using PBEntriesIterator = ::google::protobuf::RepeatedPtrField<::yaraft::pb::Entry>::iterator;
-using ConstPBEntriesIterator =
-    ::google::protobuf::RepeatedPtrField<const ::yaraft::pb::Entry>::iterator;
+using PBEntryVec = std::vector<yaraft::pb::Entry>;
+using PBEntriesIterator = PBEntryVec::iterator;
+using ConstPBEntriesIterator = PBEntryVec::const_iterator;
 
 class WriteAheadLog {
  public:
   virtual ~WriteAheadLog() = default;
 
   // Append log entries from message `msg` into underlying storage.
-  //
-  // Required: msg.type() == pb::MsgApp
-  virtual Status AppendEntries(const yaraft::pb::Message& msg) = 0;
+  virtual Status AppendEntries(const PBEntryVec& msg) = 0;
 
   struct CompactionHint {};
 
-  // Do GC work to compact unused logs,
-  //
-  // On some implementation, GC can be simply done by deleting the unused log files.
-  virtual Status GC(CompactionHint* hint) {
-    return Status::Make(Error::NotSupported);
-  }
+  // Abandon the unused logs.
+  virtual Status GC(CompactionHint* hint) = 0;
 };
 
 }  // namespace wal

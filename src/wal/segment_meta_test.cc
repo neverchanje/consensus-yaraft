@@ -33,18 +33,13 @@ class SegmentMetaTest : public BaseTest {
 
   // write a vector of random entries into wal
   ::consensus::StatusWith<SegmentMetaData> WriteTestSegment(const Slice& path,
-                                                            const EntryVec& vec) {
-    auto msg = PBMessage().Entries(vec).v;
-    const auto& entries = msg.entries();
-
+                                                            const EntryVec& entries) {
     SegmentMetaData segMeta;
     segMeta.fileName = path.ToString();
 
     WritableFile* wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(path), wf);
     LogWriter writer(wf, segMeta);
-
-    writer.MarkCommitted(0);
 
     ConstPBEntriesIterator it;
     ASSIGN_IF_OK(writer.AppendEntries(entries.begin(), entries.end()), it);
@@ -91,7 +86,6 @@ TEST_F(SegmentMetaTest, EncodeAndDecode) {
     EncodeToAllocatedArray(expect, s + kSegmentHeaderSize, &tmp);
 
     ReadableLogSegment seg(s, bufLen);
-    ASSERT_OK(seg.ReadHeader());
     yaraft::pb::Entry actual;
     {
       auto sw = seg.ReadEntry();

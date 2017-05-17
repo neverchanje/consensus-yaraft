@@ -144,26 +144,22 @@ Status LogManager::MarkCommitted(uint64_t segId) const {
   return wf->Close();
 }
 
-Status LogManager::AppendEntries(const yaraft::pb::Message& msg) {
-  if (msg.entries().empty()) {
+Status LogManager::AppendEntries(const PBEntryVec& entries) {
+  if (entries.empty()) {
     return Status::OK();
   }
 
-  uint64_t beginIdx = msg.entries().begin()->index();
+  uint64_t beginIdx = entries.begin()->index();
   if (empty_) {
     lastIndex_ = beginIdx - 1;  // start at the first entry received.
     empty_ = false;
   }
 
   // the overlapped part of logs will not be deleted until snapshotting.
-  return doAppend(msg.entries().begin(), msg.entries().end());
+  return doAppend(entries.begin(), entries.end());
 }
 
 Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end) {
-  if (begin == end) {
-    return Status::OK();
-  }
-
   auto segStart = begin;
   auto it = segStart;
   while (true) {
@@ -194,6 +190,15 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
 Status LogManager::Close() {
   if (current_) {
     return current_->Finish().GetStatus();
+  }
+  return Status::OK();
+}
+
+Status LogManager::GC(WriteAheadLog::CompactionHint* hint) {
+  for (SegmentMetaData& f : files_) {
+    if (f.committed) {
+      RETURN_NOT_OK(Env::Default()->DeleteFile(f.fileName));
+    }
   }
   return Status::OK();
 }
