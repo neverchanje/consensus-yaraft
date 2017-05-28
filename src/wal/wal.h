@@ -16,7 +16,8 @@
 
 #include "base/status.h"
 
-#include <yaraft/raftpb.pb.h>
+#include <yaraft/memory_storage.h>
+#include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {
 namespace wal {
@@ -29,13 +30,15 @@ class WriteAheadLog {
  public:
   virtual ~WriteAheadLog() = default;
 
-  // Append log entries from message `msg` into underlying storage.
-  virtual Status AppendEntries(const PBEntryVec& msg) = 0;
+  // Append log entries into underlying storage.
+  virtual Status AppendEntries(const PBEntryVec& entries) = 0;
 
   struct CompactionHint {};
 
   // Abandon the unused logs.
   virtual Status GC(CompactionHint* hint) = 0;
+
+  static Status Default(const Slice& logsDir, WriteAheadLog* wal, yaraft::MemoryStorage* memstore);
 };
 
 }  // namespace wal
