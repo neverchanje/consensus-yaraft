@@ -24,31 +24,27 @@ TEST(Config, Parse) {
   struct TestData {
     std::string cmdParam;
 
-    std::vector<std::pair<uint64_t, std::string>> expected;
+    std::vector<std::pair<std::string, std::string>> expected;
     Error::ErrorCodes code;
   } tests[] = {
-      {"server.123=192.168.0.1:1080", {{123, "192.168.0.1:1080"}}, Error::OK},
-      {"server.00123=192.168.0.1:1080", {{123, "192.168.0.1:1080"}}, Error::OK},
+      {"server1=192.168.0.1:1080", {{"server1", "192.168.0.1:1080"}}, Error::OK},
 
-      {"server.1=192.168.0.1:1080;server.2=192.168.0.2:1080;server.3=192.168.0.3:1080;",
-       {{1, "192.168.0.1:1080"}, {2, "192.168.0.2:1080"}, {3, "192.168.0.3:1080"}},
+      {"server1=192.168.0.1:1081;server2=192.168.0.2:1082;server3=192.168.0.3:1083;",
+       {{"server1", "192.168.0.1:1081"},
+        {"server2", "192.168.0.2:1082"},
+        {"server3", "192.168.0.3:1083"}},
        Error::OK},
 
       // empty param
       {";;;", {}, Error::OK},
 
-      {"server.1 192.168.0.1:1080;", {}, Error::BadConfig},
-
-      {"ser.1=192.168.0.1:1080;", {}, Error::BadConfig},
-      {"1=192.168.0.1:1080;", {}, Error::BadConfig},
-
-      {"server.1 1=192.168.0.1:1080;", {}, Error::BadConfig},
+      {"server1 192.168.0.1:1080;", {}, Error::BadConfig},
   };
 
   for (auto& t : tests) {
     FLAGS_initial_cluster = t.cmdParam;
 
-    std::map<uint64_t, std::string> peerMap;
+    std::map<std::string, std::string> peerMap;
 
     auto s = ParseClusterMembershipFromGFlags(&peerMap);
     ASSERT_EQ(s.Code(), t.code);

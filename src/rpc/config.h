@@ -23,9 +23,13 @@
 namespace consensus {
 namespace rpc {
 
-DECLARE_string(initial_cluster);
+DECLARE_string(name);
 
-Status ParseClusterMembershipFromGFlags(std::map<uint64_t, std::string> *peerMap);
+// --initial_cluster="<name>:<ip>, ..."
+DECLARE_string(initial_cluster);
+Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string> *peerMap);
+
+DECLARE_string(wal_dir);
 
 }  // namespace rpc
 }  // namespace consensus
