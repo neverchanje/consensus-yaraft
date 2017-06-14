@@ -42,31 +42,19 @@ using std::string;
   } while ((err) == -1 && errno == EINTR)
 
 // Return IOError if error code is not null.
-#define RETURN_BOOST_EC(code)                       \
-  do {                                              \
-    if (PREDICT_FALSE(bool(code)))                  \
-      return IOError(code.message(), code.value()); \
+#define RETURN_BOOST_EC(code)                              \
+  do {                                                     \
+    if (PREDICT_FALSE(bool(code)))                         \
+      return Status::Make(Error::IOError, code.message()); \
   } while (0)
 
-Status StatusWithErrno(Error::ErrorCodes code, const Slice& context, int err_number) {
-  return Status::Make(code, context) << ": " << ErrnoToString(err_number);
-}
-
-static Status IOError(const Slice& context, int err_number) {
-  switch (err_number) {
-    case ENOENT:
-      return StatusWithErrno(Error::NotFound, context, err_number);
-    case EEXIST:
-      return StatusWithErrno(Error::AlreadyPresent, context, err_number);
-    case EOPNOTSUPP:
-      return StatusWithErrno(Error::NotSupported, context, err_number);
-  }
-  return StatusWithErrno(Error::IOError, context, err_number);
+Status FileIOError(const Slice& fname, int err_number) {
+  return Status::Make(Error::IOError, fname) << ": " << ErrnoToString(err_number);
 }
 
 static Status DoSync(int fd, const Slice& filename) {
   if (fdatasync(fd) < 0) {
-    return IOError(filename, errno);
+    return FileIOError(filename, errno);
   }
   return Status::OK();
 }
@@ -87,18 +75,16 @@ static StatusWith<int> DoOpen(const Slice& filename, Env::CreateMode mode) {
   }
   const int f = open(filename.data(), flags, 0666);
   if (f < 0) {
-    return IOError(filename, errno);
+    return FileIOError(filename, errno);
   }
   return f;
 }
 
 StatusWith<uint64_t> DoGetFileSize(const Slice& fname) {
-  struct stat sbuf;
-  if (stat(fname.data(), &sbuf) != 0) {
-    return IOError(fname, errno);
-  } else {
-    return static_cast<uint64_t>(sbuf.st_size);
-  }
+  boost::system::error_code code;
+  uint64_t fsize = boost::filesystem::file_size(fname.data(), code);
+  RETURN_BOOST_EC(code);
+  return fsize;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +119,7 @@ class PosixWritableFile : public WritableFile {
         if (errno == EINTR) {
           continue;
         }
-        return IOError(filename_, errno);
+        return FileIOError(filename_, errno);
       }
       left -= done;
       src += done;
@@ -152,28 +138,13 @@ class PosixWritableFile : public WritableFile {
         if (errno == EINTR) {
           continue;
         }
-        return IOError(filename_, errno);
+        return FileIOError(filename_, errno);
       }
       left -= done;
       offset += done;
       src += done;
     }
     filesize_ = offset;
-    return Status::OK();
-  }
-
-  Status PreAllocate(uint64_t size) override {
-    uint64_t offset = std::max(filesize_, pre_allocated_size_);
-    if (fallocate(fd_, 0, offset, size) < 0) {
-      if (errno == EOPNOTSUPP) {
-        LOG(WARNING) << "The filesystem does not support fallocate().";
-      } else if (errno == ENOSYS) {
-        LOG(WARNING) << "The kernel does not implement fallocate().";
-      } else {
-        return IOError(filename_, errno);
-      }
-    }
-    pre_allocated_size_ = offset + size;
     return Status::OK();
   }
 
@@ -186,7 +157,7 @@ class PosixWritableFile : public WritableFile {
       int ret;
       RETRY_ON_EINTR(ret, ftruncate(fd_, filesize_));
       if (ret != 0) {
-        s = IOError(filename_, errno);
+        s = FileIOError(filename_, errno);
         pending_sync_ = true;
       }
     }
@@ -203,7 +174,7 @@ class PosixWritableFile : public WritableFile {
 
     if (close(fd_) < 0) {
       if (s.OK()) {
-        s = IOError(filename_, errno);
+        s = FileIOError(filename_, errno);
       }
     }
 
@@ -219,7 +190,7 @@ class PosixWritableFile : public WritableFile {
       flags |= SYNC_FILE_RANGE_WAIT_AFTER;
     }
     if (sync_file_range(fd_, 0, 0, flags) < 0) {
-      return IOError(filename_, errno);
+      return FileIOError(filename_, errno);
     }
 #else
     if (mode == FLUSH_SYNC && fsync(fd_) < 0) {
@@ -239,18 +210,6 @@ class PosixWritableFile : public WritableFile {
 
   uint64_t Size() const override {
     return filesize_;
-  }
-
-  // NOTE: The file offset will not be changed.
-  Status Truncate(size_t size) override {
-    Status s;
-    int r = ftruncate(fd_, size);
-    if (r < 0) {
-      s = IOError(filename_, errno);
-    } else {
-      filesize_ = size;
-    }
-    return s;
   }
 
   const string& filename() const override {
@@ -284,7 +243,7 @@ class PosixRandomAccessFile : public RandomAccessFile {
     RETRY_ON_EINTR(r, pread(fd_, scratch, n, offset));
     if (r < 0) {
       // An error: return a non-ok status.
-      s = IOError(filename_, errno);
+      s = FileIOError(filename_, errno);
     }
     *result = Slice(scratch, static_cast<size_t>(r));
     return s;
@@ -321,7 +280,7 @@ class PosixEnv final : public Env {
   StatusWith<RandomAccessFile*> NewRandomAccessFile(const Slice& fname) override {
     int fd = open(fname.data(), O_RDONLY);
     if (fd < 0) {
-      return IOError(fname, errno);
+      return FileIOError(fname, errno);
     }
     return new PosixRandomAccessFile(fname, fd);
   }
