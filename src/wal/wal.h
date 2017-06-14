@@ -38,7 +38,9 @@ class WriteAheadLog {
   // Abandon the unused logs.
   virtual Status GC(CompactionHint* hint) = 0;
 
-  static Status Default(const Slice& logsDir, WriteAheadLog* wal, yaraft::MemoryStorage* memstore);
+  // Default implementation of WAL.
+  static Status Default(const std::string& logsDir, WriteAheadLog** wal,
+                        yaraft::MemoryStorage* memstore);
 };
 
 }  // namespace wal
