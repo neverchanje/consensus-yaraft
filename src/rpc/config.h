@@ -20,16 +20,17 @@
 
 #pragma once
 
+DECLARE_string(initial_cluster);
+
+DECLARE_string(name);
+DECLARE_string(wal_dir);
+DECLARE_uint32(heartbeat_interval);
+DECLARE_uint32(election_timeout);
+
 namespace consensus {
 namespace rpc {
 
-DECLARE_string(name);
-
-// --initial_cluster="<name>:<ip>, ..."
-DECLARE_string(initial_cluster);
 Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string> *peerMap);
-
-DECLARE_string(wal_dir);
 
 }  // namespace rpc
 }  // namespace consensus

@@ -17,12 +17,21 @@
 
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>
+
+static std::string currentDir = boost::filesystem::current_path().string();
+
+DEFINE_string(name, "default", "human-readable name for this member.");
+DEFINE_string(initial_cluster, fmt::format("{}=127.0.0.1", FLAGS_name),
+              "initial cluster configuration for bootstrapping. Format: \"<name1>=<ip1>, "
+              "<name2>=<ip2>, ...\"");
+DEFINE_string(wal_dir, fmt::format("{}/{}.consensus", currentDir, FLAGS_name),
+              "path to the dedicated wal directory.");
+DEFINE_uint32(heartbeat_interval, 100, "time (in milliseconds) of a heartbeat interval.");
+DEFINE_uint32(election_timeout, 1000, "time (in milliseconds) for an election to timeout.");
 
 namespace consensus {
 namespace rpc {
-
-DEFINE_string(initial_cluster, "", "initial membership of the cluster");
-DEFINE_string(name, "", "");
 
 #define ERROR_IF_NOT(cond)                                           \
   do {                                                               \
