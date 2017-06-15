@@ -33,4 +33,25 @@ void STLDeleteContainerPairSecondPointers(ForwardIterator begin, ForwardIterator
   }
 }
 
+// STLDeleteContainerPointers()
+//  For a range within a container of pointers, calls delete
+//  (non-array version) on these pointers.
+// NOTE: for these three functions, we could just implement a DeleteObject
+// functor and then call for_each() on the range and functor, but this
+// requires us to pull in all of <algorithm>, which seems expensive.
+// For hash_[multi]set, it is important that this deletes behind the iterator
+// because the hash_set may call the hash function on the iterator when it is
+// advanced, which could result in the hash function trying to deference a
+// stale pointer.
+// NOTE: If you're calling this on an entire container, you probably want
+// to call STLDeleteElements(&container) instead, or use an ElementDeleter.
+template <class ForwardIterator>
+void STLDeleteContainerPointers(ForwardIterator begin, ForwardIterator end) {
+  while (begin != end) {
+    ForwardIterator temp = begin;
+    ++begin;
+    delete *temp;
+  }
+}
+
 }  // namespace consensus
