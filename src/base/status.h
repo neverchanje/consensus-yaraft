@@ -28,13 +28,12 @@ class Error {
     OK,
 
     IOError,
-    NotFound,
-    AlreadyPresent,
     NotSupported,
     Corruption,
     LogCompacted,
     OutOfBound,
     YARaftERR,
+    BadConfig,
   };
 
  private:

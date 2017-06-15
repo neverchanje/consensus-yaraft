@@ -25,13 +25,12 @@ namespace consensus {
 std::string Error::toString(unsigned int code) {
   switch (code) {
     DUMB_ERROR_TO_STRING(IOError);
-    DUMB_ERROR_TO_STRING(NotFound);
-    DUMB_ERROR_TO_STRING(AlreadyPresent);
     DUMB_ERROR_TO_STRING(NotSupported);
     DUMB_ERROR_TO_STRING(Corruption);
     DUMB_ERROR_TO_STRING(LogCompacted);
     DUMB_ERROR_TO_STRING(OutOfBound);
     DUMB_ERROR_TO_STRING(YARaftERR);
+    DUMB_ERROR_TO_STRING(BadConfig);
     default:
       return fmt::format("Unknown error codes: {}", code);
   }
