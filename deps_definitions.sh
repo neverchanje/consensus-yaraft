@@ -10,6 +10,13 @@ GFLAG_VERSION=2.2.0
 GFLAG_NAME=gflags-$GFLAG_VERSION
 GFLAG_SOURCE=$TP_DIR/$GFLAG_NAME
 
+SNAPPY_VERSION=1.1.3
+SNAPPY_NAME=snappy-$SNAPPY_VERSION
+SNAPPY_SOURCE=$TP_DIR/$SNAPPY_NAME
+
+SOFA_PBRPC_NAME=sofa-pbrpc
+SOFA_PBRPC_SOURCE=$PROJECT_DIR/sofa-pbrpc
+
 QINIU_CDN_URL_PREFIX=http://onnzg1pyx.bkt.clouddn.com
 
 make_stamp() {
@@ -36,7 +43,7 @@ fetch_and_expand() {
       echo "Archive $FILENAME already exists. Not re-downloading archive."
     else
       echo "Fetching $FILENAME from $FULL_URL"
-      curl -L -O "$FULL_URL"
+      wget "$FULL_URL"
     fi
 
     echo "Unpacking $FILENAME"
@@ -88,5 +95,23 @@ build_gflag() {
     -DREGISTER_INSTALL_PREFIX=Off \
     $GFLAG_SOURCE
   make -j8 install
+  popd
+}
+
+build_snappy() {
+  pushd ${SNAPPY_SOURCE}
+  ./configure --prefix=${TP_BUILD_DIR}
+  make -j4
+  make install
+  popd
+}
+
+build_sofa_pbrpc() {
+  pushd $SOFA_PBRPC_SOURCE
+  echo "BOOST_HEADER_DIR=/usr/include" > depends.mk
+  echo "PROTOBUF_DIR=$PROJECT_DIR/yaraft/build/third_parties" >> depends.mk
+  echo "SNAPPY_DIR=$TP_BUILD_DIR" >> depends.mk
+  make clean
+  make -j4 && make install
   popd
 }
