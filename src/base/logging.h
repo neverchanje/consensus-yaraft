@@ -16,6 +16,7 @@
 
 #include "base/status.h"
 
+#include <fmt/format.h>
 #include <glog/logging.h>
 
 namespace consensus {
@@ -24,12 +25,25 @@ namespace consensus {
 #define WARN_NOT_OK(to_call, warning_prefix)                     \
   do {                                                           \
     const auto& _s = (to_call);                                  \
-    if (PREDICT_FALSE(!_s.IsOK())) {                             \
+    if (UNLIKELY(!_s.IsOK())) {                                  \
       LOG(WARNING) << (warning_prefix) << ": " << _s.ToString(); \
     }                                                            \
   } while (0);
 
+/// @brief Emit a fatal error if @c to_call returns a bad status.
+#define FATAL_NOT_OK(to_call, fatal_prefix)                  \
+  do {                                                       \
+    const auto& _s = (to_call);                              \
+    if (UNLIKELY(!_s.IsOK())) {                              \
+      LOG(FATAL) << (fatal_prefix) << ": " << _s.ToString(); \
+    }                                                        \
+  } while (0);
+
 /// @brief Return the given status if it is not @c OK.
 #define RETURN_NOT_OK SILLY_RETURN_NOT_OK
+
+#define FMT_LOG(level, formatStr, args...) LOG(level) << fmt::format(formatStr, ##args)
+
+#define FMT_SLOG(level, formatStr, args...) LOG(level) << fmt::sprintf(formatStr, ##args)
 
 }  // namespace consensus

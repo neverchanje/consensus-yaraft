@@ -12,28 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "base/status.h"
+#include <map>
 
-#include <fmt/format.h>
+#include "peer.h"
+
+#include <gflags/gflags.h>
+
+#pragma once
+
+DECLARE_string(initial_cluster);
+
+DECLARE_string(name);
+DECLARE_string(wal_dir);
+DECLARE_uint32(heartbeat_interval);
+DECLARE_uint32(election_timeout);
 
 namespace consensus {
+namespace rpc {
 
-#define DUMB_ERROR_TO_STRING(err) \
-  case (err):                     \
-    return #err
+Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string> *peerMap);
 
-std::string Error::toString(unsigned int code) {
-  switch (code) {
-    DUMB_ERROR_TO_STRING(IOError);
-    DUMB_ERROR_TO_STRING(NotSupported);
-    DUMB_ERROR_TO_STRING(Corruption);
-    DUMB_ERROR_TO_STRING(LogCompacted);
-    DUMB_ERROR_TO_STRING(OutOfBound);
-    DUMB_ERROR_TO_STRING(YARaftERR);
-    DUMB_ERROR_TO_STRING(BadConfig);
-    default:
-      return fmt::format("Unknown error codes: {}", code);
-  }
-}
-
+}  // namespace rpc
 }  // namespace consensus

@@ -1,0 +1,27 @@
+syntax = "proto2";
+
+package consensus.rpc.pb;
+
+import "yaraft/pb/raftpb.proto";
+
+option cc_generic_services = true;
+option java_generic_services = true;
+
+enum StatusCode {
+    OK = 0;
+
+    StepLocalMsg = 1;
+    StepPeerNotFound = 2;
+}
+
+message Response {
+    optional StatusCode code = 1;
+}
+
+message Request {
+    required yaraft.pb.Message message = 1;
+}
+
+service RaftService {
+    rpc Step(Request) returns(Response);
+}

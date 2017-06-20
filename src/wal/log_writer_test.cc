@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "wal/log_writer.h"
 #include "base/mock_env.h"
 #include "base/testing.h"
 #include "wal/format.h"
+#include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
 #include "wal/segment_meta.h"
 
@@ -49,19 +49,18 @@ TEST_F(LogWriterTest, AppendEntries) {
   for (int i = 1; i <= totalEntries; i++) {
     vec.push_back(PBEntry().Index(i).Term(i).v);
   }
-  auto msg = PBMessage().Entries(vec).v;
 
   SegmentMetaData meta;
   auto wf = new MockWritableFile;
   auto writer = ConstructLogWriter(wf, meta);
   ConstPBEntriesIterator it;
   {
-    auto sw = writer.AppendEntries(msg.entries().begin(), msg.entries().end());
+    auto sw = writer.AppendEntries(vec.begin(), vec.end());
     ASSERT_OK(sw);
     it = sw.GetValue();
   }
 
-  ASSERT_EQ(std::distance(msg.entries().begin(), it), entriesPerSegment);
+  ASSERT_EQ(std::distance(vec.cbegin(), it), entriesPerSegment);
 }
 
 // This test verifies that pb being encoded can be correctly decoded.

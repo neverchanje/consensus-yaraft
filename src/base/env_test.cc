@@ -111,5 +111,8 @@ TEST_F(TestEnv, GetChildren) {
   vector<string> result;
   ASSERT_OK(Env::Default()->GetChildren(GetTestDir(), &result));
 
+  std::sort(files.begin(), files.end());
+  std::sort(result.begin(), result.end());
+
   ASSERT_EQ(files, result);
 }

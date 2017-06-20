@@ -12,28 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "base/status.h"
-
-#include <fmt/format.h>
+#include "wal/wal.h"
+#include "base/logging.h"
+#include "wal/log_manager.h"
 
 namespace consensus {
+namespace wal {
 
-#define DUMB_ERROR_TO_STRING(err) \
-  case (err):                     \
-    return #err
+Status WriteAheadLog::Default(const std::string& logsDir, WriteAheadLog** wal,
+                              yaraft::MemoryStorage* memstore) {
+  LogManager* manager;
+  ASSIGN_IF_OK(LogManager::Recover(logsDir, memstore), manager);
+  *wal = manager;
 
-std::string Error::toString(unsigned int code) {
-  switch (code) {
-    DUMB_ERROR_TO_STRING(IOError);
-    DUMB_ERROR_TO_STRING(NotSupported);
-    DUMB_ERROR_TO_STRING(Corruption);
-    DUMB_ERROR_TO_STRING(LogCompacted);
-    DUMB_ERROR_TO_STRING(OutOfBound);
-    DUMB_ERROR_TO_STRING(YARaftERR);
-    DUMB_ERROR_TO_STRING(BadConfig);
-    default:
-      return fmt::format("Unknown error codes: {}", code);
-  }
+  return Status::OK();
 }
 
+}  // namespace wal
 }  // namespace consensus

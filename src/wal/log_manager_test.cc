@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "wal/log_manager.h"
 #include "base/testing.h"
 #include "wal/format.h"
+#include "wal/log_manager.h"
 #include "wal/log_writer.h"
 #include "wal/options.h"
 #include "wal/readable_log_segment.h"
@@ -78,7 +78,7 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
     for (int i = 1; i <= t.totalEntries; i++) {
       vec.push_back(PBEntry().Index(i).Term(i).v);
     }
-    ASSERT_OK(manager.AppendEntries(PBMessage().Entries(vec).v));
+    ASSERT_OK(manager.AppendEntries(vec));
 
     // flush data into file
     ASSERT_OK(manager.Close());
@@ -171,7 +171,7 @@ TEST_F(LogManagerTest, Recover) {
     size_t segNum;
     {
       LogManager m(GetTestDir());
-      ASSERT_OK(m.AppendEntries(yaraft::PBMessage().Entries(expected).v));
+      ASSERT_OK(m.AppendEntries(expected));
       segNum = m.SegmentNum();
       ASSERT_OK(m.Close());
     }

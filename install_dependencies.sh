@@ -7,16 +7,20 @@ source deps_definitions.sh
 echo "Installing necessary dependencies for building..."
 
 # build yaraft
-cd yaraft
+cd $PROJECT_DIR/yaraft
 bash install_deps_if_necessary.sh
 cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR && make -j8 && make install
 
-mkdir -p $BUILD_DIR
-cd $PROJECT_DIR && cp -r yaraft/build/third_parties $BUILD_DIR
+# install sofa-pbrpc
+if [ ! -d $PROJECT_DIR/sofa-pbrpc/output ]; then
+    build_sofa_pbrpc
+fi
 
 # install other dependencies
+cd $PROJECT_DIR
 mkdir -p $TP_DIR
 mkdir -p $TP_STAMP_DIR
+mkdir -p $BUILD_DIR
 
 install_if_necessary(){
     local depName=$1
@@ -30,4 +34,6 @@ install_if_necessary(){
 }
 
 cd $TP_DIR
+
+# install gflags
 install_if_necessary $GFLAG_NAME build_gflag

@@ -12,28 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "base/status.h"
+#pragma once
 
-#include <fmt/format.h>
+#include "base/status.h"
+#include "rpc/pb/raft_server.pb.h"
+
+#include <sofa/pbrpc/pbrpc.h>
+#include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {
+namespace rpc {
 
-#define DUMB_ERROR_TO_STRING(err) \
-  case (err):                     \
-    return #err
+class RaftServiceImpl;
+class Peer {
+ public:
+  Peer(pb::RaftService* server, const std::string& url);
 
-std::string Error::toString(unsigned int code) {
-  switch (code) {
-    DUMB_ERROR_TO_STRING(IOError);
-    DUMB_ERROR_TO_STRING(NotSupported);
-    DUMB_ERROR_TO_STRING(Corruption);
-    DUMB_ERROR_TO_STRING(LogCompacted);
-    DUMB_ERROR_TO_STRING(OutOfBound);
-    DUMB_ERROR_TO_STRING(YARaftERR);
-    DUMB_ERROR_TO_STRING(BadConfig);
-    default:
-      return fmt::format("Unknown error codes: {}", code);
-  }
-}
+  Status AsyncSend(const yaraft::pb::Message& msg);
 
+ private:
+  void stepDoneCallback(const yaraft::pb::Message& response);
+
+ private:
+  sofa::pbrpc::RpcChannel channel_;
+  sofa::pbrpc::RpcController controller_;
+
+  RaftServiceImpl* server_;
+};
+
+}  // namespace rpc
 }  // namespace consensus

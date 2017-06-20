@@ -74,7 +74,9 @@ class WritableFile {
   // IO to the data blocks.
   //
   // In no case is the file truncated by this operation.
-  virtual Status PreAllocate(uint64_t size) = 0;
+  virtual Status PreAllocate(uint64_t size) {
+    return Status::Make(Error::NotSupported);
+  }
 
   virtual Status Close() = 0;
 

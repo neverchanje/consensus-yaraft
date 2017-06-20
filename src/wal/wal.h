@@ -16,32 +16,31 @@
 
 #include "base/status.h"
 
-#include <yaraft/raftpb.pb.h>
+#include <yaraft/memory_storage.h>
+#include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {
 namespace wal {
 
-using PBEntriesIterator = ::google::protobuf::RepeatedPtrField<::yaraft::pb::Entry>::iterator;
-using ConstPBEntriesIterator =
-    ::google::protobuf::RepeatedPtrField<const ::yaraft::pb::Entry>::iterator;
+using PBEntryVec = std::vector<yaraft::pb::Entry>;
+using PBEntriesIterator = PBEntryVec::iterator;
+using ConstPBEntriesIterator = PBEntryVec::const_iterator;
 
 class WriteAheadLog {
  public:
   virtual ~WriteAheadLog() = default;
 
-  // Append log entries from message `msg` into underlying storage.
-  //
-  // Required: msg.type() == pb::MsgApp
-  virtual Status AppendEntries(const yaraft::pb::Message& msg) = 0;
+  // Append log entries into underlying storage.
+  virtual Status AppendEntries(const PBEntryVec& entries) = 0;
 
   struct CompactionHint {};
 
-  // Do GC work to compact unused logs,
-  //
-  // On some implementation, GC can be simply done by deleting the unused log files.
-  virtual Status GC(CompactionHint* hint) {
-    return Status::Make(Error::NotSupported);
-  }
+  // Abandon the unused logs.
+  virtual Status GC(CompactionHint* hint) = 0;
+
+  // Default implementation of WAL.
+  static Status Default(const std::string& logsDir, WriteAheadLog** wal,
+                        yaraft::MemoryStorage* memstore);
 };
 
 }  // namespace wal
