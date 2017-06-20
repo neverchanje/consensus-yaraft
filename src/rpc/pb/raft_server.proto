@@ -11,6 +11,7 @@ enum StatusCode {
     OK = 0;
 
     StepLocalMsg = 1;
+    StepPeerNotFound = 2;
 }
 
 message Response {
