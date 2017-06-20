@@ -22,9 +22,9 @@
 static std::string currentDir = boost::filesystem::current_path().string();
 
 DEFINE_string(name, "default", "human-readable name for this member.");
-DEFINE_string(initial_cluster, fmt::format("{}=127.0.0.1", FLAGS_name),
+DEFINE_string(initial_cluster, fmt::format("{}=127.0.0.1:12321", FLAGS_name),
               "initial cluster configuration for bootstrapping. Format: \"<name1>=<ip1>, "
-              "<name2>=<ip2>, ...\"");
+              "<name2>=<ip2>; ...\"");
 DEFINE_string(wal_dir, fmt::format("{}/{}.consensus", currentDir, FLAGS_name),
               "path to the dedicated wal directory.");
 DEFINE_uint32(heartbeat_interval, 100, "time (in milliseconds) of a heartbeat interval.");
