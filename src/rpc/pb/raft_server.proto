@@ -14,9 +14,13 @@ enum StatusCode {
 }
 
 message Response {
-    required StatusCode code = 1;
+    optional StatusCode code = 1;
+}
+
+message Request {
+    required yaraft.pb.Message message = 1;
 }
 
 service RaftService {
-    rpc Step(yaraft.pb.Message) returns(Response);
+    rpc Step(Request) returns(Response);
 }
