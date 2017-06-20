@@ -23,6 +23,7 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
 #include "yaraft/pb/raftpb.pb.h"
@@ -37,91 +38,28 @@ void  protobuf_AddDesc_raft_5fserver_2eproto();
 void protobuf_AssignDesc_raft_5fserver_2eproto();
 void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
-class Request;
 class Response;
 
-// ===================================================================
-
-class Request : public ::google::protobuf::Message {
- public:
-  Request();
-  virtual ~Request();
-
-  Request(const Request& from);
-
-  inline Request& operator=(const Request& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Request& default_instance();
-
-  void Swap(Request* other);
-
-  // implements Message ----------------------------------------------
-
-  Request* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Request& from);
-  void MergeFrom(const Request& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // required .yaraft.pb.Message message = 1;
-  inline bool has_message() const;
-  inline void clear_message();
-  static const int kMessageFieldNumber = 1;
-  inline const ::yaraft::pb::Message& message() const;
-  inline ::yaraft::pb::Message* mutable_message();
-  inline ::yaraft::pb::Message* release_message();
-  inline void set_allocated_message(::yaraft::pb::Message* message);
-
-  // @@protoc_insertion_point(class_scope:consensus.rpc.pb.Request)
- private:
-  inline void set_has_message();
-  inline void clear_has_message();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint32 _has_bits_[1];
-  mutable int _cached_size_;
-  ::yaraft::pb::Message* message_;
-  friend void  protobuf_AddDesc_raft_5fserver_2eproto();
-  friend void protobuf_AssignDesc_raft_5fserver_2eproto();
-  friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
-
-  void InitAsDefaultInstance();
-  static Request* default_instance_;
+enum StatusCode {
+  OK = 0,
+  StepLocalMsg = 1
 };
-// -------------------------------------------------------------------
+bool StatusCode_IsValid(int value);
+const StatusCode StatusCode_MIN = OK;
+const StatusCode StatusCode_MAX = StepLocalMsg;
+const int StatusCode_ARRAYSIZE = StatusCode_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* StatusCode_descriptor();
+inline const ::std::string& StatusCode_Name(StatusCode value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    StatusCode_descriptor(), value);
+}
+inline bool StatusCode_Parse(
+    const ::std::string& name, StatusCode* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<StatusCode>(
+    StatusCode_descriptor(), name, value);
+}
+// ===================================================================
 
 class Response : public ::google::protobuf::Message {
  public:
@@ -176,25 +114,23 @@ class Response : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .yaraft.pb.Message message = 1;
-  inline bool has_message() const;
-  inline void clear_message();
-  static const int kMessageFieldNumber = 1;
-  inline const ::yaraft::pb::Message& message() const;
-  inline ::yaraft::pb::Message* mutable_message();
-  inline ::yaraft::pb::Message* release_message();
-  inline void set_allocated_message(::yaraft::pb::Message* message);
+  // required .consensus.rpc.pb.StatusCode code = 1;
+  inline bool has_code() const;
+  inline void clear_code();
+  static const int kCodeFieldNumber = 1;
+  inline ::consensus::rpc::pb::StatusCode code() const;
+  inline void set_code(::consensus::rpc::pb::StatusCode value);
 
   // @@protoc_insertion_point(class_scope:consensus.rpc.pb.Response)
  private:
-  inline void set_has_message();
-  inline void clear_has_message();
+  inline void set_has_code();
+  inline void clear_has_code();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  ::yaraft::pb::Message* message_;
+  int code_;
   friend void  protobuf_AddDesc_raft_5fserver_2eproto();
   friend void protobuf_AssignDesc_raft_5fserver_2eproto();
   friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
@@ -218,7 +154,7 @@ class RaftService : public ::google::protobuf::Service {
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
   virtual void Step(::google::protobuf::RpcController* controller,
-                       const ::consensus::rpc::pb::Request* request,
+                       const ::yaraft::pb::Message* request,
                        ::consensus::rpc::pb::Response* response,
                        ::google::protobuf::Closure* done);
 
@@ -251,7 +187,7 @@ class RaftService_Stub : public RaftService {
   // implements RaftService ------------------------------------------
 
   void Step(::google::protobuf::RpcController* controller,
-                       const ::consensus::rpc::pb::Request* request,
+                       const ::yaraft::pb::Message* request,
                        ::consensus::rpc::pb::Response* response,
                        ::google::protobuf::Closure* done);
  private:
@@ -266,92 +202,31 @@ class RaftService_Stub : public RaftService {
 
 // ===================================================================
 
-// Request
-
-// required .yaraft.pb.Message message = 1;
-inline bool Request::has_message() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void Request::set_has_message() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void Request::clear_has_message() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void Request::clear_message() {
-  if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
-  clear_has_message();
-}
-inline const ::yaraft::pb::Message& Request::message() const {
-  // @@protoc_insertion_point(field_get:consensus.rpc.pb.Request.message)
-  return message_ != NULL ? *message_ : *default_instance_->message_;
-}
-inline ::yaraft::pb::Message* Request::mutable_message() {
-  set_has_message();
-  if (message_ == NULL) message_ = new ::yaraft::pb::Message;
-  // @@protoc_insertion_point(field_mutable:consensus.rpc.pb.Request.message)
-  return message_;
-}
-inline ::yaraft::pb::Message* Request::release_message() {
-  clear_has_message();
-  ::yaraft::pb::Message* temp = message_;
-  message_ = NULL;
-  return temp;
-}
-inline void Request::set_allocated_message(::yaraft::pb::Message* message) {
-  delete message_;
-  message_ = message;
-  if (message) {
-    set_has_message();
-  } else {
-    clear_has_message();
-  }
-  // @@protoc_insertion_point(field_set_allocated:consensus.rpc.pb.Request.message)
-}
-
-// -------------------------------------------------------------------
-
 // Response
 
-// required .yaraft.pb.Message message = 1;
-inline bool Response::has_message() const {
+// required .consensus.rpc.pb.StatusCode code = 1;
+inline bool Response::has_code() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void Response::set_has_message() {
+inline void Response::set_has_code() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void Response::clear_has_message() {
+inline void Response::clear_has_code() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void Response::clear_message() {
-  if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
-  clear_has_message();
+inline void Response::clear_code() {
+  code_ = 0;
+  clear_has_code();
 }
-inline const ::yaraft::pb::Message& Response::message() const {
-  // @@protoc_insertion_point(field_get:consensus.rpc.pb.Response.message)
-  return message_ != NULL ? *message_ : *default_instance_->message_;
+inline ::consensus::rpc::pb::StatusCode Response::code() const {
+  // @@protoc_insertion_point(field_get:consensus.rpc.pb.Response.code)
+  return static_cast< ::consensus::rpc::pb::StatusCode >(code_);
 }
-inline ::yaraft::pb::Message* Response::mutable_message() {
-  set_has_message();
-  if (message_ == NULL) message_ = new ::yaraft::pb::Message;
-  // @@protoc_insertion_point(field_mutable:consensus.rpc.pb.Response.message)
-  return message_;
-}
-inline ::yaraft::pb::Message* Response::release_message() {
-  clear_has_message();
-  ::yaraft::pb::Message* temp = message_;
-  message_ = NULL;
-  return temp;
-}
-inline void Response::set_allocated_message(::yaraft::pb::Message* message) {
-  delete message_;
-  message_ = message;
-  if (message) {
-    set_has_message();
-  } else {
-    clear_has_message();
-  }
-  // @@protoc_insertion_point(field_set_allocated:consensus.rpc.pb.Response.message)
+inline void Response::set_code(::consensus::rpc::pb::StatusCode value) {
+  assert(::consensus::rpc::pb::StatusCode_IsValid(value));
+  set_has_code();
+  code_ = value;
+  // @@protoc_insertion_point(field_set:consensus.rpc.pb.Response.code)
 }
 
 
@@ -365,6 +240,11 @@ inline void Response::set_allocated_message(::yaraft::pb::Message* message) {
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::consensus::rpc::pb::StatusCode> : ::google::protobuf::internal::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::consensus::rpc::pb::StatusCode>() {
+  return ::consensus::rpc::pb::StatusCode_descriptor();
+}
 
 }  // namespace google
 }  // namespace protobuf

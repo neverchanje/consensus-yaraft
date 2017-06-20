@@ -22,12 +22,10 @@ namespace pb {
 
 namespace {
 
-const ::google::protobuf::Descriptor* Request_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  Request_reflection_ = NULL;
 const ::google::protobuf::Descriptor* Response_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   Response_reflection_ = NULL;
+const ::google::protobuf::EnumDescriptor* StatusCode_descriptor_ = NULL;
 const ::google::protobuf::ServiceDescriptor* RaftService_descriptor_ = NULL;
 
 }  // namespace
@@ -39,24 +37,9 @@ void protobuf_AssignDesc_raft_5fserver_2eproto() {
     ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
       "raft_server.proto");
   GOOGLE_CHECK(file != NULL);
-  Request_descriptor_ = file->message_type(0);
-  static const int Request_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, message_),
-  };
-  Request_reflection_ =
-    new ::google::protobuf::internal::GeneratedMessageReflection(
-      Request_descriptor_,
-      Request::default_instance_,
-      Request_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Request, _unknown_fields_),
-      -1,
-      ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(Request));
-  Response_descriptor_ = file->message_type(1);
+  Response_descriptor_ = file->message_type(0);
   static const int Response_offsets_[1] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, message_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Response, code_),
   };
   Response_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -69,6 +52,7 @@ void protobuf_AssignDesc_raft_5fserver_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(Response));
+  StatusCode_descriptor_ = file->enum_type(0);
   RaftService_descriptor_ = file->service(0);
 }
 
@@ -83,16 +67,12 @@ inline void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    Request_descriptor_, &Request::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     Response_descriptor_, &Response::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_raft_5fserver_2eproto() {
-  delete Request::default_instance_;
-  delete Request_reflection_;
   delete Response::default_instance_;
   delete Response_reflection_;
 }
@@ -106,17 +86,14 @@ void protobuf_AddDesc_raft_5fserver_2eproto() {
   ::yaraft::pb::protobuf_AddDesc_yaraft_2fpb_2fraftpb_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\021raft_server.proto\022\020consensus.rpc.pb\032\026y"
-    "araft/pb/raftpb.proto\".\n\007Request\022#\n\007mess"
-    "age\030\001 \002(\0132\022.yaraft.pb.Message\"/\n\010Respons"
-    "e\022#\n\007message\030\001 \002(\0132\022.yaraft.pb.Message2L"
-    "\n\013RaftService\022=\n\004Step\022\031.consensus.rpc.pb"
-    ".Request\032\032.consensus.rpc.pb.ResponseB\006\200\001"
-    "\001\210\001\001", 244);
+    "araft/pb/raftpb.proto\"6\n\010Response\022*\n\004cod"
+    "e\030\001 \002(\0162\034.consensus.rpc.pb.StatusCode*&\n"
+    "\nStatusCode\022\006\n\002OK\020\000\022\020\n\014StepLocalMsg\020\0012E\n"
+    "\013RaftService\0226\n\004Step\022\022.yaraft.pb.Message"
+    "\032\032.consensus.rpc.pb.ResponseB\006\200\001\001\210\001\001", 236);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "raft_server.proto", &protobuf_RegisterTypes);
-  Request::default_instance_ = new Request();
   Response::default_instance_ = new Response();
-  Request::default_instance_->InitAsDefaultInstance();
   Response::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_raft_5fserver_2eproto);
 }
@@ -127,239 +104,25 @@ struct StaticDescriptorInitializer_raft_5fserver_2eproto {
     protobuf_AddDesc_raft_5fserver_2eproto();
   }
 } static_descriptor_initializer_raft_5fserver_2eproto_;
-
-// ===================================================================
-
-#ifndef _MSC_VER
-const int Request::kMessageFieldNumber;
-#endif  // !_MSC_VER
-
-Request::Request()
-  : ::google::protobuf::Message() {
-  SharedCtor();
-  // @@protoc_insertion_point(constructor:consensus.rpc.pb.Request)
-}
-
-void Request::InitAsDefaultInstance() {
-  message_ = const_cast< ::yaraft::pb::Message*>(&::yaraft::pb::Message::default_instance());
-}
-
-Request::Request(const Request& from)
-  : ::google::protobuf::Message() {
-  SharedCtor();
-  MergeFrom(from);
-  // @@protoc_insertion_point(copy_constructor:consensus.rpc.pb.Request)
-}
-
-void Request::SharedCtor() {
-  _cached_size_ = 0;
-  message_ = NULL;
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-}
-
-Request::~Request() {
-  // @@protoc_insertion_point(destructor:consensus.rpc.pb.Request)
-  SharedDtor();
-}
-
-void Request::SharedDtor() {
-  if (this != default_instance_) {
-    delete message_;
-  }
-}
-
-void Request::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* Request::descriptor() {
+const ::google::protobuf::EnumDescriptor* StatusCode_descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return Request_descriptor_;
+  return StatusCode_descriptor_;
 }
-
-const Request& Request::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_raft_5fserver_2eproto();
-  return *default_instance_;
-}
-
-Request* Request::default_instance_ = NULL;
-
-Request* Request::New() const {
-  return new Request;
-}
-
-void Request::Clear() {
-  if (has_message()) {
-    if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
+bool StatusCode_IsValid(int value) {
+  switch(value) {
+    case 0:
+    case 1:
+      return true;
+    default:
+      return false;
   }
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-  mutable_unknown_fields()->Clear();
-}
-
-bool Request::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
-  ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:consensus.rpc.pb.Request)
-  for (;;) {
-    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
-    tag = p.first;
-    if (!p.second) goto handle_unusual;
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .yaraft.pb.Message message = 1;
-      case 1: {
-        if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_message()));
-        } else {
-          goto handle_unusual;
-        }
-        if (input->ExpectAtEnd()) goto success;
-        break;
-      }
-
-      default: {
-      handle_unusual:
-        if (tag == 0 ||
-            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          goto success;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-success:
-  // @@protoc_insertion_point(parse_success:consensus.rpc.pb.Request)
-  return true;
-failure:
-  // @@protoc_insertion_point(parse_failure:consensus.rpc.pb.Request)
-  return false;
-#undef DO_
-}
-
-void Request::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:consensus.rpc.pb.Request)
-  // required .yaraft.pb.Message message = 1;
-  if (has_message()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->message(), output);
-  }
-
-  if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        unknown_fields(), output);
-  }
-  // @@protoc_insertion_point(serialize_end:consensus.rpc.pb.Request)
-}
-
-::google::protobuf::uint8* Request::SerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
-  // @@protoc_insertion_point(serialize_to_array_start:consensus.rpc.pb.Request)
-  // required .yaraft.pb.Message message = 1;
-  if (has_message()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        1, this->message(), target);
-  }
-
-  if (!unknown_fields().empty()) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        unknown_fields(), target);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:consensus.rpc.pb.Request)
-  return target;
-}
-
-int Request::ByteSize() const {
-  int total_size = 0;
-
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .yaraft.pb.Message message = 1;
-    if (has_message()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->message());
-    }
-
-  }
-  if (!unknown_fields().empty()) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        unknown_fields());
-  }
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void Request::MergeFrom(const ::google::protobuf::Message& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  const Request* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const Request*>(
-      &from);
-  if (source == NULL) {
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-    MergeFrom(*source);
-  }
-}
-
-void Request::MergeFrom(const Request& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_message()) {
-      mutable_message()->::yaraft::pb::Message::MergeFrom(from.message());
-    }
-  }
-  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
-}
-
-void Request::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void Request::CopyFrom(const Request& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool Request::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
-
-  return true;
-}
-
-void Request::Swap(Request* other) {
-  if (other != this) {
-    std::swap(message_, other->message_);
-    std::swap(_has_bits_[0], other->_has_bits_[0]);
-    _unknown_fields_.Swap(&other->_unknown_fields_);
-    std::swap(_cached_size_, other->_cached_size_);
-  }
-}
-
-::google::protobuf::Metadata Request::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = Request_descriptor_;
-  metadata.reflection = Request_reflection_;
-  return metadata;
 }
 
 
 // ===================================================================
 
 #ifndef _MSC_VER
-const int Response::kMessageFieldNumber;
+const int Response::kCodeFieldNumber;
 #endif  // !_MSC_VER
 
 Response::Response()
@@ -369,7 +132,6 @@ Response::Response()
 }
 
 void Response::InitAsDefaultInstance() {
-  message_ = const_cast< ::yaraft::pb::Message*>(&::yaraft::pb::Message::default_instance());
 }
 
 Response::Response(const Response& from)
@@ -381,7 +143,7 @@ Response::Response(const Response& from)
 
 void Response::SharedCtor() {
   _cached_size_ = 0;
-  message_ = NULL;
+  code_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -392,7 +154,6 @@ Response::~Response() {
 
 void Response::SharedDtor() {
   if (this != default_instance_) {
-    delete message_;
   }
 }
 
@@ -418,9 +179,7 @@ Response* Response::New() const {
 }
 
 void Response::Clear() {
-  if (has_message()) {
-    if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
-  }
+  code_ = 0;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -435,11 +194,18 @@ bool Response::MergePartialFromCodedStream(
     tag = p.first;
     if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .yaraft.pb.Message message = 1;
+      // required .consensus.rpc.pb.StatusCode code = 1;
       case 1: {
-        if (tag == 10) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-               input, mutable_message()));
+        if (tag == 8) {
+          int value;
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
+          if (::consensus::rpc::pb::StatusCode_IsValid(value)) {
+            set_code(static_cast< ::consensus::rpc::pb::StatusCode >(value));
+          } else {
+            mutable_unknown_fields()->AddVarint(1, value);
+          }
         } else {
           goto handle_unusual;
         }
@@ -472,10 +238,10 @@ failure:
 void Response::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:consensus.rpc.pb.Response)
-  // required .yaraft.pb.Message message = 1;
-  if (has_message()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      1, this->message(), output);
+  // required .consensus.rpc.pb.StatusCode code = 1;
+  if (has_code()) {
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->code(), output);
   }
 
   if (!unknown_fields().empty()) {
@@ -488,11 +254,10 @@ void Response::SerializeWithCachedSizes(
 ::google::protobuf::uint8* Response::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:consensus.rpc.pb.Response)
-  // required .yaraft.pb.Message message = 1;
-  if (has_message()) {
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteMessageNoVirtualToArray(
-        1, this->message(), target);
+  // required .consensus.rpc.pb.StatusCode code = 1;
+  if (has_code()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->code(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -507,11 +272,10 @@ int Response::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .yaraft.pb.Message message = 1;
-    if (has_message()) {
+    // required .consensus.rpc.pb.StatusCode code = 1;
+    if (has_code()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->message());
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->code());
     }
 
   }
@@ -541,8 +305,8 @@ void Response::MergeFrom(const ::google::protobuf::Message& from) {
 void Response::MergeFrom(const Response& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_message()) {
-      mutable_message()->::yaraft::pb::Message::MergeFrom(from.message());
+    if (from.has_code()) {
+      set_code(from.code());
     }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
@@ -568,7 +332,7 @@ bool Response::IsInitialized() const {
 
 void Response::Swap(Response* other) {
   if (other != this) {
-    std::swap(message_, other->message_);
+    std::swap(code_, other->code_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -599,7 +363,7 @@ const ::google::protobuf::ServiceDescriptor* RaftService::GetDescriptor() {
 }
 
 void RaftService::Step(::google::protobuf::RpcController* controller,
-                         const ::consensus::rpc::pb::Request*,
+                         const ::yaraft::pb::Message*,
                          ::consensus::rpc::pb::Response*,
                          ::google::protobuf::Closure* done) {
   controller->SetFailed("Method Step() not implemented.");
@@ -615,7 +379,7 @@ void RaftService::CallMethod(const ::google::protobuf::MethodDescriptor* method,
   switch(method->index()) {
     case 0:
       Step(controller,
-             ::google::protobuf::down_cast<const ::consensus::rpc::pb::Request*>(request),
+             ::google::protobuf::down_cast<const ::yaraft::pb::Message*>(request),
              ::google::protobuf::down_cast< ::consensus::rpc::pb::Response*>(response),
              done);
       break;
@@ -630,7 +394,7 @@ const ::google::protobuf::Message& RaftService::GetRequestPrototype(
   GOOGLE_DCHECK_EQ(method->service(), descriptor());
   switch(method->index()) {
     case 0:
-      return ::consensus::rpc::pb::Request::default_instance();
+      return ::yaraft::pb::Message::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -661,7 +425,7 @@ RaftService_Stub::~RaftService_Stub() {
 }
 
 void RaftService_Stub::Step(::google::protobuf::RpcController* controller,
-                              const ::consensus::rpc::pb::Request* request,
+                              const ::yaraft::pb::Message* request,
                               ::consensus::rpc::pb::Response* response,
                               ::google::protobuf::Closure* done) {
   channel_->CallMethod(descriptor()->method(0),

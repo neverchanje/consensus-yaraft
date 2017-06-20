@@ -7,14 +7,16 @@ import "yaraft/pb/raftpb.proto";
 option cc_generic_services = true;
 option java_generic_services = true;
 
-message Request {
-    required yaraft.pb.Message message = 1; 
+enum StatusCode {
+    OK = 0;
+
+    StepLocalMsg = 1;
 }
 
 message Response {
-    required yaraft.pb.Message message = 1; 
+    required StatusCode code = 1;
 }
 
 service RaftService {
-    rpc Step(Request) returns(Response);
+    rpc Step(yaraft.pb.Message) returns(Response);
 }
