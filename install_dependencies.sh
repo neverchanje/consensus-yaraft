@@ -9,7 +9,7 @@ echo "Installing necessary dependencies for building..."
 # build yaraft
 cd $PROJECT_DIR/yaraft
 bash install_deps_if_necessary.sh
-cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR && make -j8 && make install
+cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR -DBUILD_TEST=OFF && make -j8 && make install
 
 # install sofa-pbrpc
 if [ ! -d $PROJECT_DIR/sofa-pbrpc/output ]; then
