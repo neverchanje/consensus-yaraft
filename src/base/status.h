@@ -34,6 +34,7 @@ class Error {
     OutOfBound,
     YARaftERR,
     BadConfig,
+    RpcError,
   };
 
  private:
