@@ -23,19 +23,16 @@
 namespace consensus {
 namespace rpc {
 
+class AsyncRaftClient;
 class RaftServiceImpl;
 class Peer {
  public:
-  Peer(pb::RaftService* server, const std::string& url);
+  Peer(RaftServiceImpl* server, const std::string& url);
 
-  Status AsyncSend(const yaraft::pb::Message& msg);
-
- private:
-  void stepDoneCallback(const yaraft::pb::Message& response);
+  void AsyncSend(yaraft::pb::Message* msg);
 
  private:
-  sofa::pbrpc::RpcChannel channel_;
-  sofa::pbrpc::RpcController controller_;
+  std::unique_ptr<AsyncRaftClient> client_;
 
   RaftServiceImpl* server_;
 };
