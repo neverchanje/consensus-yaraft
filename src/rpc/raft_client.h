@@ -22,13 +22,12 @@ namespace rpc {
 
 class SyncRaftClient : sofa::pbrpc::RpcClient {
  public:
-  SyncRaftClient() {}
+  explicit SyncRaftClient(const std::string& url)
+      : channel_(this, url, sofa::pbrpc::RpcChannelOptions()) {}
 
   // Synchronously sending request to specified url.
-  pb::Response Step(const std::string& url, yaraft::pb::Message* msg) {
-    sofa::pbrpc::RpcChannelOptions channel_options;
-    sofa::pbrpc::RpcChannel rpc_channel(this, url, channel_options);
-
+  // NOTE: The ownership of `msg` will be taken over by this method.
+  StatusWith<pb::Response> Step(yaraft::pb::Message* msg) {
     sofa::pbrpc::RpcController* cntl = new sofa::pbrpc::RpcController();
     cntl->SetTimeout(3000);
 
@@ -36,11 +35,13 @@ class SyncRaftClient : sofa::pbrpc::RpcClient {
     rpc::pb::Request request;
     request.set_allocated_message(msg);
 
-    rpc::pb::RaftService_Stub stub(&rpc_channel);
+    rpc::pb::RaftService_Stub stub(&channel_);
     stub.Step(cntl, &request, &response, NULL);
 
     if (cntl->Failed()) {
-      FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
+      auto errStr = fmt::format("request failed: {}", cntl->ErrorText());
+      LOG(ERROR) << errStr;
+      return Status::Make(Error::RpcError, errStr);
     } else {
       FMT_SLOG(INFO, "request succeed with response: {%s}", response.ShortDebugString());
     }
@@ -48,41 +49,71 @@ class SyncRaftClient : sofa::pbrpc::RpcClient {
     delete cntl;
     return response;
   }
+
+ private:
+  sofa::pbrpc::RpcChannel channel_;
 };
 
 class AsyncRaftClient : sofa::pbrpc::RpcClient {
  public:
-  AsyncRaftClient() {}
-
-  static void doneCallBack(const sofa::pbrpc::RpcController* cntl, rpc::pb::Response& response) {
-    if (cntl->Failed()) {
-      FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
-    } else {
-      FMT_SLOG(INFO, "request succeed with response: {%s}", response.ShortDebugString());
-    }
-  }
+  explicit AsyncRaftClient(const std::string& url)
+      : channel_(this, url, sofa::pbrpc::RpcChannelOptions()) {}
 
   // Asynchronously sending request to specified url.
-  void Step(const std::string& url, yaraft::pb::Message* msg) {
-    sofa::pbrpc::RpcChannelOptions channel_options;
-    sofa::pbrpc::RpcChannel rpc_channel(this, url, channel_options);
+  void Step(yaraft::pb::Message* msg) {
+    // -- prepare parameters --
 
-    sofa::pbrpc::RpcController* cntl = new sofa::pbrpc::RpcController();
+    auto cntl = new sofa::pbrpc::RpcController();
     cntl->SetTimeout(3000);
 
     auto request = new rpc::pb::Request();
     request->set_allocated_message(msg);
-    rpc::pb::RaftService_Stub stub(&rpc_channel);
 
-    auto done = sofa::pbrpc::NewClosure(&AsyncRaftClient::doneCallBack, cntl, response_);
-    stub.Step(cntl, request, &response_, done);
+    auto response = new rpc::pb::Response();
 
+    auto done =
+        sofa::pbrpc::NewClosure(this, &AsyncRaftClient::doneCallBack, cntl, request, response);
+
+    // -- request --
+
+    rpc::pb::RaftService_Stub stub(&channel_);
+    stub.Step(cntl, request, response, done);
+  }
+
+  // `onSuccess` should not destroy the response object.
+  void RegisterOnSuccess(std::function<void(rpc::pb::Response*)> onSuccess) {
+    onSuccess_ = onSuccess;
+  }
+
+  void RegisterOnFail(std::function<void()> onFail) {
+    onFail_ = onFail;
+  }
+
+ private:
+  void doneCallBack(const sofa::pbrpc::RpcController* cntl, rpc::pb::Request* request,
+                    rpc::pb::Response* response) {
+    if (cntl->Failed()) {
+      FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
+
+      if (onFail_) {
+        onFail_();
+      }
+    } else {
+      FMT_SLOG(INFO, "request succeed with response: {%s}", response->ShortDebugString());
+
+      if (onSuccess_) {
+        onSuccess_(response);
+      }
+      delete response;
+    }
     delete cntl;
     delete request;
   }
 
  private:
-  pb::Response response_;
+  sofa::pbrpc::RpcChannel channel_;
+  std::function<void(rpc::pb::Response*)> onSuccess_;
+  std::function<void()> onFail_;
 };
 
 }  // namespace rpc
