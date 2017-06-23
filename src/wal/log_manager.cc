@@ -16,12 +16,6 @@
 #include "base/logging.h"
 #include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
-#include "wal/segment_meta.h"
-
-#include <fmt/format.h>
-#include <silly/likely.h>
-#include <yaraft/memory_storage.h>
-#include <yaraft/pb_utils.h>
 
 namespace consensus {
 namespace wal {

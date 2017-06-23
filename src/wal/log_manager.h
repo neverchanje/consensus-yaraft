@@ -15,6 +15,7 @@
 #pragma once
 
 #include "base/status.h"
+#include "wal/segment_meta.h"
 #include "wal/wal.h"
 
 #include <yaraft/memory_storage.h>
@@ -25,7 +26,6 @@ class WritableFile;
 
 namespace wal {
 
-class SegmentMetaData;
 class LogWriter;
 
 class LogManager : public WriteAheadLog {

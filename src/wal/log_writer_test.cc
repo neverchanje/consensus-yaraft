@@ -12,15 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "wal/log_writer.h"
 #include "base/mock_env.h"
 #include "base/testing.h"
 #include "wal/format.h"
-#include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
-#include "wal/segment_meta.h"
-
-#include <gtest/gtest.h>
-#include <yaraft/fluent_pb.h>
 
 namespace consensus {
 namespace wal {

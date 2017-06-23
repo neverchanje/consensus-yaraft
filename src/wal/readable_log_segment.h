@@ -25,7 +25,7 @@
 #include <fmt/format.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <silly/likely.h>
-#include <yaraft/raftpb.pb.h>
+#include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {
 namespace wal {

@@ -16,9 +16,6 @@
 #include "base/testing.h"
 #include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
-#include "wal/segment_meta.h"
-
-#include <yaraft/fluent_pb.h>
 
 using namespace consensus;
 using namespace consensus::wal;

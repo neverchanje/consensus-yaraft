@@ -13,11 +13,8 @@
 // limitations under the License.
 
 #include "wal/segment_meta.h"
-#include "base/env.h"
 #include "base/logging.h"
 #include "wal/readable_log_segment.h"
-
-#include <fmt/format.h>
 
 namespace consensus {
 namespace wal {

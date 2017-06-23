@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "base/testing.h"
-#include "wal/format.h"
 #include "wal/log_manager.h"
+#include "base/testing.h"
 #include "wal/log_writer.h"
-#include "wal/options.h"
 #include "wal/readable_log_segment.h"
-#include "wal/segment_meta.h"
-
-#include <gtest/gtest.h>
-#include <yaraft/fluent_pb.h>
-#include <yaraft/pb_utils.h>
 
 namespace consensus {
 namespace wal {
