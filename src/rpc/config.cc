@@ -25,10 +25,17 @@ DEFINE_string(name, "default", "human-readable name for this member.");
 DEFINE_string(initial_cluster, fmt::format("{}=127.0.0.1:12321", FLAGS_name),
               "initial cluster configuration for bootstrapping. Format: \"<name1>=<ip1>, "
               "<name2>=<ip2>; ...\"");
-DEFINE_string(wal_dir, fmt::format("{}/{}.consensus", currentDir, FLAGS_name),
-              "path to the dedicated wal directory.");
 DEFINE_uint32(heartbeat_interval, 100, "time (in milliseconds) of a heartbeat interval.");
 DEFINE_uint32(election_timeout, 1000, "time (in milliseconds) for an election to timeout.");
+
+DEFINE_string(wal_dir, "", "path to the dedicated wal directory. Default to ${name}.consensus.");
+bool FLAGS_wal_dir_Validator(const char* name, const std::string& val) {
+  if (val.length() == 0) {
+    FLAGS_wal_dir = fmt::format("{}/{}.consensus", currentDir, FLAGS_name);
+  }
+  return true;
+}
+DEFINE_validator(wal_dir, &FLAGS_wal_dir_Validator);
 
 namespace consensus {
 namespace rpc {
@@ -39,13 +46,13 @@ namespace rpc {
       return Status::Make(Error::BadConfig, "Check failed: " #cond); \
   } while (0)
 
-Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string> *peerMap) {
+Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string>* peerMap) {
   using namespace silly;
 
   std::vector<std::string> servers;
   boost::split(servers, FLAGS_initial_cluster, [](char c) -> bool { return c == ';'; });
 
-  for (std::string &server : servers) {
+  for (std::string& server : servers) {
     boost::trim(server);
     if (server.empty()) {
       continue;
