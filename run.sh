@@ -29,6 +29,10 @@ function run_build() {
     popd
 }
 
+#####################
+## start_onebox
+#####################
+
 function usage_start_onebox()
 {
     echo "Options for subcommand 'start_onebox':"
@@ -70,7 +74,10 @@ function run_start_onebox() {
 
     for i in $(seq ${SERVER_COUNT})
     do
-        ./output/bin/raft_server --initial_cluster=${initial_cluster} --name=infra${i} &>./output/bin/server${i}.log &
+        ./output/bin/raft_server \
+            --initial_cluster=${initial_cluster} \
+            --name=infra${i} \
+            --wal_dir=${PROJECT_DIR}/output/infra${i}.consensus  &>./output/bin/server${i}.log &
     done
 }
 
@@ -81,6 +88,47 @@ function run_stop_onebox() {
 function run_list_onebox() {
     ps -ef | grep output/bin/raft_server | grep 'initial_cluster' | sort -k11
 }
+
+#####################
+## stop_onebox_instance
+#####################
+
+function usage_stop_onebox_instance()
+{
+    echo "Options for subcommand 'stop_onebox_instance':"
+    echo "   -h|--help         print the help info"
+    echo "   -s|--server_id    <num>"
+    echo "                     raft server id"
+}
+
+function run_stop_onebox_instance() {
+    SERVER_ID=0
+    while [[ $# > 0 ]]; do
+        key="$1"
+        case $key in
+            -h|--help)
+                usage_stop_onebox_instance
+                exit 0
+                ;;
+            -s|--server_id)
+                SERVER_ID="$2"
+                shift
+                ;;
+            *)
+                echo "ERROR: unknown option \"$key\""
+                echo
+                usage_stop_onebox_instance
+                exit -1
+                ;;
+        esac
+        shift
+    done
+    if [ ${SERVER_ID} != "0" ]; then
+        ps -ef | grep output/bin/raft_server | grep name=infra${SERVER_ID} | awk '{print $2}' | xargs kill &>/dev/null
+    fi
+}
+
+####################################################################
 
 if [ $# -eq 0 ]; then
     usage
@@ -107,6 +155,10 @@ case $cmd in
     list_onebox)
         shift
         run_list_onebox $*
+        ;;
+    stop_onebox_instance)
+        shift
+        run_stop_onebox_instance $*
         ;;
     test)
         shift
