@@ -20,6 +20,10 @@ int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
   ::sofa::pbrpc::RpcServerOptions opts;
+
+  // using single-threaded server to avoid unnecessary data races in FSM.
+  opts.work_thread_num = 1;
+
   ::sofa::pbrpc::RpcServer rpcServer(opts);
   auto raftService = RaftServiceImpl::New();
 
