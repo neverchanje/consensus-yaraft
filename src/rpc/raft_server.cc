@@ -25,10 +25,12 @@ RaftServiceImpl::~RaftServiceImpl() {
   STLDeleteContainerPointers(peerMap_.begin(), peerMap_.end());
 }
 
-Status RaftServiceImpl::broadcast(const std::vector<yaraft::pb::Message> &mails) {
+Status RaftServiceImpl::broadcast(std::vector<yaraft::pb::Message> &mails) {
   for (const auto &m : mails) {
     CHECK(peerMap_.size() < m.to() && m.to() != 0);
-    RETURN_NOT_OK(peerMap_[m.to()]->AsyncSend(m));
+
+    auto newMsg = new yaraft::pb::Message(std::move(m));
+    peerMap_[m.to()]->AsyncSend(newMsg);
   }
   return Status::OK();
 }
@@ -66,7 +68,12 @@ RaftServiceImpl *RaftServiceImpl::New() {
   conf->heartbeatTick = FLAGS_heartbeat_interval;
 
   std::map<std::string, std::string> peerNameToIp;
-  FATAL_NOT_OK(ParseClusterMembershipFromGFlags(&peerNameToIp), "--initial_cluster parse failed.");
+  FATAL_NOT_OK(ParseClusterMembershipFromGFlags(&peerNameToIp), "--initial_cluster parse failed");
+  if (peerNameToIp.find(FLAGS_name) == peerNameToIp.end()) {
+    FMT_LOG(FATAL, "couldn't find local name \"{}\" in the initial cluster configuration",
+            FLAGS_name);
+  }
+
   for (uint64_t i = 1; i <= peerNameToIp.size(); i++) {
     conf->peers.push_back(i);
   }
@@ -100,15 +107,14 @@ RaftServiceImpl *RaftServiceImpl::New() {
   return server;
 }
 
-void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
-                           const yaraft::pb::Message *request, pb::Response *response,
-                           google::protobuf::Closure *done) {
+void RaftServiceImpl::Step(google::protobuf::RpcController *controller, const pb::Request *request,
+                           pb::Response *response, google::protobuf::Closure *done) {
   sofa::pbrpc::RpcController *cntl = static_cast<sofa::pbrpc::RpcController *>(controller);
   FMT_LOG(INFO, "RaftService::Step(): message from {}: {}", cntl->RemoteAddress(),
-          yaraft::DumpPB(*request));
+          yaraft::DumpPB(request->message()));
 
   // handling request
-  handle(*request, response);
+  handle(request->message(), response);
   done->Run();
 }
 
@@ -116,6 +122,8 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
   switch (code) {
     case yaraft::Error::StepLocalMsg:
       return pb::StepLocalMsg;
+    case yaraft::Error::StepPeerNotFound:
+      return pb::StepPeerNotFound;
     default:
       LOG(FATAL) << "Unexpected error code: " << yaraft::Error::ToString(code);
       return pb::OK;
@@ -133,11 +141,14 @@ void RaftServiceImpl::handle(const yaraft::pb::Message &request, pb::Response *r
   // immediately handle ready after performing an FSM transition
   // TODO(optimize) batching this
   yaraft::Ready *rd = node_->GetReady();
-  handleReady(rd);
+  if (rd != nullptr) {
+    handleReady(rd);
+  }
 }
 
 void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
   using namespace yaraft::pb;
+  DLOG_ASSERT(rd != nullptr);
 
   if (!rd->entries.empty()) {
     FATAL_NOT_OK(wal_->AppendEntries(rd->entries), "WriteAheadLog::AppendEntries");

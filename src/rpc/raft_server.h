@@ -36,7 +36,7 @@ class RaftServiceImpl : public rpc::pb::RaftService {
   virtual ~RaftServiceImpl();
 
   // @param `request` may be mutated after Step.
-  virtual void Step(google::protobuf::RpcController *controller, const yaraft::pb::Message *request,
+  virtual void Step(google::protobuf::RpcController *controller, const pb::Request *request,
                     pb::Response *response, google::protobuf::Closure *done) override;
 
   // URL of this server.
@@ -60,7 +60,7 @@ class RaftServiceImpl : public rpc::pb::RaftService {
   bool broadcastAllReadyMails(yaraft::Ready *rd);
 
   // asynchronously broadcast all messages in `mails` to their specified destination.
-  Status broadcast(const std::vector<yaraft::pb::Message> &mails);
+  Status broadcast(std::vector<yaraft::pb::Message> &mails);
 
  private:
   friend class Peer;
