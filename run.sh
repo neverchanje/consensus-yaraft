@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 PROJECT_DIR=`pwd`
 
 function usage()
@@ -74,6 +76,10 @@ function run_start_onebox() {
 
     for i in $(seq ${SERVER_COUNT})
     do
+        # restart from empty wal dir
+        if [ -d ./output/infra${i}.consensus ]; then
+            rm -rf ./output/infra${i}.consensus
+        fi
         ./output/bin/raft_server \
             --initial_cluster=${initial_cluster} \
             --name=infra${i} \
