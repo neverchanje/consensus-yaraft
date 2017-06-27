@@ -14,6 +14,7 @@
 
 #include "rpc/raft_server.h"
 #include "base/stl_container_utils.h"
+#include "rpc/raft_timer.h"
 
 #include <base/env.h>
 #include <boost/algorithm/string/trim.hpp>
@@ -92,29 +93,37 @@ RaftServiceImpl *RaftServiceImpl::New() {
     if (FLAGS_name != e.first) {
       FMT_SLOG(INFO, "New peer {name: \"%s\", url: \"%s\"} added.", e.first, e.second);
       server->peerMap_[id] = new Peer(server, e.second);
-    } else {
-      server->url_ = e.second;
     }
   }
 
-  conf->id = server->peerNameToId_[FLAGS_name];
+  server->url_ = peerNameToIp[FLAGS_name];
+  server->id_ = conf->id = server->peerNameToId_[FLAGS_name];
 
   auto node = new yaraft::RawNode(conf);
   server->node_.reset(node);
   server->wal_.reset(wal);
   server->storage_ = memstore;
 
+  server->bg_timer_thread_ = std::thread(
+      [](RaftServiceImpl *s) {
+        s->bg_timer_ = std::unique_ptr<RaftTimer>(new RaftTimer(s));
+        s->bg_timer_->Run();
+      },
+      server);
+
   return server;
 }
 
-void RaftServiceImpl::Step(google::protobuf::RpcController *controller, const pb::Request *request,
-                           pb::Response *response, google::protobuf::Closure *done) {
+void RaftServiceImpl::Serve(google::protobuf::RpcController *controller, const pb::Request *request,
+                            pb::Response *response, google::protobuf::Closure *done) {
   sofa::pbrpc::RpcController *cntl = static_cast<sofa::pbrpc::RpcController *>(controller);
-  FMT_LOG(INFO, "RaftService::Step(): message from {}: {}", cntl->RemoteAddress(),
-          yaraft::DumpPB(request->message()));
 
-  // handling request
-  handle(request->message(), response);
+  if (request->ticks() == 0) {
+    Step(cntl, request, response);
+  } else {
+    Tick(cntl, request, response);
+  }
+
   done->Run();
 }
 
@@ -130,28 +139,39 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
   }
 }
 
-void RaftServiceImpl::handle(const yaraft::pb::Message &request, pb::Response *response) {
-  auto s = node_->Step(const_cast<::yaraft::pb::Message &>(request));
+void RaftServiceImpl::Step(sofa::pbrpc::RpcController *cntl, const pb::Request *request,
+                           pb::Response *response) {
+  FMT_LOG(INFO, "RaftService::Step(): message from {}: {}", cntl->RemoteAddress(),
+          yaraft::DumpPB(request->message()));
+
+  auto s = node_->Step(const_cast<::yaraft::pb::Message &>(request->message()));
   if (UNLIKELY(!s.IsOK())) {
     LOG(ERROR) << "RawNode::Step: " << s.ToString();
     response->set_code(yaraftErrorCodeToRpcStatusCode(s.Code()));
     return;
   }
 
-  // immediately handle ready after performing an FSM transition
-  // TODO(optimize) batching this
-  yaraft::Ready *rd = node_->GetReady();
-  if (rd != nullptr) {
-    handleReady(rd);
+  handleReady(node_->GetReady());
+}
+
+void RaftServiceImpl::Tick(google::protobuf::RpcController *cntl, const pb::Request *request,
+                           pb::Response *response) {
+  for (uint32_t i = 0; i < request->ticks(); i++) {
+    node_->Tick();
   }
+
+  handleReady(node_->GetReady());
 }
 
 void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
   using namespace yaraft::pb;
-  DLOG_ASSERT(rd != nullptr);
+  if (rd == nullptr) {
+    return;
+  }
 
-  if (!rd->entries.empty()) {
-    FATAL_NOT_OK(wal_->AppendEntries(rd->entries), "WriteAheadLog::AppendEntries");
+  if (!rd->entries->empty()) {
+    FATAL_NOT_OK(wal_->AppendEntries(*rd->entries), "WriteAheadLog::AppendEntries");
+    node_->Advance(*rd);
   }
 
   if (!rd->hardState) {
@@ -160,6 +180,11 @@ void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
   if (!rd->messages.empty()) {
     broadcastAllReadyMails(rd);
   }
+}
+
+void RaftServiceImpl::Stop() {
+  bg_timer_->Stop();
+  bg_timer_thread_.join();
 }
 
 }  // namespace rpc

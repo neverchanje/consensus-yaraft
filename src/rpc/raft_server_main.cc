@@ -41,7 +41,8 @@ int main(int argc, char* argv[]) {
   // Wait signal.
   rpcServer.Run();
 
-  // Stop rpc rpc.
+  // Stop rpc server
+  raftService->Stop();
   rpcServer.Stop();
 
   return 0;
