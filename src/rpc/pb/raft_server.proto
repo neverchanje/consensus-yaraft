@@ -19,9 +19,13 @@ message Response {
 }
 
 message Request {
-    required yaraft.pb.Message message = 1;
+    // The message that drives the RaftServer to perform RawNode::Step.
+    optional yaraft.pb.Message message = 1;
+
+    // The number of ticks elapsed which drives the RaftServer to perform RawNode::Tick.
+    optional uint32 ticks = 2;
 }
 
 service RaftService {
-    rpc Step(Request) returns(Response);
+    rpc Serve(Request) returns(Response);
 }
