@@ -11,22 +11,19 @@ set(SOFA_PBRPC_THIRDPARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sofa-pbrpc/output)
 # Look in thirdparty prefix paths before anywhere else for system dependencies.
 set(CMAKE_PREFIX_PATH ${THIRDPARTY_DIR} ${YARAFT_THIRDPARTY_DIR} ${SOFA_PBRPC_THIRDPARTY_DIR} ${CMAKE_PREFIX_PATH})
 
-## Protobuf
 find_package(Protobuf REQUIRED)
 
-## GLog
 find_package(GLog REQUIRED)
 
-## GFlags
 find_package(Gflags REQUIRED)
 
-## GTest
+find_package(Sanitizers REQUIRED)
+
 find_library(GTEST_LIB gtest PATH ${DEPS_LIB_DIR})
 find_library(GTEST_MAIN_LIB gtest_main PATH ${DEPS_LIB_DIR})
 message("-- Found ${GTEST_LIB}")
 message("-- Found ${GTEST_MAIN_LIB}")
 
-## Boost Filesystem
 find_package(Boost COMPONENTS system filesystem REQUIRED)
 
 find_library(SILLY_LIBRARY silly_lite PATH ${DEPS_LIB_DIR})
