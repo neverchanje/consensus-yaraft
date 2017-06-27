@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
+
 #include "base/logging.h"
 #include "rpc/pb/raft_server.pb.h"
 
@@ -28,25 +30,33 @@ class SyncRaftClient : sofa::pbrpc::RpcClient {
   // Synchronously sending request to specified url.
   // NOTE: The ownership of `msg` will be taken over by this method.
   StatusWith<pb::Response> Step(yaraft::pb::Message* msg) {
-    sofa::pbrpc::RpcController* cntl = new sofa::pbrpc::RpcController();
-    cntl->SetTimeout(3000);
-
-    rpc::pb::Response response;
     rpc::pb::Request request;
     request.set_allocated_message(msg);
 
-    rpc::pb::RaftService_Stub stub(&channel_);
-    stub.Step(cntl, &request, &response, NULL);
+    return sendRequest(request);
+  }
 
-    if (cntl->Failed()) {
-      auto errStr = fmt::format("request failed: {}", cntl->ErrorText());
+  StatusWith<pb::Response> Tick(uint32_t ticks) {
+    rpc::pb::Request request;
+    request.set_ticks(ticks);
+
+    return sendRequest(request);
+  }
+
+ private:
+  StatusWith<pb::Response> sendRequest(rpc::pb::Request& request) {
+    sofa::pbrpc::RpcController cntl;
+    cntl.SetTimeout(3000);
+
+    rpc::pb::Response response;
+    rpc::pb::RaftService_Stub stub(&channel_);
+    stub.Serve(&cntl, &request, &response, NULL);
+
+    if (cntl.Failed()) {
+      auto errStr = fmt::format("request failed: {}", cntl.ErrorText());
       LOG(ERROR) << errStr;
       return Status::Make(Error::RpcError, errStr);
-    } else {
-      FMT_SLOG(INFO, "request succeed with response: {%s}", response.ShortDebugString());
     }
-
-    delete cntl;
     return response;
   }
 
@@ -77,7 +87,7 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
     // -- request --
 
     rpc::pb::RaftService_Stub stub(&channel_);
-    stub.Step(cntl, request, response, done);
+    stub.Serve(cntl, request, response, done);
   }
 
   // `onSuccess` should not destroy the response object.
@@ -99,8 +109,6 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
         onFail_();
       }
     } else {
-      FMT_SLOG(INFO, "request succeed with response: {%s}", response->ShortDebugString());
-
       if (onSuccess_) {
         onSuccess_(response);
       }
