@@ -74,7 +74,7 @@ set(RPC_SOURCES
         ${RPC_SOURCE_DIR}/config.cc
         ${RPC_SOURCE_DIR}/peer.cc
         ${RPC_SOURCE_DIR}/raft_server.cc
-        ${RPC_SOURCE_DIR}/raft_tick.cc
+        ${RPC_SOURCE_DIR}/raft_timer.cc
         ${RPC_SOURCE_DIR}/raft_client.h
         ${RPC_SOURCE_DIR}/pb/raft_server.pb.cc)
 
@@ -92,5 +92,6 @@ ADD_RPC_TEST(raft_server_test)
 
 add_executable(raft_server
         ${RPC_SOURCE_DIR}/raft_server_main.cc)
-
+add_sanitize_address(raft_server)
 target_link_libraries(raft_server ${CONSENSUS_LINK_LIBS})
+install(TARGETS raft_server DESTINATION bin)
