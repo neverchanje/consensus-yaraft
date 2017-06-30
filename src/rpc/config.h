@@ -30,6 +30,7 @@ DECLARE_uint32(election_timeout);
 namespace consensus {
 namespace rpc {
 
+// This function parses the flag --initial_cluster and stores the result in `peerMap`.
 Status ParseClusterMembershipFromGFlags(std::map<std::string, std::string> *peerMap);
 
 }  // namespace rpc
