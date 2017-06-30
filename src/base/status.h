@@ -35,6 +35,9 @@ class Error {
     YARaftERR,
     BadConfig,
     RpcError,
+    IllegalState,
+    RuntimeError,
+    InvalidArgument,
   };
 
  private:

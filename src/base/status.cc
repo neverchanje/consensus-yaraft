@@ -32,6 +32,9 @@ std::string Error::toString(unsigned int code) {
     DUMB_ERROR_TO_STRING(YARaftERR);
     DUMB_ERROR_TO_STRING(BadConfig);
     DUMB_ERROR_TO_STRING(RpcError);
+    DUMB_ERROR_TO_STRING(IllegalState);
+    DUMB_ERROR_TO_STRING(RuntimeError);
+    DUMB_ERROR_TO_STRING(InvalidArgument);
     default:
       return fmt::format("Unknown error codes: {}", code);
   }
