@@ -42,14 +42,9 @@ class LogWriter {
 
     SegmentMetaData meta;
     meta.fileName = fname;
-    meta.committed = false;
 
     WritableFile *wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
-
-    // append uncommitted marker
-    std::string uncommitted(1, '\0');
-    wf->Append(uncommitted);
 
     return new LogWriter(wf, meta);
   }

@@ -28,13 +28,7 @@ namespace wal {
 //
 //  Each segment composes of a series of log entries:
 //
-//  Segment := Header LogEntry*
-//  Header  := Committed
-//
-//  Committed -> bool, committed marker of a log segment, if it is true,
-//  all entries in the segment must have been committed.
-
-constexpr static size_t kSegmentHeaderSize = 1;
+//  Segment := LogEntry*
 
 constexpr static size_t kEntryHeaderSize = 8;
 

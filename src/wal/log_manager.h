@@ -49,16 +49,12 @@ class LogManager : public WriteAheadLog {
     return files_.size() + static_cast<size_t>(bool(current_));
   }
 
-  Status MarkCommitted(uint64_t segId) const;
-
   Status Close();
 
  private:
   // Append entries into log. It's guaranteed that there's no conflicted entry between MsgApp
   // and current log.
   Status doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end);
-
-  Status updateLogWriter();
 
  private:
   friend class LogManagerTest;

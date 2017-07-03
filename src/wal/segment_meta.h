@@ -23,7 +23,6 @@ namespace wal {
 
 struct SegmentMetaData {
   std::string fileName;
-  bool committed;
 
   SegmentMetaData() = default;
 };

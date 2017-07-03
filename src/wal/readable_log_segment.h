@@ -33,11 +33,6 @@ namespace wal {
 // ReadableLogSegment saves all data of a segment into memory.
 class ReadableLogSegment {
  public:
-  struct Header {
-    bool committed;
-  };
-
- public:
   ~ReadableLogSegment() {
     delete[] buf_;
   }
@@ -50,16 +45,6 @@ class ReadableLogSegment {
   }
 
   ReadableLogSegment(char *buf, size_t len) : buf_(buf), offset_(0), remain_(len) {}
-
-  StatusWith<Header> ReadHeader() {
-    CHECK_EQ(offset_, 0);
-    RETURN_NOT_OK(checkEnough(kSegmentHeaderSize));
-
-    Header header;
-    header.committed = static_cast<bool>(buf_[0]);
-    advance(kSegmentHeaderSize);
-    return header;
-  }
 
   StatusWith<yaraft::pb::Entry> ReadEntry() {
     RETURN_NOT_OK(checkEnough(8));

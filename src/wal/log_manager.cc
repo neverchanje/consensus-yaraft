@@ -98,19 +98,15 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
 
   for (auto it = wals.begin(); it != wals.end(); it++) {
     ReadableLogSegment* seg;
-    std::string fname = logsDir + "/" + fmt::format("{}-{}.wal", it->first, it->second);
+    std::string fname = logsDir + "/" + SegmentFileName(it->first, it->second);
     ASSIGN_IF_OK(ReadableLogSegment::Create(fname), seg);
     std::unique_ptr<ReadableLogSegment> d(seg);
 
     bool head = true;
     while (!seg->Eof()) {
       if (head) {
-        ReadableLogSegment::Header header;
-        ASSIGN_IF_OK(seg->ReadHeader(), header);
-
         SegmentMetaData meta;
         meta.fileName = std::move(fname);
-        meta.committed = header.committed;
         m->files_.push_back(std::move(meta));
         head = false;
         continue;
@@ -123,19 +119,6 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
     }
   }
   return m.release();
-}
-
-// mark the specified segment as committed
-Status LogManager::MarkCommitted(uint64_t segId) const {
-  WritableFile* wf;
-  ASSIGN_IF_OK(
-      Env::Default()->NewWritableFile(files_[segId].fileName, Env::CreateMode::OPEN_EXISTING, true),
-      wf);
-  std::unique_ptr<WritableFile> d(wf);
-
-  char committed[1] = {static_cast<char>(1)};
-  RETURN_NOT_OK(wf->PositionedAppend(Slice(committed, 1), 0));
-  return wf->Close();
 }
 
 Status LogManager::AppendEntries(const PBEntryVec& entries) {
@@ -189,11 +172,6 @@ Status LogManager::Close() {
 }
 
 Status LogManager::GC(WriteAheadLog::CompactionHint* hint) {
-  for (SegmentMetaData& f : files_) {
-    if (f.committed) {
-      RETURN_NOT_OK(Env::Default()->DeleteFile(f.fileName));
-    }
-  }
   return Status::OK();
 }
 
