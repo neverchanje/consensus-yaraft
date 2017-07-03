@@ -64,11 +64,10 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
     LogManager manager(GetTestDir());
 
     // Always writes to only one segment
-    size_t emptyEntrySize = PBEntry().Index(1).Term(1).v.ByteSize();
     FLAGS_log_segment_size = 1024 * 1024 * 64;  // sufficient enough to hold all logs in one segment
 
     EntryVec vec;
-    for (int i = 1; i <= t.totalEntries; i++) {
+    for (uint64_t i = 1; i <= t.totalEntries; i++) {
       vec.push_back(PBEntry().Index(i).Term(i).v);
     }
     ASSERT_OK(manager.AppendEntries(vec));
@@ -81,10 +80,6 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
                         seg);
     std::unique_ptr<ReadableLogSegment> d(seg);
 
-    ReadableLogSegment::Header h;
-    ASSIGN_IF_ASSERT_OK(seg->ReadHeader(), h);
-    ASSERT_FALSE(h.committed);
-
     for (int i = 0; i < t.totalEntries; i++) {
       auto sw = seg->ReadEntry();
       ASSERT_OK(sw);
@@ -94,37 +89,47 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
 }
 
 TEST_F(LogManagerTest, AppendToMemStore) {
+  using E = PBEntry;
+
   struct TestData {
     EntryVec vec;
 
     Error::ErrorCodes code;
     EntryVec expected;
   } tests[] = {
-      {{PBEntry().Index(2).Term(1).v, PBEntry().Index(3).Term(1).v},
+      {{E().Index(2).Term(1).v, E().Index(3).Term(1).v},
        Error::OK,
-       {PBEntry().Index(1).Term(1).v, PBEntry().Index(2).Term(1).v, PBEntry().Index(3).Term(1).v}},
+       {E().Index(2).Term(1).v, E().Index(3).Term(1).v}},
 
-      {{PBEntry().Index(2).Term(2).v, PBEntry().Index(3).Term(1).v}, Error::YARaftERR, {}},
+      {{E().Index(2).Term(2).v, E().Index(3).Term(1).v}, Error::YARaftERR, {}},
 
-      {{PBEntry().Index(2).Term(2).v, PBEntry().Index(2).Term(2).v},
+      {{E().Index(2).Term(2).v, E().Index(2).Term(2).v}, Error::OK, {E().Index(2).Term(2).v}},
+
+      {{E().Index(2).Term(2).v, E().Index(3).Term(3).v, E().Index(2).Term(4).v},
        Error::OK,
-       {PBEntry().Index(1).Term(1).v, PBEntry().Index(2).Term(2).v}},
+       {E().Index(2).Term(4).v}},
 
-      {{PBEntry().Index(2).Term(2).v, PBEntry().Index(3).Term(3).v, PBEntry().Index(2).Term(4).v},
+      {{E().Index(2).Term(1).v, E().Index(3).Term(1).v, E().Index(4).Term(2).v,
+        E().Index(5).Term(3).v, E().Index(6).Term(3).v, E().Index(7).Term(3).v,
+        E().Index(5).Term(4).v},
        Error::OK,
-       {PBEntry().Index(1).Term(1).v, PBEntry().Index(2).Term(4).v}},
+       {E().Index(2).Term(1).v, E().Index(3).Term(1).v, E().Index(4).Term(2).v,
+        E().Index(5).Term(4).v}},
   };
 
   for (auto t : tests) {
     MemoryStorage memstore;
-    auto& vec = memstore.TEST_Entries();
-    vec.clear();
-    vec.push_back(PBEntry().Index(1).Term(1).v);
+    memstore.TEST_Entries().clear();
+    memstore.TEST_Entries().emplace_back(E().Index(1).Term(1).v);
 
     auto s = AppendToMemStore(t.vec, &memstore);
     ASSERT_EQ(s.Code(), t.code);
 
     if (s.IsOK()) {
+      EntryVec& actual = memstore.TEST_Entries();
+      std::move(std::next(actual.begin()), actual.end(), actual.begin());
+      actual.pop_back();
+
       ASSERT_TRUE(t.expected == memstore.TEST_Entries());
     }
   }
@@ -157,7 +162,7 @@ TEST_F(LogManagerTest, Recover) {
     FLAGS_log_segment_size = 1024;
 
     EntryVec expected;
-    for (int i = 1; i <= t.logsNum; i++) {
+    for (uint64_t i = 1; i <= t.logsNum; i++) {
       expected.push_back(PBEntry().Index(i).Term(i).v);
     }
 
