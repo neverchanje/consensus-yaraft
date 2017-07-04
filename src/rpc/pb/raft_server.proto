@@ -15,18 +15,37 @@ enum StatusCode {
     StepPeerNotFound = 2;
 }
 
-message Response {
-    optional StatusCode code = 1;
+message StepRequest {
+    // The message that drives the RaftServer to perform RawNode::Step.
+    required yaraft.pb.Message message = 1;
 }
 
-message Request {
-    // The message that drives the RaftServer to perform RawNode::Step.
-    optional yaraft.pb.Message message = 1;
+message StepResponse {
+    required StatusCode code = 1;
+}
 
+message TickRequest {
     // The number of ticks elapsed which drives the RaftServer to perform RawNode::Tick.
-    optional uint32 ticks = 2;
+    required uint32 ticks = 2;
+}
+
+message TickResponse {
+}
+
+message StatusRequest {
+}
+
+message StatusResponse {
+    // leader is the member ID which the responding member believes is the current leader.
+    optional uint64 leader = 4;
+    // raftIndex is the current raft index of the responding member.
+    optional uint64 raftIndex = 5;
+    // raftTerm is the current raft term of the responding member.
+    optional uint64 raftTerm = 6;
 }
 
 service RaftService {
-    rpc Serve (Request) returns (Response);
+    rpc Step (StepRequest) returns (StepResponse);
+    rpc Tick (TickRequest) returns (TickResponse);
+    rpc Status (StatusRequest) returns (StatusResponse);
 }

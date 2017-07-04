@@ -29,28 +29,44 @@ class SyncRaftClient : sofa::pbrpc::RpcClient {
 
   // Synchronously sending request to specified url.
   // NOTE: The ownership of `msg` will be taken over by this method.
-  StatusWith<pb::Response> Step(yaraft::pb::Message* msg) {
-    rpc::pb::Request request;
+  StatusWith<pb::StepResponse> Step(yaraft::pb::Message* msg) {
+    rpc::pb::StepRequest request;
     request.set_allocated_message(msg);
 
     return sendRequest(request);
   }
 
-  StatusWith<pb::Response> Tick(uint32_t ticks) {
-    rpc::pb::Request request;
+  StatusWith<pb::TickResponse> Tick(uint32_t ticks) {
+    rpc::pb::TickRequest request;
     request.set_ticks(ticks);
 
     return sendRequest(request);
   }
 
  private:
-  StatusWith<pb::Response> sendRequest(rpc::pb::Request& request) {
+  StatusWith<pb::StepResponse> sendRequest(rpc::pb::StepRequest& request) {
     sofa::pbrpc::RpcController cntl;
     cntl.SetTimeout(3000);
 
-    rpc::pb::Response response;
+    rpc::pb::StepResponse response;
     rpc::pb::RaftService_Stub stub(&channel_);
-    stub.Serve(&cntl, &request, &response, NULL);
+    stub.Step(&cntl, &request, &response, NULL);
+
+    if (cntl.Failed()) {
+      auto errStr = fmt::format("request failed: {}", cntl.ErrorText());
+      LOG(ERROR) << errStr;
+      return Status::Make(Error::RpcError, errStr);
+    }
+    return response;
+  }
+
+  StatusWith<pb::TickResponse> sendRequest(rpc::pb::TickRequest& request) {
+    sofa::pbrpc::RpcController cntl;
+    cntl.SetTimeout(3000);
+
+    rpc::pb::TickResponse response;
+    rpc::pb::RaftService_Stub stub(&channel_);
+    stub.Tick(&cntl, &request, &response, NULL);
 
     if (cntl.Failed()) {
       auto errStr = fmt::format("request failed: {}", cntl.ErrorText());
@@ -76,10 +92,10 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
     auto cntl = new sofa::pbrpc::RpcController();
     cntl->SetTimeout(3000);
 
-    auto request = new rpc::pb::Request();
+    auto request = new rpc::pb::StepRequest();
     request->set_allocated_message(msg);
 
-    auto response = new rpc::pb::Response();
+    auto response = new rpc::pb::StepResponse();
 
     auto done =
         sofa::pbrpc::NewClosure(this, &AsyncRaftClient::doneCallBack, cntl, request, response);
@@ -87,11 +103,11 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
     // -- request --
 
     rpc::pb::RaftService_Stub stub(&channel_);
-    stub.Serve(cntl, request, response, done);
+    stub.Step(cntl, request, response, done);
   }
 
   // `onSuccess` should not destroy the response object.
-  void RegisterOnSuccess(std::function<void(rpc::pb::Response*)> onSuccess) {
+  void RegisterOnSuccess(std::function<void(rpc::pb::StepResponse*)> onSuccess) {
     onSuccess_ = onSuccess;
   }
 
@@ -100,8 +116,8 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
   }
 
  private:
-  void doneCallBack(const sofa::pbrpc::RpcController* cntl, rpc::pb::Request* request,
-                    rpc::pb::Response* response) {
+  void doneCallBack(const sofa::pbrpc::RpcController* cntl, rpc::pb::StepRequest* request,
+                    rpc::pb::StepResponse* response) {
     if (cntl->Failed()) {
       FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
 
@@ -120,7 +136,7 @@ class AsyncRaftClient : sofa::pbrpc::RpcClient {
 
  private:
   sofa::pbrpc::RpcChannel channel_;
-  std::function<void(rpc::pb::Response*)> onSuccess_;
+  std::function<void(rpc::pb::StepResponse*)> onSuccess_;
   std::function<void()> onFail_;
 };
 

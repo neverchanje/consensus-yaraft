@@ -14,10 +14,10 @@
 
 #pragma once
 
-#include "base/status.h"
+#include <memory>
+
 #include "rpc/pb/raft_server.pb.h"
 
-#include <sofa/pbrpc/pbrpc.h>
 #include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {

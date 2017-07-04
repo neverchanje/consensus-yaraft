@@ -114,19 +114,6 @@ RaftServiceImpl *RaftServiceImpl::New() {
   return server;
 }
 
-void RaftServiceImpl::Serve(google::protobuf::RpcController *controller, const pb::Request *request,
-                            pb::Response *response, google::protobuf::Closure *done) {
-  sofa::pbrpc::RpcController *cntl = static_cast<sofa::pbrpc::RpcController *>(controller);
-
-  if (request->ticks() == 0) {
-    Step(cntl, request, response);
-  } else {
-    Tick(cntl, request, response);
-  }
-
-  done->Run();
-}
-
 static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes code) {
   switch (code) {
     case yaraft::Error::StepLocalMsg:
@@ -139,8 +126,11 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
   }
 }
 
-void RaftServiceImpl::Step(sofa::pbrpc::RpcController *cntl, const pb::Request *request,
-                           pb::Response *response) {
+void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
+                           const pb::StepRequest *request, pb::StepResponse *response,
+                           google::protobuf::Closure *done) {
+  sofa::pbrpc::RpcController *cntl = static_cast<sofa::pbrpc::RpcController *>(controller);
+
   FMT_LOG(INFO, "RaftService::Step(): message from {}: {}", cntl->RemoteAddress(),
           yaraft::DumpPB(request->message()));
 
@@ -152,15 +142,19 @@ void RaftServiceImpl::Step(sofa::pbrpc::RpcController *cntl, const pb::Request *
   }
 
   handleReady(node_->GetReady());
+  response->set_code(pb::OK);
+  done->Run();
 }
 
-void RaftServiceImpl::Tick(google::protobuf::RpcController *cntl, const pb::Request *request,
-                           pb::Response *response) {
+void RaftServiceImpl::Tick(google::protobuf::RpcController *controller,
+                           const pb::TickRequest *request, pb::TickResponse *response,
+                           google::protobuf::Closure *done) {
   for (uint32_t i = 0; i < request->ticks(); i++) {
     node_->Tick();
   }
 
   handleReady(node_->GetReady());
+  done->Run();
 }
 
 void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
@@ -180,6 +174,18 @@ void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
   if (!rd->messages.empty()) {
     broadcastAllReadyMails(rd);
   }
+}
+
+void RaftServiceImpl::Status(google::protobuf::RpcController *controller,
+                             const pb::StatusRequest *request,
+                             pb::StatusResponse *response,
+                             google::protobuf::Closure *done) {
+  yaraft::RaftInfo info = node_->GetInfo();
+  response->set_raftindex(info.logIndex);
+  response->set_raftterm(info.currentTerm);
+  response->set_leader(info.currentLeader);
+
+  done->Run();
 }
 
 void RaftServiceImpl::Stop() {

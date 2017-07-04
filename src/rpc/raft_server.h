@@ -18,7 +18,7 @@
 #include <unordered_map>
 
 #include "base/logging.h"
-#include "config.h"
+#include "rpc/config.h"
 #include "rpc/pb/raft_server.pb.h"
 #include "wal/wal.h"
 
@@ -36,15 +36,15 @@ class RaftServiceImpl : public rpc::pb::RaftService {
 
   virtual ~RaftServiceImpl();
 
-  virtual void Serve(google::protobuf::RpcController *controller, const pb::Request *request,
-                     pb::Response *response, google::protobuf::Closure *done) override;
-
   // @param `request` may be mutated after Step.
-  void Step(sofa::pbrpc::RpcController *controller, const pb::Request *request,
-            pb::Response *response);
+  virtual void Step(google::protobuf::RpcController *controller, const pb::StepRequest *request,
+                    pb::StepResponse *response, google::protobuf::Closure *done) override;
 
-  void Tick(google::protobuf::RpcController *controller, const pb::Request *request,
-            pb::Response *response);
+  virtual void Tick(google::protobuf::RpcController *controller, const pb::TickRequest *request,
+                    pb::TickResponse *response, google::protobuf::Closure *done) override;
+
+  virtual void Status(google::protobuf::RpcController *controller, const pb::StatusRequest *request,
+                    pb::StatusResponse *response, google::protobuf::Closure *done) override;
 
   // Stop the background raft timer.
   void Stop();
@@ -71,7 +71,7 @@ class RaftServiceImpl : public rpc::pb::RaftService {
   bool broadcastAllReadyMails(yaraft::Ready *rd);
 
   // asynchronously broadcast all messages in `mails` to their specified destination.
-  Status broadcast(std::vector<yaraft::pb::Message> &mails);
+  consensus::Status broadcast(std::vector<yaraft::pb::Message> &mails);
 
  private:
   friend class Peer;

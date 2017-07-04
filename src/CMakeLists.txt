@@ -88,7 +88,6 @@ function(ADD_RPC_TEST TEST_NAME)
 endfunction()
 
 ADD_RPC_TEST(config_test)
-ADD_RPC_TEST(raft_server_test)
 
 add_executable(raft_server
         ${RPC_SOURCE_DIR}/raft_server_main.cc)

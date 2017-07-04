@@ -14,7 +14,8 @@
 
 #include <map>
 
-#include "peer.h"
+#include "base/status.h"
+#include "rpc/peer.h"
 
 #include <gflags/gflags.h>
 
