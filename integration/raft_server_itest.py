@@ -4,6 +4,7 @@ import time
 from sofa.pbrpc import client
 import raft_server_pb2, yaraft.pb.raftpb_pb2
 import unittest
+import os, shutil
 
 
 class RaftNode:
@@ -34,6 +35,9 @@ class LocalCluster:
         initial_cluster = "--initial_cluster=" + ';'.join(addresses)
 
         for i in range(0, self.server_num):
+            if os.path.isdir(nodes[i].wal_dir()):
+                shutil.rmtree(nodes[i].wal_dir())
+
             wal_dir = "--wal_dir={}".format(nodes[i].wal_dir())
             name = "--name={}".format(nodes[i].name())
             out = open("server{}.log".format(i + 1), "w")
@@ -75,7 +79,6 @@ class RaftClient:
             print "ERROR: Remote fail: %s" % controller.ErrorText()
             sys.exit(1)
 
-        print "response: {}".format(response)
         return response
 
     def Step(self, msg):
@@ -99,15 +102,26 @@ class RaftClient:
         return response
 
 
+class RaftServerTest(unittest.TestCase):
+    def test_LeaderElectionBootstrap(self):
+        for server_num in range(1, 6):
+            with LocalCluster(server_num) as cluster:
+                time.sleep(3)
+
+                status = [RaftClient(cluster.node(i).address()).Status() for i in range(0, server_num)]
+
+                leader = status[0].leader
+                for i in range(1, server_num):
+                    self.assertEqual(leader, status[i].leader)
+
+                # term must be 1
+                for i in range(0, server_num):
+                    self.assertEqual(1, status[i].raftTerm)
+
+                # log index must be 1
+                for i in range(0, server_num):
+                    self.assertEqual(1, status[i].raftIndex)
+
+
 if __name__ == '__main__':
-    with LocalCluster(3) as cluster:
-        time.sleep(5)
-
-        msg = yaraft.pb.raftpb_pb2.Message()
-        msg.type = yaraft.pb.raftpb_pb2.MsgProp
-        msg.to = 1
-        msg.term = 1
-        entry = msg.entries.add()
-        entry.Data = "abc"
-
-        RaftClient(cluster.node(1).address()).Status()
+    unittest.main()
