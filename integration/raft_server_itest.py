@@ -52,21 +52,17 @@ class LocalCluster:
         return self.nodes[id - 1]
 
 
-
 class RaftClient:
     def __init__(self, url):
         self.channel = client.Channel(url)
 
-    def request(self, msg):
+    def doRequest(self, requestFunc, *args):
         service = raft_server_pb2.RaftService_Stub(self.channel)
         controller = client.Controller()
         controller.SetTimeout(1.5)
 
-        request = raft_server_pb2.Request()
-        request.message.CopyFrom(msg)
-
         try:
-            response = service.Serve(controller, request)
+            response = requestFunc(service, controller, args)
         except client.TimeoutError:
             print "ERROR: RPC timeout"
             sys.exit(1)
@@ -79,12 +75,28 @@ class RaftClient:
             print "ERROR: Remote fail: %s" % controller.ErrorText()
             sys.exit(1)
 
-        # OK, print response.
-        print "Response:\n\n%s" % response
+        print "response: {}".format(response)
+        return response
 
+    def Step(self, msg):
+        return self.doRequest(self.step, msg)
 
-class RaftServerTest(unittest.TestCase):
-    def test_WriteAndRead(self):
+    def step(self, service, controller, args):
+        msg = args[0]
+        request = raft_server_pb2.StepRequest()
+        request.message.CopyFrom(msg)
+        response = service.Step(controller, request)
+
+        return response
+
+    def Status(self):
+        return self.doRequest(self.status)
+
+    def status(self, service, controller, args):
+        request = raft_server_pb2.StatusRequest()
+        response = service.Status(controller, request)
+
+        return response
 
 
 if __name__ == '__main__':
@@ -98,4 +110,4 @@ if __name__ == '__main__':
         entry = msg.entries.add()
         entry.Data = "abc"
 
-        RaftClient(cluster.node(1).address()).request(msg)
+        RaftClient(cluster.node(1).address()).Status()
