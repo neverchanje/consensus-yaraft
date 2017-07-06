@@ -21,11 +21,17 @@ class RaftNode:
         return "{}.consensus".format(self.name())
 
 
+class RaftProcess:
+    def __init__(self, cmdline, process, output):
+        self.cmdline = cmdline
+        self.process = process
+        self.output = output
+
+
 class LocalCluster:
     def __init__(self, num):
         self.p = []
         self.server_num = num
-        self.out = []
         self.nodes = [RaftNode(i + 1) for i in range(0, self.server_num)]
 
     # set up `server_num` number of servers.
@@ -42,18 +48,28 @@ class LocalCluster:
             name = "--name={}".format(nodes[i].name())
             out = open("server{}.log".format(i + 1), "w")
 
-            self.p.append(subprocess.Popen(["../output/bin/raft_server", initial_cluster, wal_dir, name], stderr=out))
-            self.out.append(out)
+            cmdline = ["../output/bin/raft_server", initial_cluster, wal_dir, name]
+            process = subprocess.Popen(cmdline, stderr=out)
+            self.p.append(RaftProcess(cmdline, process, out))
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         for i in range(0, self.server_num):
-            self.p[i].kill()
-            self.out[i].close()
+            self.p[i].process.kill()
+            self.p[i].output.close()
 
     def node(self, id):
         return self.nodes[id - 1]
+
+    def restart(self, id):
+        p = self.p[id - 1]
+        p.process.kill()
+        p.process = subprocess.Popen(p.cmdline, stderr=p.output)
+
+    def kill(self, id):
+        p = self.p[id - 1]
+        p.process.kill()
 
 
 class RaftClient:
@@ -121,6 +137,23 @@ class RaftServerTest(unittest.TestCase):
                 # log index must be 1
                 for i in range(0, server_num):
                     self.assertEqual(1, status[i].raftIndex)
+
+    def test_LeaderDownReelection(self):
+        for server_num in range(2, 6):
+            with LocalCluster(server_num) as cluster:
+                time.sleep(3)
+
+                status = RaftClient(cluster.node(1).address()).Status()
+                cluster.kill(status.leader)
+                print status
+
+                time.sleep(3)
+                status = [RaftClient(cluster.node(i).address()).Status() for i in range(0, server_num)]
+                leader = status[0].leader
+                for i in range(1, server_num):
+                    self.assertEqual(leader, status[i].leader)
+
+                print status[0]
 
 
 if __name__ == '__main__':
