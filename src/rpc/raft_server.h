@@ -32,7 +32,7 @@ class Peer;
 class RaftTimer;
 class RaftServiceImpl : public rpc::pb::RaftService {
  public:
-  static RaftServiceImpl *New();
+  static RaftServiceImpl *New(const sofa::pbrpc::RpcServer *rpcServer);
 
   virtual ~RaftServiceImpl();
 
@@ -44,7 +44,7 @@ class RaftServiceImpl : public rpc::pb::RaftService {
                     pb::TickResponse *response, google::protobuf::Closure *done) override;
 
   virtual void Status(google::protobuf::RpcController *controller, const pb::StatusRequest *request,
-                    pb::StatusResponse *response, google::protobuf::Closure *done) override;
+                      pb::StatusResponse *response, google::protobuf::Closure *done) override;
 
   // Stop the background raft timer.
   void Stop();

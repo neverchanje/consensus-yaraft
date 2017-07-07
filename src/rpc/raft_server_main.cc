@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   opts.work_thread_num = 1;
 
   ::sofa::pbrpc::RpcServer rpcServer(opts);
-  auto raftService = RaftServiceImpl::New();
+  auto raftService = RaftServiceImpl::New(&rpcServer);
 
   LOG(INFO) << "Start rpc server at: " << raftService->Url();
   if (!rpcServer.Start(raftService->Url())) {

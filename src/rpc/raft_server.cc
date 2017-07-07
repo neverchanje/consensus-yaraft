@@ -53,7 +53,7 @@ static void printFlags() {
   FMT_LOG(INFO, "--initial_cluster=\"{}\"", FLAGS_initial_cluster);
 }
 
-RaftServiceImpl *RaftServiceImpl::New() {
+RaftServiceImpl *RaftServiceImpl::New(const sofa::pbrpc::RpcServer *rpcServer) {
   printFlags();
 
   FATAL_NOT_OK(Env::Default()->CreateDirIfMissing(FLAGS_wal_dir),
@@ -105,11 +105,16 @@ RaftServiceImpl *RaftServiceImpl::New() {
   server->storage_ = memstore;
 
   server->bg_timer_thread_ = std::thread(
-      [](RaftServiceImpl *s) {
+      [](RaftServiceImpl *s, sofa::pbrpc::RpcServer *rpc) {
+        // the background timer should await for the RPC server to launch.
+        while (!rpc->IsListening()) {
+          sleep(1);
+        }
+
         s->bg_timer_ = std::unique_ptr<RaftTimer>(new RaftTimer(s));
         s->bg_timer_->Run();
       },
-      server);
+      server, const_cast<sofa::pbrpc::RpcServer *>(rpcServer));
 
   return server;
 }
@@ -157,6 +162,7 @@ void RaftServiceImpl::Tick(google::protobuf::RpcController *controller,
   done->Run();
 }
 
+// TODO: Asynchronously handle ready.
 void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
   using namespace yaraft::pb;
   if (rd == nullptr) {
@@ -177,8 +183,7 @@ void RaftServiceImpl::handleReady(yaraft::Ready *rd) {
 }
 
 void RaftServiceImpl::Status(google::protobuf::RpcController *controller,
-                             const pb::StatusRequest *request,
-                             pb::StatusResponse *response,
+                             const pb::StatusRequest *request, pb::StatusResponse *response,
                              google::protobuf::Closure *done) {
   yaraft::RaftInfo info = node_->GetInfo();
   response->set_raftindex(info.logIndex);
