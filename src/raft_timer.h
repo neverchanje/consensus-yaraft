@@ -12,33 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "raft_client.h"
+#include <thread>
+
+#include "base/background_worker.h"
+#include "base/status.h"
 
 #include <boost/asio/deadline_timer.hpp>
 #include <boost/asio/strand.hpp>
 
 namespace consensus {
-namespace rpc {
 
-class RaftServiceImpl;
+// RaftTimer is the background timer that ticks for every 1ms.
+// In our implementation, it doesn't generate a task every 1ms, instead,
+// it request RaftTaskExecutor to run RawNode::Tick 100 times for every 100ms.
+
+class RaftTaskExecutor;
 class RaftTimer {
  public:
-  explicit RaftTimer(const RaftServiceImpl *server);
+  explicit RaftTimer(RaftTaskExecutor* executor);
 
-  void Run();
+  void Start();
 
   void Stop();
 
  private:
-  void onTimeout();
+  RaftTaskExecutor* executor_;
 
- private:
   boost::asio::io_service io_service_;
-  boost::asio::strand io_strand_;
   boost::asio::deadline_timer timer_;
 
-  SyncRaftClient client_;
+  BackgroundWorker worker_;
 };
 
-}  // namespace rpc
 }  // namespace consensus
