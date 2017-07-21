@@ -122,7 +122,7 @@ class RaftServerTest(unittest.TestCase):
     def test_LeaderElectionBootstrap(self):
         for server_num in range(1, 6):
             with LocalCluster(server_num) as cluster:
-                time.sleep(3)
+                time.sleep(server_num * 2.5)
 
                 status = [RaftClient(cluster.node(i).address()).Status() for i in range(0, server_num)]
 
@@ -138,19 +138,31 @@ class RaftServerTest(unittest.TestCase):
                 for i in range(0, server_num):
                     self.assertEqual(1, status[i].raftIndex)
 
+    # this test verifies that the cluster will reelect a new leader when the old one falls down.
     def test_LeaderDownReelection(self):
-        for server_num in range(2, 6):
+        for server_num in range(3, 6):
             with LocalCluster(server_num) as cluster:
-                time.sleep(3)
+                time.sleep(server_num * 2.5)
 
                 status = RaftClient(cluster.node(1).address()).Status()
-                cluster.kill(status.leader)
+                leader = status.leader
+                cluster.kill(leader)
                 print status
 
-                time.sleep(3)
-                status = [RaftClient(cluster.node(i).address()).Status() for i in range(0, server_num)]
+                time.sleep(server_num * 2.5)
+
+                status = []
+                for id in range(1, server_num + 1):
+                    if id != leader:
+                        status.append(RaftClient(cluster.node(id).address()).Status())
+
+                term = status[0].raftTerm
+                self.assertGreater(term, 1)
+                for i in range(1, len(status)):
+                    self.assertEqual(term, status[i].raftTerm)
+
                 leader = status[0].leader
-                for i in range(1, server_num):
+                for i in range(1, len(status)):
                     self.assertEqual(leader, status[i].leader)
 
                 print status[0]
