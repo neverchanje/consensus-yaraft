@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package consensus.rpc.pb;
+package consensus.pb;
 
 import "yaraft/pb/raftpb.proto";
 
@@ -24,14 +24,6 @@ message StepResponse {
     required StatusCode code = 1;
 }
 
-message TickRequest {
-    // The number of ticks elapsed which drives the RaftServer to perform RawNode::Tick.
-    required uint32 ticks = 2;
-}
-
-message TickResponse {
-}
-
 message StatusRequest {
 }
 
@@ -46,6 +38,5 @@ message StatusResponse {
 
 service RaftService {
     rpc Step (StepRequest) returns (StepResponse);
-    rpc Tick (TickRequest) returns (TickResponse);
     rpc Status (StatusRequest) returns (StatusResponse);
 }
