@@ -18,23 +18,24 @@
 
 namespace consensus {
 
-#define DUMB_ERROR_TO_STRING(err) \
-  case (err):                     \
+#define CONVERT_ERROR_TO_STRING(err) \
+  case (err):                        \
     return #err
 
 std::string Error::toString(unsigned int code) {
   switch (code) {
-    DUMB_ERROR_TO_STRING(IOError);
-    DUMB_ERROR_TO_STRING(NotSupported);
-    DUMB_ERROR_TO_STRING(Corruption);
-    DUMB_ERROR_TO_STRING(LogCompacted);
-    DUMB_ERROR_TO_STRING(OutOfBound);
-    DUMB_ERROR_TO_STRING(YARaftERR);
-    DUMB_ERROR_TO_STRING(BadConfig);
-    DUMB_ERROR_TO_STRING(RpcError);
-    DUMB_ERROR_TO_STRING(IllegalState);
-    DUMB_ERROR_TO_STRING(RuntimeError);
-    DUMB_ERROR_TO_STRING(InvalidArgument);
+    CONVERT_ERROR_TO_STRING(IOError);
+    CONVERT_ERROR_TO_STRING(NotSupported);
+    CONVERT_ERROR_TO_STRING(Corruption);
+    CONVERT_ERROR_TO_STRING(LogCompacted);
+    CONVERT_ERROR_TO_STRING(OutOfBound);
+    CONVERT_ERROR_TO_STRING(YARaftError);
+    CONVERT_ERROR_TO_STRING(BadConfig);
+    CONVERT_ERROR_TO_STRING(RpcError);
+    CONVERT_ERROR_TO_STRING(IllegalState);
+    CONVERT_ERROR_TO_STRING(RuntimeError);
+    CONVERT_ERROR_TO_STRING(InvalidArgument);
+    CONVERT_ERROR_TO_STRING(WalWriteToNonLeader);
     default:
       return fmt::format("Unknown error codes: {}", code);
   }

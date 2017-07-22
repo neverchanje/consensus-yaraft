@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "wal/log_manager.h"
 #include "base/testing.h"
+#include "wal/log_manager.h"
 #include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
 
@@ -101,7 +101,7 @@ TEST_F(LogManagerTest, AppendToMemStore) {
        Error::OK,
        {E().Index(2).Term(1).v, E().Index(3).Term(1).v}},
 
-      {{E().Index(2).Term(2).v, E().Index(3).Term(1).v}, Error::YARaftERR, {}},
+      {{E().Index(2).Term(2).v, E().Index(3).Term(1).v}, Error::YARaftError, {}},
 
       {{E().Index(2).Term(2).v, E().Index(2).Term(2).v}, Error::OK, {E().Index(2).Term(2).v}},
 

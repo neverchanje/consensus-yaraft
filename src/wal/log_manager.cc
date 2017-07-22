@@ -30,14 +30,14 @@ static void parseWalName(const std::string& fname, uint64_t* segId, uint64_t* se
   sscanf(fname.c_str(), "%zu-%zu.wal", segId, segStart);
 }
 
-// Returns: Error::YARaftERR / OK
+// Returns: Error::YARaftError / OK
 Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore) {
   auto& vec = memstore->TEST_Entries();
 
   if (!vec.empty()) {
     if (e.term() < vec.rbegin()->term()) {
       return Status::Make(
-          Error::YARaftERR,
+          Error::YARaftError,
           fmt::format(
               "new entry [index:{}, term:{}] has lower term than last entry [index:{}, term:{}]",
               e.index(), e.term(), vec.rbegin()->index(), vec.rbegin()->term()));
