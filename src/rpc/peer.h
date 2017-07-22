@@ -14,27 +14,36 @@
 
 #pragma once
 
-#include <memory>
+#include "base/status.h"
+#include "pb/raft_server.pb.h"
+#include "rpc/cluster.h"
 
-#include "rpc/pb/raft_server.pb.h"
-
-#include <yaraft/pb/raftpb.pb.h>
+#include <yaraft/ready.h>
 
 namespace consensus {
 namespace rpc {
 
 class AsyncRaftClient;
-class RaftServiceImpl;
 class Peer {
  public:
-  Peer(RaftServiceImpl* server, const std::string& url);
+  explicit Peer(const std::string& url);
 
   void AsyncSend(yaraft::pb::Message* msg);
 
  private:
   std::unique_ptr<AsyncRaftClient> client_;
+};
 
-  RaftServiceImpl* server_;
+class PeerManager : public Cluster {
+ public:
+  explicit PeerManager(std::map<uint64_t, Peer*>&& peerMap) : peerMap_(peerMap) {}
+
+  ~PeerManager() override;
+
+  Status Pass(std::vector<yaraft::pb::Message>& mails) override;
+
+ private:
+  std::map<uint64_t, Peer*> peerMap_;
 };
 
 }  // namespace rpc

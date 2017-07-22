@@ -13,17 +13,31 @@
 // limitations under the License.
 
 #include "rpc/peer.h"
+#include "base/logging.h"
+#include "base/stl_container_utils.h"
 #include "rpc/raft_client.h"
-#include "rpc/raft_server.h"
 
 namespace consensus {
 namespace rpc {
 
-Peer::Peer(RaftServiceImpl* server, const std::string& url)
-    : server_(server), client_(new AsyncRaftClient(url)) {}
+Peer::Peer(const std::string& url) : client_(new AsyncRaftClient(url)) {}
 
 void Peer::AsyncSend(yaraft::pb::Message* msg) {
   client_->Step(msg);
+}
+
+Status PeerManager::Pass(std::vector<yaraft::pb::Message>& mails) {
+  for (const auto& m : mails) {
+    CHECK(peerMap_.size() < m.to() && m.to() != 0);
+
+    auto newMsg = new yaraft::pb::Message(std::move(m));
+    peerMap_[m.to()]->AsyncSend(newMsg);
+  }
+  return Status::OK();
+}
+
+PeerManager::~PeerManager() {
+  STLDeleteContainerPairSecondPointers(peerMap_.begin(), peerMap_.end());
 }
 
 }  // namespace rpc
