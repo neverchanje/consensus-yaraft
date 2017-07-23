@@ -16,35 +16,43 @@
 #include "rpc/mock_cluster.h"
 #include "wal/mock_wal.h"
 
+#include "raft_task_executor_test.h"
 #include "ready_flusher.h"
 #include "wal_commit_observer.h"
 
 using namespace consensus;
 
+class ReadyFlusherTest : public RaftTaskExecutorTest {};
+
 // This test verifies that ReadyFlusher will notify the wal-writer when the pending log
 // has committed.
-TEST(ReadyFlusherTest, Commit) {
+TEST_F(ReadyFlusherTest, Commit) {
   using yaraft::PBEntry;
   using yaraft::PBHardState;
 
+  conf_->peers = {1};
+  yaraft::RawNode node(conf_);
+  node.Campaign();
+  for (int i = 0; i < 6; i++) {
+    node.Propose("a");
+  }
+
+  RaftTaskExecutor executor(&node);
+  executor.Start();
+
   rpc::MockCluster cluster;
   wal::MockWriteAheadLog wal;
-
   WalCommitObserver observer;
-  ReadyFlusher flusher(&observer, &cluster, &wal);
+  ReadyFlusher flusher(&observer, &cluster, &wal, &executor, memstore_);
   flusher.Start();
 
   SimpleChannel<Status> chan;
-  observer.Register(std::make_pair<uint64_t, uint64_t>(4, 6), &chan);
-
-  // advance the committedIndex to 6
-  yaraft::Ready rd;
-  rd.hardState.reset(new yaraft::pb::HardState(PBHardState().Commit(6).v));
-  flusher.ReadyGo(&rd);
+  observer.Register(std::make_pair<uint64_t, uint64_t>(2, 7), &chan);
 
   Status s;
   chan >>= s;
   ASSERT_OK(s);
 
   flusher.Stop();
+  executor.Stop();
 }

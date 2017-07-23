@@ -26,18 +26,20 @@
 
 namespace consensus {
 
-// ReadyFlusher is a background thread for asynchronously flushing the Ready-s,
+// ReadyFlusher is a single background thread for asynchronously flushing the Ready-s,
 // so that the FSM thread can be free from stalls every time when it generates a Ready.
 
 class WalCommitObserver;
+class RaftTaskExecutor;
 class ReadyFlusher {
  public:
-  ReadyFlusher(WalCommitObserver* observer, rpc::Cluster* peers, wal::WriteAheadLog* wal)
-      : walCommitObserver_(observer), peers_(peers), wal_(wal) {}
-
-  void ReadyGo(yaraft::Ready* rd) {
-    readyQueue_.enqueue(rd);
-  }
+  ReadyFlusher(WalCommitObserver* observer, rpc::Cluster* peers, wal::WriteAheadLog* wal,
+               RaftTaskExecutor* executor, yaraft::MemoryStorage* memstore)
+      : walCommitObserver_(observer),
+        peers_(peers),
+        wal_(wal),
+        executor_(executor),
+        memstore_(memstore) {}
 
   void Start();
 
@@ -49,11 +51,12 @@ class ReadyFlusher {
   void onReadyFlushed(yaraft::Ready* rd);
 
  private:
-  moodycamel::ReaderWriterQueue<yaraft::Ready*> readyQueue_;
   WalCommitObserver* walCommitObserver_;
   BackgroundWorker worker_;
+  RaftTaskExecutor* executor_;
   rpc::Cluster* peers_;
   wal::WriteAheadLog* wal_;
+  yaraft::MemoryStorage* memstore_;
 };
 
 }  // namespace consensus

@@ -30,15 +30,13 @@ class RaftTaskExecutorTest : public ::testing::Test {
     conf_->electionTick = 1000;
     conf_->heartbeatTick = 100;
 
-    store_ = new yaraft::MemoryStorage;
-    conf_->storage = store_;
+    memstore_ = new yaraft::MemoryStorage;
+    conf_->storage = memstore_;
   }
-
- private:
-  yaraft::MemoryStorage *store_;
 
  protected:
   yaraft::Config *conf_;
+  yaraft::MemoryStorage *memstore_;
 };
 
 }  // namespace consensus
