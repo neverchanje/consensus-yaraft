@@ -20,8 +20,6 @@
 #include "base/logging.h"
 #include "base/simple_channel.h"
 
-#include <boost/bind.hpp>
-
 namespace consensus {
 
 // Timeout granularity of timer in milli-seconds.

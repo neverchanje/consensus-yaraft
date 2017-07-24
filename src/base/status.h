@@ -101,6 +101,6 @@ class StatusWith {
     _var = _sw.GetValue();                                                                      \
   } while (0)
 
-#define FMT_Status(code, msg, args...) Status::Make(Error::code, fmt::format(msg), ##args)
+#define FMT_Status(code, msg, args...) Status::Make(Error::code, fmt::format(msg, ##args))
 
 }  // namespace consensus

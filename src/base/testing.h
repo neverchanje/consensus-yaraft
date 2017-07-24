@@ -98,7 +98,7 @@ class BaseTest : public ::testing::Test {
 
  private:
   void initTestDir() {
-    parent_dir_ = fmt::format("/tmp/consensus-wal-test-{}", static_cast<int>(geteuid()));
+    parent_dir_ = fmt::format("/tmp/consensus-yaraft-test-{}", static_cast<int>(geteuid()));
     test_dir_ =
         parent_dir_ + fmt::format("/{}.{}", testInfo()->test_case_name(), testInfo()->name());
   }

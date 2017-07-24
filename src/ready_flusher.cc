@@ -31,10 +31,11 @@ void ReadyFlusher::Start() {
     ch.Wait();
 
     if (rd) {
+      DLOG_ASSERT(!rd->IsEmpty());
       flushReady(rd);
     } else {
-      // sleep for 10ms if no ready.
-      usleep(1000 * 10);
+      // sleep for 20ms if no ready.
+      usleep(1000 * 100);
     }
   };
   FATAL_NOT_OK(worker_.StartLoop(f), "ReadyFlusher::Start");
@@ -46,8 +47,6 @@ void ReadyFlusher::Stop() {
 
 Status ReadyFlusher::flushReady(yaraft::Ready* rd) {
   if (rd->hardState) {
-    LOG(INFO) << rd->hardState->has_commit() << " "
-              << ((rd->hardState->has_commit()) ? rd->hardState->commit() : 0);
   }
 
   if (!rd->entries.empty()) {
@@ -59,10 +58,8 @@ Status ReadyFlusher::flushReady(yaraft::Ready* rd) {
     rd->messages.clear();
   }
 
-  LOG(INFO) << rd->entries.size() << " " << rd->entries[0].index();
-  rd->Advance(memstore_);
-
   onReadyFlushed(rd);
+  rd->Advance(memstore_);
   return Status::OK();
 }
 
