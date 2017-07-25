@@ -1,0 +1,12 @@
+[submodule "sofa-pbrpc"]
+	path = sofa-pbrpc
+	url = https://github.com/baidu/sofa-pbrpc.git
+[submodule "yaraft"]
+    path = yaraft
+    url = https://github.com/neverchanje/yaraft.git
+[submodule "concurrentqueue"]
+    path = src/concurrentqueue
+    url = https://github.com/cameron314/concurrentqueue.git
+[submodule "readerwriterqueue"]
+    path = src/readerwriterqueue
+    url = https://github.com/cameron314/readerwriterqueue.git
