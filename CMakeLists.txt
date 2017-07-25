@@ -24,7 +24,7 @@ find_library(GTEST_MAIN_LIB gtest_main PATH ${DEPS_LIB_DIR})
 message("-- Found ${GTEST_LIB}")
 message("-- Found ${GTEST_MAIN_LIB}")
 
-find_package(Boost COMPONENTS system filesystem REQUIRED)
+find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 
 find_library(SILLY_LIBRARY silly_lite PATH ${DEPS_LIB_DIR})
 message("-- Found ${SILLY_LIBRARY}")
