@@ -43,12 +43,7 @@ class ReplicatedLog::Impl {
     impl->wal_.reset(wal);
     impl->memstore_ = memstore;
 
-    std::map<uint64_t, rpc::Peer *> peerMap;
-    for (const auto &e : options.initial_cluster) {
-      auto peer = new rpc::Peer(e.second);
-      peerMap[e.first] = peer;
-    }
-    impl->cluster_.reset(new rpc::PeerManager(std::move(peerMap)));
+    impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
     impl->walCommitObserver_.reset(new WalCommitObserver);
 
     auto conf = new yaraft::Config;
