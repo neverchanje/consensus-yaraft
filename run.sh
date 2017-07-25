@@ -70,29 +70,23 @@ function run_start_onebox() {
     port=12320
     for i in $(seq ${SERVER_COUNT})
     do
-        port=$((${port}+1))
-        initial_cluster="${initial_cluster}infra${i}=127.0.0.1:${port};"
-    done
-
-    for i in $(seq ${SERVER_COUNT})
-    do
         # restart from empty wal dir
         if [ -d ./output/infra${i}.consensus ]; then
             rm -rf ./output/infra${i}.consensus
         fi
         ./output/bin/raft_server \
-            --initial_cluster=${initial_cluster} \
-            --name=infra${i} \
+            --id=${i} \
+            --server_num=${SERVER_COUNT} \
             --wal_dir=${PROJECT_DIR}/output/infra${i}.consensus  &>./output/bin/server${i}.log &
     done
 }
 
 function run_stop_onebox() {
-    ps -ef | grep output/bin/raft_server | grep 'initial_cluster' | awk '{print $2}' | xargs kill &>/dev/null
+    ps -ef | grep output/bin/raft_server | grep 'server_num' | awk '{print $2}' | xargs kill &>/dev/null
 }
 
 function run_list_onebox() {
-    ps -ef | grep output/bin/raft_server | grep 'initial_cluster' | sort -k11
+    ps -ef | grep output/bin/raft_server | grep 'server_num' | sort -k11
 }
 
 #####################
@@ -130,7 +124,7 @@ function run_stop_onebox_instance() {
         shift
     done
     if [ ${SERVER_ID} != "0" ]; then
-        ps -ef | grep output/bin/raft_server | grep name=infra${SERVER_ID} | awk '{print $2}' | xargs kill &>/dev/null
+        ps -ef | grep output/bin/raft_server | grep id=${SERVER_ID} | awk '{print $2}' | xargs kill &>/dev/null
     fi
 }
 
