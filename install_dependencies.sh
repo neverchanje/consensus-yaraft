@@ -12,6 +12,13 @@ bash install_deps_if_necessary.sh
 cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR -DBUILD_TEST=OFF && make -j8 && make install
 
 # install sofa-pbrpc
+cd $PROJECT_DIR
+
+if [ ! -d $PROJECT_DIR/sofa-pbrpc ]; then
+    fetch_and_expand $SOFA_PBRPC_NAME.zip
+    mv $SOFA_PBRPC_NAME sofa-pbrpc
+fi
+
 if [ ! -d $PROJECT_DIR/sofa-pbrpc/output ]; then
     build_sofa_pbrpc
 fi

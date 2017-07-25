@@ -1,6 +1,3 @@
-[submodule "sofa-pbrpc"]
-	path = sofa-pbrpc
-	url = https://github.com/baidu/sofa-pbrpc.git
 [submodule "yaraft"]
     path = yaraft
     url = https://github.com/neverchanje/yaraft.git
