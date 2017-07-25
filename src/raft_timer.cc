@@ -23,7 +23,7 @@
 namespace consensus {
 
 // Timeout granularity of timer in milli-seconds.
-static uint32_t kTimerGranularity = 100;
+static uint32_t kTimerGranularity = 50;
 
 RaftTimer::RaftTimer(RaftTaskExecutor* executor) : executor_(executor), timer_(io_service_) {
   FMT_LOG(INFO, "Set up raft timer with timeout granularity: {}ms", kTimerGranularity);

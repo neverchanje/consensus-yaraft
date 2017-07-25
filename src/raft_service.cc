@@ -39,8 +39,6 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
 void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
                            const pb::StepRequest *request, pb::StepResponse *response,
                            google::protobuf::Closure *done) {
-  FMT_LOG(INFO, "RaftService::Step(): {}", yaraft::DumpPB(request->message()));
-
   yaraft::pb::Message &msg = *const_cast<pb::StepRequest *>(request)->mutable_message();
 
   response->set_code(pb::OK);
