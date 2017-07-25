@@ -28,7 +28,8 @@ void Peer::AsyncSend(yaraft::pb::Message* msg) {
 
 Status PeerManager::Pass(std::vector<yaraft::pb::Message>& mails) {
   for (const auto& m : mails) {
-    CHECK(peerMap_.size() < m.to() && m.to() != 0);
+    CHECK(m.to() != 0);
+    CHECK(peerMap_.find(m.to()) != peerMap_.end());
 
     auto newMsg = new yaraft::pb::Message(std::move(m));
     peerMap_[m.to()]->AsyncSend(newMsg);

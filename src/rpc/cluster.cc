@@ -18,8 +18,8 @@ namespace consensus {
 namespace rpc {
 
 Cluster *Cluster::Default(const std::map<uint64_t, std::string> &initialCluster) {
-  std::map<uint64_t , Peer*> peerMap;
-  for(const auto& e : initialCluster) {
+  std::map<uint64_t, Peer *> peerMap;
+  for (const auto &e : initialCluster) {
     peerMap[e.first] = new Peer(e.second);
   }
   auto p = new PeerManager(std::move(peerMap));

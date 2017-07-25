@@ -29,7 +29,7 @@ class Cluster {
 
   virtual Status Pass(std::vector<yaraft::pb::Message>& mails) = 0;
 
-  static Cluster* Default(const std::map<uint64_t, std::string> &initialCluster);
+  static Cluster* Default(const std::map<uint64_t, std::string>& initialCluster);
 };
 
 }  // namespace rpc
