@@ -8,7 +8,7 @@ on the Raft algorithm.
 - **Fault tolerance & Strong consistency**: every single log will be synchronously replicated through the [Raft](raft) state machine. Failure of minority doesn't impede progress.
 - **Simple**: the basic operation for writing a slice of log includes only `ReplicatedLog::Write`.
 
-[raft](https://raft.github.io/)
+[raft]: https://raft.github.io/
 
 ## Limitation
 
