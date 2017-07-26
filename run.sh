@@ -128,6 +128,40 @@ function run_stop_onebox_instance() {
     fi
 }
 
+#####################
+## unit test
+#####################
+
+TEST_DIR=cmake-build-debug/src
+
+function unit_test()
+{
+    echo "===========" $1 "==========="
+    ./$TEST_DIR/$1
+    if [ $? -ne 0 ]; then
+        echo "TEST FAILED!!!"
+        exit 1
+    fi
+}
+
+
+function run_test() {
+    unit_test env_test
+    unit_test coding_test
+    unit_test background_worker_test
+    unit_test random_test
+
+    unit_test segment_meta_test
+    unit_test log_writer_test
+    unit_test log_manager_test
+
+    unit_test raft_service_test
+    unit_test ready_flusher_test
+    unit_test raft_timer_test
+    unit_test raft_task_executor_test
+    unit_test replicated_log_test
+}
+
 ####################################################################
 
 if [ $# -eq 0 ]; then
