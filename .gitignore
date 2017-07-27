@@ -1,5 +1,8 @@
 build/
 cmake-build-debug/
 .idea
-third_parities
-./output
+third_parties/
+output/
+sofa-pbrpc/
+src/pb/raft_server.pb.cc
+src/pb/raft_server.pb.h
