@@ -12,7 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "raft_task_executor.h"
-#include "base/logging.h"
+#pragma once
 
-namespace consensus {}  // namespace consensus
+#include <memory>
+
+namespace consensus {
+
+class TaskQueue {
+ public:
+  TaskQueue();
+
+  ~TaskQueue();
+
+  void Enqueue(std::function<void()> task);
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
+}  // namespace consensus

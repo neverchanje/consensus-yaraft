@@ -59,12 +59,17 @@ void InitReplicatedLog() {
   options.wal_dir = FLAGS_wal_dir;
   options.heartbeat_interval = 100;
   options.election_timeout = 1000;
+  options.taskQueue = new TaskQueue;
 
   {
     auto sw = ReplicatedLog::New(options);
     LOG_ASSERT(sw.IsOK()) << sw.ToString();
     replicatedLog = sw.GetValue();
   }
+}
+
+void DestroyResources() {
+  delete options.taskQueue;
 }
 
 void PrintFlags() {
@@ -106,6 +111,8 @@ int main(int argc, char* argv[]) {
   rpcServer.Run();
 
   rpcServer.Stop();
+
+  DestroyResources();
 
   return 0;
 }

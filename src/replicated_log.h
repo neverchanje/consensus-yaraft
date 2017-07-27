@@ -21,6 +21,7 @@
 
 #include "base/slice.h"
 #include "base/status.h"
+#include "base/task_queue.h"
 
 #include <silly/disallow_copying.h>
 #include <yaraft/yaraft.h>
@@ -40,6 +41,10 @@ struct ReplicatedLogOptions {
 
   // time (in milliseconds) for an election to timeout.
   uint32_t election_timeout;
+
+  // dedicated worker of the raft node.
+  // there may have multiple instances sharing the same queue.
+  TaskQueue* taskQueue;
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single

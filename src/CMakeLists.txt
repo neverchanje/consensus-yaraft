@@ -24,7 +24,8 @@ set(BASE_SOURCES
         ${BASE_SOURCE_DIR}/env_util.cc
         ${BASE_SOURCE_DIR}/coding.cc
         ${BASE_SOURCE_DIR}/endianness.cc
-        ${BASE_SOURCE_DIR}/background_worker.cc)
+        ${BASE_SOURCE_DIR}/background_worker.cc
+        ${BASE_SOURCE_DIR}/task_queue.cc)
 
 add_library(consensus_base ${BASE_SOURCES})
 target_link_libraries(consensus_base ${CONSENSUS_LINK_LIBS})

@@ -14,8 +14,7 @@
 
 #pragma once
 
-#include "base/background_worker.h"
-#include "concurrentqueue/blockingconcurrentqueue.h"
+#include "base/task_queue.h"
 
 #include <yaraft/raw_node.h>
 
@@ -28,24 +27,17 @@ namespace consensus {
 //
 class RaftTaskExecutor {
  public:
-  explicit RaftTaskExecutor(yaraft::RawNode* node) : node_(node) {}
+  RaftTaskExecutor(yaraft::RawNode* node, TaskQueue* taskQueue) : node_(node), queue_(taskQueue) {}
 
   typedef std::function<void(yaraft::RawNode* node)> RaftTask;
 
   void Submit(RaftTask task) {
-    queue_.enqueue(task);
+    queue_->Enqueue(std::bind(task, node_));
   }
-
-  void Start();
-
-  void Stop();
 
  private:
   yaraft::RawNode* node_;
-
-  moodycamel::BlockingConcurrentQueue<RaftTask> queue_;
-
-  BackgroundWorker worker_;
+  TaskQueue* queue_;
 };
 
 }  // namespace consensus

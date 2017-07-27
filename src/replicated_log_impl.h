@@ -34,6 +34,8 @@ class ReplicatedLog::Impl {
   static StatusWith<ReplicatedLog *> New(const ReplicatedLogOptions &options) {
     auto impl = new Impl;
 
+    impl->taskQueue_ = options.taskQueue;
+
     wal::WriteAheadLog *wal;
     auto memstore = new yaraft::MemoryStorage;
     FATAL_NOT_OK(Env::Default()->CreateDirIfMissing(options.wal_dir),
@@ -56,7 +58,7 @@ class ReplicatedLog::Impl {
     }
 
     impl->node_.reset(new yaraft::RawNode(conf));
-    impl->executor_.reset(new RaftTaskExecutor(impl->node_.get()));
+    impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
     impl->timer_.reset(new RaftTimer(impl->executor_.get()));
     impl->raftService_.reset(new RaftServiceImpl(impl->executor_.get()));
     impl->flusher_.reset(new ReadyFlusher(impl->walCommitObserver_.get(), impl->cluster_.get(),
@@ -64,7 +66,6 @@ class ReplicatedLog::Impl {
 
     impl->id_ = options.id;
 
-    impl->executor_->Start();
     impl->timer_->Start();
     impl->flusher_->Start();
 
@@ -75,7 +76,6 @@ class ReplicatedLog::Impl {
 
   ~Impl() {
     timer_->Stop();
-    executor_->Stop();
     flusher_->Stop();
   }
 
@@ -125,6 +125,8 @@ class ReplicatedLog::Impl {
   std::unique_ptr<rpc::Cluster> cluster_;
 
   std::unique_ptr<pb::RaftService> raftService_;
+
+  TaskQueue *taskQueue_;
 
   yaraft::MemoryStorage *memstore_;
 
