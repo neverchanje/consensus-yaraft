@@ -37,8 +37,7 @@ TEST_F(ReadyFlusherTest, Commit) {
     node.Propose("a");
   }
 
-  RaftTaskExecutor executor(&node);
-  executor.Start();
+  RaftTaskExecutor executor(&node, taskQueue_);
 
   rpc::MockCluster cluster;
   wal::MockWriteAheadLog wal;
@@ -54,5 +53,4 @@ TEST_F(ReadyFlusherTest, Commit) {
   ASSERT_OK(s);
 
   flusher.Stop();
-  executor.Stop();
 }

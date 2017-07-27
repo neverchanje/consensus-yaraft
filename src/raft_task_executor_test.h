@@ -32,11 +32,17 @@ class RaftTaskExecutorTest : public ::testing::Test {
 
     memstore_ = new yaraft::MemoryStorage;
     conf_->storage = memstore_;
+    taskQueue_ = new TaskQueue;
+  }
+
+  virtual void TearDown() override {
+    delete taskQueue_;
   }
 
  protected:
   yaraft::Config *conf_;
   yaraft::MemoryStorage *memstore_;
+  TaskQueue *taskQueue_;
 };
 
 }  // namespace consensus

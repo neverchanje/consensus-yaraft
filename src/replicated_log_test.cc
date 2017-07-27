@@ -22,16 +22,19 @@ class ReplicatedLogTest : public BaseTest {
  public:
   void SetUp() override {
     guard = CreateTestDirGuard();
+
     options.initial_cluster[1] = "127.0.0.1:12321";
     options.id = 1;
     options.wal_dir = GetTestDir();
     options.heartbeat_interval = 100;
     options.election_timeout = 1000;
+    options.taskQueue = new TaskQueue;
   }
 
   void TearDown() override {
     delete replicatedLog;
     delete guard;
+    delete options.taskQueue;
   }
 
  protected:

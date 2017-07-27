@@ -26,9 +26,8 @@ class RaftServiceTest : public RaftTaskExecutorTest {
 
 TEST_F(RaftServiceTest, Step) {
   yaraft::RawNode node(conf_);
-  RaftTaskExecutor executor(&node);
+  RaftTaskExecutor executor(&node, taskQueue_);
   RaftServiceImpl service(&executor);
-  executor.Start();
 
   pb::StepResponse response;
   pb::StepRequest request;
@@ -46,6 +45,4 @@ TEST_F(RaftServiceTest, Step) {
   done = sofa::pbrpc::NewClosure([]() {});
   service.Step(nullptr, &request, &response, done);
   ASSERT_EQ(response.code(), pb::StepPeerNotFound);
-
-  executor.Stop();
 }

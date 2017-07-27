@@ -39,14 +39,14 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
 void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
                            const pb::StepRequest *request, pb::StepResponse *response,
                            google::protobuf::Closure *done) {
-  yaraft::pb::Message &msg = *const_cast<pb::StepRequest *>(request)->mutable_message();
+  yaraft::pb::Message *msg = const_cast<pb::StepRequest *>(request)->mutable_message();
 
   response->set_code(pb::OK);
 
   SimpleChannel<void> channel;
   executor_->Submit(std::bind(
       [&](yaraft::RawNode *node) {
-        auto s = node->Step(msg);
+        auto s = node->Step(*msg);
         if (UNLIKELY(!s.IsOK())) {
           response->set_code(yaraftErrorCodeToRpcStatusCode(s.Code()));
         }

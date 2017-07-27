@@ -22,11 +22,10 @@ using namespace consensus;
 // This test verifies the tasks submitted to RaftTaskExecutor will be executed sequentially.
 TEST_F(RaftTaskExecutorTest, TasksInSequence) {
   yaraft::RawNode node(conf_);
-  RaftTaskExecutor executor(&node);
+  RaftTaskExecutor executor(&node, taskQueue_);
 
   boost::thread_group group;
   boost::barrier barrier(3);
-  executor.Start();
 
   // appending a character into std::string is absolutely a non-atomic operation,.
   std::string s;
@@ -51,5 +50,4 @@ TEST_F(RaftTaskExecutorTest, TasksInSequence) {
 
   ASSERT_EQ(s.length(), 300);
   ASSERT_EQ(s, std::string(300, 'a'));
-  executor.Stop();
 }
