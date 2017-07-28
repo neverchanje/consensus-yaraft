@@ -77,6 +77,7 @@ set(RPC_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/rpc)
 set(RPC_SOURCES
         ${RPC_SOURCE_DIR}/peer.cc
         ${RPC_SOURCE_DIR}/cluster.cc
+        ${PROJECT_SOURCE_DIR}/src/pb/raft_server.pb.cc
 )
 
 add_library(consensus_rpc ${RPC_SOURCES})
@@ -94,8 +95,7 @@ set(ALL_SOURCES
         ${CONSENSUS_SOURCE_DIR}/raft_timer.cc
         ${CONSENSUS_SOURCE_DIR}/raft_task_executor.cc
         ${CONSENSUS_SOURCE_DIR}/wal_commit_observer.cc
-        ${CONSENSUS_SOURCE_DIR}/raft_service.cc
-        ${CONSENSUS_SOURCE_DIR}/pb/raft_server.pb.cc)
+        ${CONSENSUS_SOURCE_DIR}/raft_service.cc)
 add_library(consensus_yaraft ${ALL_SOURCES})
 target_link_libraries(consensus_yaraft ${CONSENSUS_LINK_LIBS})
 set(CONSENSUS_LINK_LIBS ${CONSENSUS_LINK_LIBS} consensus_yaraft)

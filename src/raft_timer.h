@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <thread>
+#pragma once
 
-#include "base/background_worker.h"
-#include "base/status.h"
-
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/asio/strand.hpp>
+#include <memory>
 
 namespace consensus {
 
@@ -29,19 +25,16 @@ namespace consensus {
 class RaftTaskExecutor;
 class RaftTimer {
  public:
-  explicit RaftTimer(RaftTaskExecutor* executor);
+  RaftTimer();
 
-  void Start();
+  ~RaftTimer();
 
-  void Stop();
+  // Thread-safe
+  void Register(RaftTaskExecutor* executor);
 
  private:
-  RaftTaskExecutor* executor_;
-
-  boost::asio::io_service io_service_;
-  boost::asio::deadline_timer timer_;
-
-  BackgroundWorker worker_;
+  class Impl;
+  std::unique_ptr<Impl> impl_;
 };
 
 }  // namespace consensus

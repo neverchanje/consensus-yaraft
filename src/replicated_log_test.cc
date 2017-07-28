@@ -29,11 +29,15 @@ class ReplicatedLogTest : public BaseTest {
     options.heartbeat_interval = 100;
     options.election_timeout = 1000;
     options.taskQueue = new TaskQueue;
+    options.timer = new RaftTimer;
   }
 
   void TearDown() override {
+    delete options.timer;
+
     delete replicatedLog;
     delete guard;
+
     delete options.taskQueue;
   }
 

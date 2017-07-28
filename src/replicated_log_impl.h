@@ -25,6 +25,8 @@
 #include "replicated_log.h"
 #include "wal_commit_observer.h"
 
+#include <yaraft/conf.h>
+
 namespace consensus {
 
 class ReplicatedLog::Impl {
@@ -35,6 +37,7 @@ class ReplicatedLog::Impl {
     auto impl = new Impl;
 
     impl->taskQueue_ = options.taskQueue;
+    impl->timer_ = options.timer;
 
     wal::WriteAheadLog *wal;
     auto memstore = new yaraft::MemoryStorage;
@@ -59,14 +62,13 @@ class ReplicatedLog::Impl {
 
     impl->node_.reset(new yaraft::RawNode(conf));
     impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
-    impl->timer_.reset(new RaftTimer(impl->executor_.get()));
     impl->raftService_.reset(new RaftServiceImpl(impl->executor_.get()));
     impl->flusher_.reset(new ReadyFlusher(impl->walCommitObserver_.get(), impl->cluster_.get(),
                                           impl->wal_.get(), impl->executor_.get(), memstore));
 
     impl->id_ = options.id;
 
-    impl->timer_->Start();
+    impl->timer_->Register(impl->executor_.get());
     impl->flusher_->Start();
 
     auto rl = new ReplicatedLog;
@@ -75,7 +77,6 @@ class ReplicatedLog::Impl {
   }
 
   ~Impl() {
-    timer_->Stop();
     flusher_->Stop();
   }
 
@@ -114,8 +115,6 @@ class ReplicatedLog::Impl {
 
   std::unique_ptr<wal::WriteAheadLog> wal_;
 
-  std::unique_ptr<RaftTimer> timer_;
-
   std::unique_ptr<RaftTaskExecutor> executor_;
 
   std::unique_ptr<WalCommitObserver> walCommitObserver_;
@@ -127,6 +126,8 @@ class ReplicatedLog::Impl {
   std::unique_ptr<pb::RaftService> raftService_;
 
   TaskQueue *taskQueue_;
+
+  RaftTimer *timer_;
 
   yaraft::MemoryStorage *memstore_;
 

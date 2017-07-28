@@ -27,9 +27,9 @@ TEST_F(RaftTimerTest, Timeout) {
   conf_->electionTick = 200;
   yaraft::RawNode node(conf_);
   RaftTaskExecutor executor(&node, taskQueue_);
-  RaftTimer timer(&executor);
+  RaftTimer timer;
+  timer.Register(&executor);
 
-  timer.Start();
   sleep(2);
 
   yaraft::RaftInfo info;
@@ -43,6 +43,4 @@ TEST_F(RaftTimerTest, Timeout) {
 
   ASSERT_GE(info.currentTerm, 1);
   ASSERT_GE(info.logIndex, 1);
-
-  timer.Stop();
 }

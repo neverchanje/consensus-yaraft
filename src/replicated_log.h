@@ -23,8 +23,10 @@
 #include "base/status.h"
 #include "base/task_queue.h"
 
+#include "raft_timer.h"
+
 #include <silly/disallow_copying.h>
-#include <yaraft/yaraft.h>
+#include <yaraft/raw_node.h>
 
 namespace consensus {
 
@@ -45,6 +47,9 @@ struct ReplicatedLogOptions {
   // dedicated worker of the raft node.
   // there may have multiple instances sharing the same queue.
   TaskQueue* taskQueue;
+
+  // the global timer
+  RaftTimer* timer;
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single
