@@ -60,6 +60,7 @@ Status ReadyFlusher::flushReady(yaraft::Ready* rd) {
 
   onReadyFlushed(rd);
   rd->Advance(memstore_);
+  delete rd;
   return Status::OK();
 }
 
