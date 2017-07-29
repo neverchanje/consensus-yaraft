@@ -107,7 +107,6 @@ endfunction()
 
 ADD_CONSENSUS_TEST(raft_task_executor_test)
 ADD_CONSENSUS_TEST(raft_timer_test)
-ADD_CONSENSUS_TEST(ready_flusher_test)
 ADD_CONSENSUS_TEST(raft_service_test)
 ADD_CONSENSUS_TEST(replicated_log_test)
 

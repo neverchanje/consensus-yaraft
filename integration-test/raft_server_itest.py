@@ -99,7 +99,7 @@ class RaftServerTest(unittest.TestCase):
 
     # this test verifies that the cluster will reelect a new leader when the old one falls down.
     def test_LeaderDownReelection(self):
-        for server_num in range(3, 4):
+        for server_num in range(3, 6):
             with LocalCluster(server_num) as cluster:
                 time.sleep(server_num)
 

@@ -60,6 +60,8 @@ void InitReplicatedLog() {
   options.heartbeat_interval = 100;
   options.election_timeout = 1000;
   options.taskQueue = new TaskQueue;
+  options.timer = new RaftTimer;
+  options.flusher = new ReadyFlusher;
 
   {
     auto sw = ReplicatedLog::New(options);
@@ -70,6 +72,8 @@ void InitReplicatedLog() {
 
 void DestroyResources() {
   delete options.taskQueue;
+  delete options.timer;
+  delete options.flusher;
 }
 
 void PrintFlags() {
