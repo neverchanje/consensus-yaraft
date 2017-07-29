@@ -6,7 +6,7 @@ on the Raft algorithm.
 ## Features
 
 - **Fault tolerance & Strong consistency**: every single log will be synchronously replicated through the [Raft](raft) state machine. Failure of minority doesn't impede progress.
-- **Scalable**: the applications are able to set up multiple raft nodes in one single process.
+- **Scalability**: A process creates 100 raft nodes doesn't have to create 100 threads. The background timer, the disk io thread pool (`ReadyFlusher`), even the FSM task queue, can be shared between raft nodes. 
 - **Simple**: the basic operation for writing a slice of log includes only `ReplicatedLog::Write`.
 
 [raft]: https://raft.github.io/
