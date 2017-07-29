@@ -35,6 +35,8 @@ class RaftTaskExecutor {
     queue_->Enqueue(std::bind(task, node_));
   }
 
+  yaraft::Ready* GetReady();
+
  private:
   yaraft::RawNode* node_;
   TaskQueue* queue_;

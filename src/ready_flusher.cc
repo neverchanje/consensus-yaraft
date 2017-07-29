@@ -12,63 +12,101 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ready_flusher.h"
-#include "raft_task_executor.h"
-#include "wal_commit_observer.h"
+#include "base/background_worker.h"
 
-#include "base/logging.h"
+#include "raft_task_executor.h"
+#include "ready_flusher.h"
+#include "replicated_log_impl.h"
+
+#include <boost/thread/latch.hpp>
 
 namespace consensus {
 
-void ReadyFlusher::Start() {
-  auto f = [&]() {
-    yaraft::Ready* rd;
-    SimpleChannel<void> ch;
-    executor_->Submit([&](yaraft::RawNode* node) {
-      rd = node->GetReady();
-      ch.Signal();
-    });
-    ch.Wait();
+class ReadyFlusher::Impl {
+ public:
+  Impl() = default;
 
-    if (rd) {
-      DLOG_ASSERT(!rd->IsEmpty());
-      flushReady(rd);
-    } else {
-      // sleep for 20ms if no ready.
-      usleep(1000 * 100);
+  void Register(ReplicatedLogImpl *log) {
+    std::lock_guard<std::mutex> g(mu_);
+    logs_.push_back(log);
+  }
+
+  void Start() {
+    FATAL_NOT_OK(worker_.StartLoop(std::bind(&Impl::flushRound, this)),
+                 "ReadyFlusher::Impl::Start");
+  }
+
+  void Stop() {
+    FATAL_NOT_OK(worker_.Stop(), "ReadyFlusher::Impl::Stop");
+  }
+
+ private:
+  void flushRound() {
+    mu_.lock();
+    std::vector<ReplicatedLogImpl *> logs = logs_;
+    mu_.unlock();
+
+    if (logs.empty()) {
+      return;
     }
-  };
-  FATAL_NOT_OK(worker_.StartLoop(f), "ReadyFlusher::Start");
+
+    // Starts a new round of flushing only after the previous ends.
+    boost::latch latch(logs.size());
+    for (auto rl : logs) {
+      yaraft::Ready *rd = rl->executor_->GetReady();
+      if (rd) {
+        std::async(std::bind(&Impl::flushReady, this, rl, rd, &latch));
+      } else {
+        latch.count_down();
+      }
+    }
+    latch.wait();
+  }
+
+  void flushReady(ReplicatedLogImpl *rl, yaraft::Ready *rd, boost::latch *latch) {
+    if (rd->hardState) {
+    }
+
+    if (!rd->entries.empty()) {
+      FATAL_NOT_OK(rl->wal_->AppendEntries(rd->entries), "Wal::AppendEntries");
+    }
+
+    if (!rd->messages.empty()) {
+      rl->cluster_->Pass(rd->messages);
+      rd->messages.clear();
+    }
+
+    onReadyFlushed(rl, rd);
+    rd->Advance(rl->memstore_);
+    delete rd;
+
+    latch->count_down();
+  }
+
+  void onReadyFlushed(ReplicatedLogImpl *rl, yaraft::Ready *rd) {
+    // committedIndex has changed
+    if (rd->hardState && rd->hardState->has_commit()) {
+      rl->walCommitObserver_->Notify(rd->hardState->commit());
+    }
+  }
+
+ private:
+  std::vector<ReplicatedLogImpl *> logs_;
+  std::mutex mu_;
+
+  BackgroundWorker worker_;
+};
+
+void ReadyFlusher::Register(ReplicatedLogImpl *log) {
+  impl_->Register(log);
 }
 
-void ReadyFlusher::Stop() {
-  FATAL_NOT_OK(worker_.Stop(), "ReadyFlusher::Stop");
+ReadyFlusher::ReadyFlusher() : impl_(new Impl) {
+  impl_->Start();
 }
 
-Status ReadyFlusher::flushReady(yaraft::Ready* rd) {
-  if (rd->hardState) {
-  }
-
-  if (!rd->entries.empty()) {
-    RETURN_NOT_OK(wal_->AppendEntries(rd->entries));
-  }
-
-  if (!rd->messages.empty()) {
-    peers_->Pass(rd->messages);
-    rd->messages.clear();
-  }
-
-  onReadyFlushed(rd);
-  rd->Advance(memstore_);
-  delete rd;
-  return Status::OK();
-}
-
-void ReadyFlusher::onReadyFlushed(yaraft::Ready* rd) {
-  // committedIndex has changed
-  if (rd->hardState && rd->hardState->has_commit()) {
-    walCommitObserver_->Notify(rd->hardState->commit());
-  }
+ReadyFlusher::~ReadyFlusher() {
+  impl_->Stop();
 }
 
 }  // namespace consensus

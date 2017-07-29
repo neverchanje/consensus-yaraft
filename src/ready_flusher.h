@@ -14,49 +14,25 @@
 
 #pragma once
 
-#include "base/background_worker.h"
-#include "base/simple_channel.h"
-#include "base/status.h"
-#include "readerwriterqueue/readerwriterqueue.h"
-#include "rpc/cluster.h"
-#include "wal/wal.h"
-
-#include <wal/wal.h>
-#include <yaraft/ready.h>
+#include <memory>
 
 namespace consensus {
 
 // ReadyFlusher is a single background thread for asynchronously flushing the Ready-s,
 // so that the FSM thread can be free from stalls every time when it generates a Ready.
 
-class WalCommitObserver;
-class RaftTaskExecutor;
+class ReplicatedLogImpl;
 class ReadyFlusher {
  public:
-  ReadyFlusher(WalCommitObserver* observer, rpc::Cluster* peers, wal::WriteAheadLog* wal,
-               RaftTaskExecutor* executor, yaraft::MemoryStorage* memstore)
-      : walCommitObserver_(observer),
-        peers_(peers),
-        wal_(wal),
-        executor_(executor),
-        memstore_(memstore) {}
+  ReadyFlusher();
 
-  void Start();
+  ~ReadyFlusher();
 
-  void Stop();
+  void Register(ReplicatedLogImpl* log);
 
  private:
-  Status flushReady(yaraft::Ready* rd);
-
-  void onReadyFlushed(yaraft::Ready* rd);
-
- private:
-  WalCommitObserver* walCommitObserver_;
-  BackgroundWorker worker_;
-  RaftTaskExecutor* executor_;
-  rpc::Cluster* peers_;
-  wal::WriteAheadLog* wal_;
-  yaraft::MemoryStorage* memstore_;
+  class Impl;
+  std::unique_ptr<Impl> impl_;
 };
 
 }  // namespace consensus

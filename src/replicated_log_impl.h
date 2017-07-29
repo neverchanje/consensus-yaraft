@@ -17,6 +17,7 @@
 #include "base/env.h"
 #include "base/logging.h"
 #include "rpc/peer.h"
+#include "wal/wal.h"
 
 #include "raft_service.h"
 #include "raft_task_executor.h"
@@ -29,15 +30,15 @@
 
 namespace consensus {
 
-class ReplicatedLog::Impl {
+class ReplicatedLogImpl {
   friend class ReplicatedLog;
 
  public:
   static StatusWith<ReplicatedLog *> New(const ReplicatedLogOptions &options) {
-    auto impl = new Impl;
+    auto impl = new ReplicatedLogImpl;
 
-    impl->taskQueue_ = options.taskQueue;
     impl->timer_ = options.timer;
+    impl->flusher_ = options.flusher;
 
     wal::WriteAheadLog *wal;
     auto memstore = new yaraft::MemoryStorage;
@@ -63,22 +64,18 @@ class ReplicatedLog::Impl {
     impl->node_.reset(new yaraft::RawNode(conf));
     impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
     impl->raftService_.reset(new RaftServiceImpl(impl->executor_.get()));
-    impl->flusher_.reset(new ReadyFlusher(impl->walCommitObserver_.get(), impl->cluster_.get(),
-                                          impl->wal_.get(), impl->executor_.get(), memstore));
 
     impl->id_ = options.id;
 
     impl->timer_->Register(impl->executor_.get());
-    impl->flusher_->Start();
+    impl->flusher_->Register(impl);
 
     auto rl = new ReplicatedLog;
     rl->impl_.reset(impl);
     return rl;
   }
 
-  ~Impl() {
-    flusher_->Stop();
-  }
+  ~ReplicatedLogImpl() {}
 
   Status Write(const Slice &log) {
     SimpleChannel<Status> channel;
@@ -111,6 +108,8 @@ class ReplicatedLog::Impl {
   }
 
  private:
+  friend class ReadyFlusher;
+
   std::unique_ptr<yaraft::RawNode> node_;
 
   std::unique_ptr<wal::WriteAheadLog> wal_;
@@ -119,15 +118,13 @@ class ReplicatedLog::Impl {
 
   std::unique_ptr<WalCommitObserver> walCommitObserver_;
 
-  std::unique_ptr<ReadyFlusher> flusher_;
-
   std::unique_ptr<rpc::Cluster> cluster_;
 
   std::unique_ptr<pb::RaftService> raftService_;
 
-  TaskQueue *taskQueue_;
-
   RaftTimer *timer_;
+
+  ReadyFlusher *flusher_;
 
   yaraft::MemoryStorage *memstore_;
 

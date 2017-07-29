@@ -12,7 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "raft_task_executor.h"
-#include "base/logging.h"
+#include "base/simple_channel.h"
 
-namespace consensus {}  // namespace consensus
+#include "raft_task_executor.h"
+
+namespace consensus {
+
+yaraft::Ready *RaftTaskExecutor::GetReady() {
+  yaraft::Ready *rd;
+  SimpleChannel<void> chan;
+  Submit([&](yaraft::RawNode *node) {
+    rd = node->GetReady();
+    chan.Signal();
+  });
+  chan.Wait();
+  return rd;
+}
+
+}  // namespace consensus

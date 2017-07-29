@@ -30,10 +30,12 @@ class ReplicatedLogTest : public BaseTest {
     options.election_timeout = 1000;
     options.taskQueue = new TaskQueue;
     options.timer = new RaftTimer;
+    options.flusher = new ReadyFlusher;
   }
 
   void TearDown() override {
     delete options.timer;
+    delete options.flusher;
 
     delete replicatedLog;
     delete guard;

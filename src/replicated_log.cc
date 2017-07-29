@@ -16,7 +16,6 @@
 
 #include "raft_service.h"
 #include "raft_task_executor.h"
-#include "ready_flusher.h"
 #include "replicated_log.h"
 #include "replicated_log_impl.h"
 
@@ -27,7 +26,7 @@ Status ReplicatedLog::Write(const Slice &log) {
 }
 
 StatusWith<ReplicatedLog *> ReplicatedLog::New(const ReplicatedLogOptions &options) {
-  return Impl::New(options);
+  return ReplicatedLogImpl::New(options);
 }
 
 pb::RaftService *ReplicatedLog::RaftServiceInstance() {

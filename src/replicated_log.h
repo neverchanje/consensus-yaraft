@@ -24,6 +24,7 @@
 #include "base/task_queue.h"
 
 #include "raft_timer.h"
+#include "ready_flusher.h"
 
 #include <silly/disallow_copying.h>
 #include <yaraft/raw_node.h>
@@ -50,6 +51,9 @@ struct ReplicatedLogOptions {
 
   // the global timer
   RaftTimer* timer;
+
+  // the global ready flusher
+  ReadyFlusher* flusher;
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single
@@ -81,9 +85,8 @@ class ReplicatedLog {
  private:
   friend class ReplicatedLogTest;
 
-  class Impl;
-  friend class Impl;
-  std::unique_ptr<Impl> impl_;
+  friend class ReplicatedLogImpl;
+  std::unique_ptr<ReplicatedLogImpl> impl_;
 };
 
 }  // namespace consensus
