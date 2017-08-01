@@ -24,7 +24,7 @@ class MockWritableFile : public WritableFile {
   ~MockWritableFile() {}
 
   Status Append(const Slice& data) override {
-    buf_ += data.ToString();
+    buf_.append(data.data(), data.size());
     return Status::OK();
   }
 
@@ -55,6 +55,10 @@ class MockWritableFile : public WritableFile {
 
   const std::string& filename() const override {
     return fileName_;
+  }
+
+  std::string Data() const {
+    return buf_;
   }
 
  private:
