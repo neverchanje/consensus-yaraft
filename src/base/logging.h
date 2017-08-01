@@ -42,6 +42,13 @@ namespace consensus {
 /// @brief Return the given status if it is not @c OK.
 #define RETURN_NOT_OK SILLY_RETURN_NOT_OK
 
+#define RETURN_NOT_OK_APPEND(s, msg) \
+  do {                               \
+    auto _s = (s);                   \
+    if (UNLIKELY(!_s.IsOK()))        \
+      return _s << msg;              \
+  } while (0);
+
 #define FMT_LOG(level, formatStr, args...) LOG(level) << fmt::format(formatStr, ##args)
 
 #define FMT_SLOG(level, formatStr, args...) LOG(level) << fmt::sprintf(formatStr, ##args)
