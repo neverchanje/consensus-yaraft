@@ -14,23 +14,35 @@
 
 #pragma once
 
+#include <cstddef>
+
 namespace consensus {
 namespace wal {
 
-//  Format of the encoded log entry:
+//  Format of the encoded log batch:
 //
-//  LogEntry  := LogHeader Data
+//  LogBatch := LogHeader Record+
 //  LogHeader := Crc32 Length
+//  Record := Type VarString
 //
-//  Crc32  -> 4 bytes, checksum of Data field
-//  Length -> 4 bytes, length of data
-//  Data   -> bytes,   byte-encoded yaraft.pb.Entry
+//  Crc32     -> 4 bytes, checksum of fields followed in the log block
+//  Type      -> 1 byte, RecordType
+//  VarString -> varint32 + bytes, encoded log entry or encoded hard state
 //
 //  Each segment composes of a series of log entries:
 //
-//  Segment := LogEntry*
+//  Segment := SegmentHeader LogBlock* SegmentFooter
+//  SegmentHeader := Magic
+//  SegmentFooter :=
+//
 
-constexpr static size_t kEntryHeaderSize = 8;
+constexpr static size_t kLogBatchHeaderSize = 4 + 4;
+constexpr static size_t kRecordHeaderSize = 1;
+
+enum RecordType {
+  kHardStateType = 1,
+  kLogEntryType = 2,
+};
 
 }  // namespace wal
 }  // namespace consensus
