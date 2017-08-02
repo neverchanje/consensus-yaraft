@@ -53,7 +53,8 @@ set(WAL_SOURCES
         ${WAL_SOURCE_DIR}/options.cc
         ${WAL_SOURCE_DIR}/wal.cc
         ${WAL_SOURCE_DIR}/log_writer.cc
-        ${WAL_SOURCE_DIR}/log_manager.cc)
+        ${WAL_SOURCE_DIR}/log_manager.cc
+        ${WAL_SOURCE_DIR}/readable_log_segment.cc)
 
 add_library(consensus_wal ${WAL_SOURCES})
 target_link_libraries(consensus_wal ${CONSENSUS_LINK_LIBS})
@@ -63,8 +64,6 @@ function(ADD_WAL_TEST TEST_NAME)
     add_executable(${TEST_NAME} ${WAL_SOURCE_DIR}/${TEST_NAME}.cc)
     target_link_libraries(${TEST_NAME} ${CONSENSUS_LINK_LIBS} ${GTEST_LIB} ${GTEST_MAIN_LIB})
 endfunction()
-
-ADD_WAL_TEST(segment_meta_test)
 
 ADD_WAL_TEST(log_writer_test)
 
