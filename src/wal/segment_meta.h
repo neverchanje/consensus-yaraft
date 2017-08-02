@@ -14,17 +14,19 @@
 
 #pragma once
 
-#include <string>
-
 #include "base/status.h"
 
 namespace consensus {
 namespace wal {
 
+using silly::operator""_sl;
+static constexpr Slice kLogSegmentHeaderMagic = "yaraft_log"_sl;
+
 struct SegmentMetaData {
   std::string fileName;
+  size_t numEntries;
 
-  SegmentMetaData() = default;
+  SegmentMetaData() : numEntries(0){};
 };
 
 std::string SegmentFileName(uint64_t segmentId, uint64_t firstIdx);

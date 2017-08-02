@@ -28,6 +28,7 @@ namespace wal {
 
 class LogWriter;
 
+// Not-Thread-Safe
 class LogManager : public WriteAheadLog {
  public:
   explicit LogManager(const Slice& logsDir);
@@ -39,7 +40,7 @@ class LogManager : public WriteAheadLog {
   ~LogManager();
 
   // Required: no holes between logs and msg.entries.
-  Status AppendEntries(const PBEntryVec& vec) override;
+  Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs = nullptr) override;
 
   // naive implementation: delete all committed segments.
   Status GC(WriteAheadLog::CompactionHint* hint) override;
@@ -52,9 +53,8 @@ class LogManager : public WriteAheadLog {
   Status Close();
 
  private:
-  // Append entries into log. It's guaranteed that there's no conflicted entry between MsgApp
-  // and current log.
-  Status doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end);
+  Status doWrite(ConstPBEntriesIterator begin, ConstPBEntriesIterator end,
+                 const yaraft::pb::HardState* hs);
 
  private:
   friend class LogManagerTest;

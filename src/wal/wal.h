@@ -26,12 +26,14 @@ using PBEntryVec = std::vector<yaraft::pb::Entry>;
 using PBEntriesIterator = PBEntryVec::iterator;
 using ConstPBEntriesIterator = PBEntryVec::const_iterator;
 
+// WriteAheadLog provides an abstraction for writing log entries and raft state
+// into the underlying storage.
 class WriteAheadLog {
  public:
   virtual ~WriteAheadLog() = default;
 
-  // Append log entries into underlying storage.
-  virtual Status AppendEntries(const PBEntryVec& entries) = 0;
+  // Save log entries and raft state into underlying storage.
+  virtual Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs) = 0;
 
   struct CompactionHint {};
 

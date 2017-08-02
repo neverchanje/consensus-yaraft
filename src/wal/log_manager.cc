@@ -86,42 +86,25 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
 
   std::unique_ptr<LogManager> m(new LogManager(logsDir));
   if (wals.empty()) {
-    LOG(WARNING) << fmt::format("Recovering from {} with no logs", logsDir);
     return m.release();
   }
 
   m->empty_ = false;
 
-  LOG(INFO) << fmt::format("Recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
+  LOG(INFO) << fmt::format("recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
                            wals.begin()->first, wals.begin()->second, wals.rbegin()->first,
                            wals.rbegin()->second);
 
   for (auto it = wals.begin(); it != wals.end(); it++) {
-    ReadableLogSegment* seg;
     std::string fname = logsDir + "/" + SegmentFileName(it->first, it->second);
-    ASSIGN_IF_OK(ReadableLogSegment::Create(fname), seg);
-    std::unique_ptr<ReadableLogSegment> d(seg);
-
-    bool head = true;
-    while (!seg->Eof()) {
-      if (head) {
-        SegmentMetaData meta;
-        meta.fileName = std::move(fname);
-        m->files_.push_back(std::move(meta));
-        head = false;
-        continue;
-      }
-
-      yaraft::pb::Entry entry;
-      ASSIGN_IF_OK(seg->ReadEntry(), entry);
-      m->lastIndex_ = entry.index();
-      RETURN_NOT_OK(AppendToMemStore(entry, memstore));
-    }
+    SegmentMetaData meta;
+    RETURN_NOT_OK(ReadSegmentIntoMemoryStorage(fname, memstore, &meta));
+    m->files_.push_back(std::move(meta));
   }
   return m.release();
 }
 
-Status LogManager::AppendEntries(const PBEntryVec& entries) {
+Status LogManager::Write(const PBEntryVec& entries, const yaraft::pb::HardState* hs) {
   if (entries.empty()) {
     return Status::OK();
   }
@@ -132,11 +115,12 @@ Status LogManager::AppendEntries(const PBEntryVec& entries) {
     empty_ = false;
   }
 
-  // the overlapped part of logs will not be deleted until snapshotting.
-  return doAppend(entries.begin(), entries.end());
+  return doWrite(entries.begin(), entries.end(), hs);
 }
 
-Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator end) {
+// Required: begin != end
+Status LogManager::doWrite(ConstPBEntriesIterator begin, ConstPBEntriesIterator end,
+                           const yaraft::pb::HardState* hs) {
   auto segStart = begin;
   auto it = segStart;
   while (true) {
@@ -146,14 +130,19 @@ Status LogManager::doAppend(ConstPBEntriesIterator begin, ConstPBEntriesIterator
       current_.reset(w);
     }
 
-    ASSIGN_IF_OK(current_->AppendEntries(segStart, end), it);
-    DCHECK(it != segStart);  // AppendEntries must have appended one entry.
+    ASSIGN_IF_OK(current_->Append(segStart, end, hs), it);
     if (it == end) {
       // write complete
       break;
     }
 
+    // hard state must have been written after a batch write completes.
+    if (hs) {
+      hs = nullptr;
+    }
+
     lastIndex_ = std::prev(it)->index();
+
     SegmentMetaData meta;
     ASSIGN_IF_OK(current_->Finish(), meta);
     delete current_.release();

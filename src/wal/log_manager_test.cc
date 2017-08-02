@@ -25,23 +25,13 @@ using yaraft::PBEntry;
 using yaraft::MemoryStorage;
 using yaraft::pb::Entry;
 
-inline bool operator==(const Entry& e1, const Entry& e2) {
-  bool result = (e1.term() == e2.term()) && (e1.index() == e2.index());
-  return result;
-}
-
-inline bool operator!=(Entry e1, Entry e2) {
-  return !(e1 == e2);
-}
-
 inline bool operator==(EntryVec v1, EntryVec v2) {
   if (v1.size() != v2.size())
     return false;
-  auto it1 = v1.begin();
-  auto it2 = v2.begin();
-  while (it1 != v1.end()) {
-    if (*it1++ != *it2++)
+  for (int i = 0; i < v1.size(); i++) {
+    if (v1[i].DebugString() != v2[i].DebugString()) {
       return false;
+    }
   }
   return true;
 }
@@ -60,30 +50,29 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
 
   for (auto t : tests) {
     TestDirGuard g(CreateTestDirGuard());
-
     LogManager manager(GetTestDir());
 
     // Always writes to only one segment
     FLAGS_log_segment_size = 1024 * 1024 * 64;  // sufficient enough to hold all logs in one segment
 
-    EntryVec vec;
+    EntryVec expected;
     for (uint64_t i = 1; i <= t.totalEntries; i++) {
-      vec.push_back(PBEntry().Index(i).Term(i).v);
+      expected.push_back(PBEntry().Index(i).Term(i).v);
     }
-    ASSERT_OK(manager.AppendEntries(vec));
+    ASSERT_OK(manager.Write(expected));
 
     // flush data into file
     ASSERT_OK(manager.Close());
 
-    ReadableLogSegment* seg;
-    ASSIGN_IF_ASSERT_OK(ReadableLogSegment::Create(GetTestDir() + "/" + SegmentFileName(1, 1)),
-                        seg);
-    std::unique_ptr<ReadableLogSegment> d(seg);
+    yaraft::MemoryStorage memStore;
+    SegmentMetaData meta;
+    ASSERT_OK(
+        ReadSegmentIntoMemoryStorage(GetTestDir() + "/" + SegmentFileName(1, 1), &memStore, &meta));
 
+    EntryVec actual(memStore.TEST_Entries().begin() + 1, memStore.TEST_Entries().end());
+    ASSERT_EQ(actual.size(), t.totalEntries);
     for (int i = 0; i < t.totalEntries; i++) {
-      auto sw = seg->ReadEntry();
-      ASSERT_OK(sw);
-      ASSERT_TRUE(sw.GetValue() == vec[i]);
+      ASSERT_EQ(actual[i].DebugString(), expected[i].DebugString());
     }
   }
 }
@@ -169,7 +158,7 @@ TEST_F(LogManagerTest, Recover) {
     size_t segNum;
     {
       LogManager m(GetTestDir());
-      ASSERT_OK(m.AppendEntries(expected));
+      ASSERT_OK(m.Write(expected));
       segNum = m.SegmentNum();
       ASSERT_OK(m.Close());
     }
@@ -181,9 +170,9 @@ TEST_F(LogManagerTest, Recover) {
 
     ASSERT_EQ(segNum, m->SegmentNum());
 
-    auto& actual = memstore.TEST_Entries();
+    EntryVec actual(memstore.TEST_Entries().begin() + 1, memstore.TEST_Entries().end());
     for (int i = 1; i < actual.size(); i++) {
-      ASSERT_TRUE(expected[i - 1] == actual[i]);
+      ASSERT_TRUE(expected == actual);
     }
   }
 }
