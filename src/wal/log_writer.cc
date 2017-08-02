@@ -20,35 +20,83 @@
 namespace consensus {
 namespace wal {
 
-std::string EncodeToString(const yaraft::pb::Entry &entry) {
-  std::string buf(entry.ByteSize() + 8, '\0');
-  char *p = &buf[0];
+StatusWith<ConstPBEntriesIterator> LogWriter::Append(ConstPBEntriesIterator begin,
+                                                     ConstPBEntriesIterator end,
+                                                     const yaraft::pb::HardState *hs) {
+  if (empty_) {
+    RETURN_NOT_OK(file_->Append(kLogSegmentHeaderMagic));
+    empty_ = false;
+  }
 
-  size_t bufLen;
-  EncodeToAllocatedArray(entry, p, &bufLen);
-  CHECK_EQ(bufLen, buf.size());
+  ssize_t remains = FLAGS_log_segment_size - file_->Size();
+  size_t totalSize = kLogBatchHeaderSize;
 
-  return buf;
-}
+  if (hs) {
+    totalSize += kRecordHeaderSize + hs->ByteSize();
+  }
 
-void EncodeToArray(const yaraft::pb::Entry &entry, char **result, size_t *len) {
-  (*result) = new char[entry.ByteSize() + 8];
-  EncodeToAllocatedArray(entry, *result, len);
-}
+  bool writeEntries = false;
+  auto newBegin = begin;
+  if (totalSize < remains && begin != end) {
+    writeEntries = true;
+    for (; newBegin != end; newBegin++) {
+      if (totalSize < remains) {
+        totalSize += kRecordHeaderSize + VarintLength(newBegin->ByteSize()) + newBegin->ByteSize();
+      } else {
+        break;
+      }
+    }
+  }
 
-void EncodeToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len) {
-  char *p = result;
-  entry.SerializeToArray(p + 8, entry.ByteSize());
+  std::string scratch(totalSize, '\0');
+  size_t offset = kLogBatchHeaderSize;
 
-  // 4-byte crc checksum
+  if (hs) {
+    saveHardState(*hs, &scratch[offset], &offset);
+  }
+
+  if (writeEntries) {
+    saveEntries(begin, newBegin, &scratch[offset], &offset);
+  }
+
+  size_t dataLen = totalSize - kLogBatchHeaderSize;
+
+  // len field
+  EncodeFixed32(&scratch[4], static_cast<uint32_t>(dataLen));
+
+  // crc field
   boost::crc_32_type crc;
-  crc.process_bytes(p + 8, static_cast<size_t>(entry.ByteSize()));
-  EncodeFixed32(p, static_cast<uint32_t>(crc.checksum()));
+  crc.process_bytes(&scratch[kLogBatchHeaderSize], dataLen);
+  EncodeFixed32(&scratch[0], static_cast<uint32_t>(crc.checksum()));
 
-  // 4-byte length
-  EncodeFixed32(p + 4, static_cast<uint32_t>(entry.ByteSize()));
+  RETURN_NOT_OK(file_->Append(scratch));
 
-  (*len) = static_cast<size_t>(entry.ByteSize() + 8);
+  meta_.numEntries += std::distance(begin, newBegin);
+  return newBegin;
+}
+
+void LogWriter::saveHardState(const yaraft::pb::HardState &hs, char *dest, size_t *offset) {
+  char *p = dest;
+  p[0] = static_cast<char>(kHardStateType);
+
+  p = EncodeVarint32(p + 1, hs.ByteSize());
+  hs.SerializeToArray(p, hs.ByteSize());
+
+  (*offset) += p - dest + hs.ByteSize();
+}
+
+void LogWriter::saveEntries(ConstPBEntriesIterator begin, ConstPBEntriesIterator end, char *dest,
+                            size_t *offset) {
+  char *p = dest;
+  char type = static_cast<char>(kLogEntryType);
+
+  for (auto it = begin; it != end; it++) {
+    p[0] = type;
+    p = EncodeVarint32(p + 1, it->ByteSize());
+    it->SerializeToArray(p, it->ByteSize());
+    p += it->ByteSize();
+  }
+  (*offset) += p - dest;
 }
 
 }  // namespace wal

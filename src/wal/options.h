@@ -19,3 +19,5 @@
 
 // NOTE: The maximum size of an entry is recommended not larger than log_segment_size.
 DECLARE_uint32(log_segment_size);
+
+DECLARE_bool(verifiy_checksums);

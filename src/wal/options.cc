@@ -17,3 +17,4 @@
 #include <gflags/gflags.h>
 
 DEFINE_uint32(log_segment_size, 16 * 1024 * 1024, "Approximate size of wal packed per segment.");
+DEFINE_bool(verifiy_checksums, false, "");

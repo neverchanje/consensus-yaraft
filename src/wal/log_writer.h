@@ -16,20 +16,16 @@
 
 #include "base/env.h"
 #include "base/logging.h"
+#include "wal/format.h"
 #include "wal/log_manager.h"
 #include "wal/options.h"
 #include "wal/segment_meta.h"
-#include "wal/wal.h"
 
 #include <fmt/format.h>
 #include <silly/likely.h>
 
 namespace consensus {
 namespace wal {
-
-std::string EncodeToString(const yaraft::pb::Entry &entry);
-void EncodeToArray(const yaraft::pb::Entry &entry, char **result, size_t *len);
-void EncodeToAllocatedArray(const yaraft::pb::Entry &entry, char *result, size_t *len);
 
 class LogWriter {
  public:
@@ -40,39 +36,22 @@ class LogWriter {
     std::string fname = manager->logsDir_ + "/" + SegmentFileName(newSegId, newSegStart);
     LOG(INFO) << fmt::format("creating new segment segId: {}, firstId: {}", newSegId, newSegStart);
 
-    SegmentMetaData meta;
-    meta.fileName = fname;
-
     WritableFile *wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
 
-    return new LogWriter(wf, meta);
+    return new LogWriter(wf, fname);
   }
 
-  LogWriter(WritableFile *wf, SegmentMetaData meta) : file_(wf), meta_(meta) {}
+  LogWriter(WritableFile *wf, const std::string &fname) : file_(wf), empty_(true) {
+    meta_.fileName = fname;
+  }
 
-  // Append log entries in range [begin, end) into the underlying segment.
+  // Append log entries in range [begin, end) & hard state into the underlying segment.
   // If the current write is beyond the configured segment size, it returns a
   // iterator points at the next entry to be appended.
-  StatusWith<ConstPBEntriesIterator> AppendEntries(ConstPBEntriesIterator begin,
-                                                   ConstPBEntriesIterator end) {
-    std::string rawEntries;
-    ssize_t remains = FLAGS_log_segment_size - file_->Size();
-    auto it = begin;
-    for (; it != end; it++) {
-      std::string entryBuf = EncodeToString(*it);
-      remains -= entryBuf.size();
-      rawEntries += std::move(entryBuf);
-      if (remains <= 0) {
-        it++;
-        break;
-      }
-    }
-
-    RETURN_NOT_OK(file_->Append(rawEntries));
-    entriesNum_ += std::distance(begin, it);
-    return it;
-  }
+  StatusWith<ConstPBEntriesIterator> Append(ConstPBEntriesIterator begin,
+                                            ConstPBEntriesIterator end,
+                                            const yaraft::pb::HardState *hs = nullptr);
 
   StatusWith<SegmentMetaData> Finish() {
     RETURN_NOT_OK(file_->Sync());
@@ -84,9 +63,11 @@ class LogWriter {
     return FLAGS_log_segment_size <= file_->Size();
   }
 
-  size_t TotalSize() const {
-    return file_->Size();
-  }
+ private:
+  void saveHardState(const yaraft::pb::HardState &hs, char *dest, size_t *offset);
+
+  void saveEntries(ConstPBEntriesIterator begin, ConstPBEntriesIterator end, char *dest,
+                   size_t *offset);
 
  private:
   friend class LogWriterTest;
@@ -94,7 +75,8 @@ class LogWriter {
  private:
   std::unique_ptr<WritableFile> file_;
   SegmentMetaData meta_;
-  size_t entriesNum_;
+
+  bool empty_;
 };
 
 }  // namespace wal
