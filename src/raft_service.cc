@@ -43,17 +43,17 @@ void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
 
   response->set_code(pb::OK);
 
-  SimpleChannel<void> channel;
+  Barrier barrier;
   executor_->Submit(std::bind(
       [&](yaraft::RawNode *node) {
         auto s = node->Step(*msg);
         if (UNLIKELY(!s.IsOK())) {
           response->set_code(yaraftErrorCodeToRpcStatusCode(s.Code()));
         }
-        channel.Signal();
+        barrier.Signal();
       },
       std::placeholders::_1));
-  channel.Wait();
+  barrier.Wait();
 
   done->Run();
 }

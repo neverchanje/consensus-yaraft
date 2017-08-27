@@ -20,12 +20,12 @@ namespace consensus {
 
 yaraft::Ready *RaftTaskExecutor::GetReady() {
   yaraft::Ready *rd;
-  SimpleChannel<void> chan;
+  Barrier barrier;
   Submit([&](yaraft::RawNode *node) {
     rd = node->GetReady();
-    chan.Signal();
+    barrier.Signal();
   });
-  chan.Wait();
+  barrier.Wait();
   return rd;
 }
 

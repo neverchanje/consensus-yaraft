@@ -48,12 +48,11 @@ class SimpleChannel {
   std::future<V> future_;
 };
 
-template <>
-class SimpleChannel<void> {
-  __DISALLOW_COPYING__(SimpleChannel);
+class Barrier {
+  __DISALLOW_COPYING__(Barrier);
 
  public:
-  SimpleChannel() {
+  Barrier() {
     future_ = promise_.get_future();
   }
 

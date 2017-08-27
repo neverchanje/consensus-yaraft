@@ -33,13 +33,13 @@ TEST_F(RaftTimerTest, Timeout) {
   sleep(2);
 
   yaraft::RaftInfo info;
-  SimpleChannel<void> chan;
+  Barrier barrier;
   executor.Submit([&](yaraft::RawNode *n) {
     info = n->GetInfo();
 
-    chan.Signal();
+    barrier.Signal();
   });
-  chan.Wait();
+  barrier.Wait();
 
   ASSERT_GE(info.currentTerm, 1);
   ASSERT_GE(info.logIndex, 1);

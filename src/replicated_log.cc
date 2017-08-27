@@ -36,14 +36,14 @@ pb::RaftService *ReplicatedLog::RaftServiceInstance() {
 ReplicatedLog::~ReplicatedLog() {}
 
 yaraft::RaftInfo ReplicatedLog::GetInfo() {
-  SimpleChannel<void> chan;
+  Barrier barrier;
   yaraft::RaftInfo info;
 
   impl_->executor_->Submit([&](yaraft::RawNode *node) {
     info = node->GetInfo();
-    chan.Signal();
+    barrier.Signal();
   });
-  chan.Wait();
+  barrier.Wait();
 
   return info;
 }

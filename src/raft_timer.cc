@@ -50,7 +50,7 @@ class RaftTimer::Impl {
 
       std::lock_guard<std::mutex> g(mu_);
       for (auto& executor : executors_) {
-        SimpleChannel<void> channel;
+        Barrier channel;
         executor->Submit([&](yaraft::RawNode* node) {
           for (uint32_t i = 0; i < kTimerGranularity; i++) {
             node->Tick();

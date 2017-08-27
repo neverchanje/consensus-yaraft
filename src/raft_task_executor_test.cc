@@ -16,6 +16,7 @@
 #include "base/simple_channel.h"
 
 #include <boost/thread.hpp>
+#include <boost/thread/latch.hpp>
 
 using namespace consensus;
 
@@ -25,28 +26,28 @@ TEST_F(RaftTaskExecutorTest, TasksInSequence) {
   RaftTaskExecutor executor(&node, taskQueue_);
 
   boost::thread_group group;
-  boost::barrier barrier(3);
+  boost::latch latch(3);
 
   // appending a character into std::string is absolutely a non-atomic operation,.
   std::string s;
   std::atomic_int count(0);
 
-  SimpleChannel<void> chan;
+  Barrier barrier;
   for (int i = 0; i < 3; i++) {
     group.create_thread([&]() {
-      barrier.wait();
+      latch.count_down_and_wait();
 
       for (int k = 0; k < 100; k++) {
         executor.Submit([&](yaraft::RawNode *n) {
           s.push_back('a');
           if (++count == 300) {
-            chan.Signal();
+            barrier.Signal();
           }
         });
       }
     });
   }
-  chan.Wait();
+  barrier.Wait();
 
   ASSERT_EQ(s.length(), 300);
   ASSERT_EQ(s, std::string(300, 'a'));
