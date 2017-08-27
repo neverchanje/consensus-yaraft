@@ -33,6 +33,7 @@ TEST_F(RaftServiceTest, Step) {
   pb::StepRequest request;
 
   auto msg = new yaraft::pb::Message;
+  msg->set_type(yaraft::pb::MsgHup);
   request.set_allocated_message(msg);
   auto done = sofa::pbrpc::NewClosure([]() {});
   service.Step(nullptr, &request, &response, done);
