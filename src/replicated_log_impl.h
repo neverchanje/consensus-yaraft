@@ -77,7 +77,7 @@ class ReplicatedLogImpl {
 
   ~ReplicatedLogImpl() {}
 
-  Status Write(const Slice &log) {
+  SimpleChannel<Status> AsyncWrite(const Slice &log) {
     SimpleChannel<Status> channel;
 
     executor_->Submit([&](yaraft::RawNode *node) {
@@ -101,10 +101,7 @@ class ReplicatedLogImpl {
       walCommitObserver_->Register(std::make_pair(newIndex, newIndex), &channel);
     });
 
-    Status s;
-    channel >>= s;
-
-    return s;
+    return channel;
   }
 
  private:

@@ -30,6 +30,8 @@ class SimpleChannel {
     future_ = promise_.get_future();
   }
 
+  SimpleChannel(SimpleChannel &&chan) : promise_(chan.promise_), future_(chan.future_) {}
+
   void operator<<=(const V &value) {
     promise_.set_value(value);
   }

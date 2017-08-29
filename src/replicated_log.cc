@@ -22,7 +22,10 @@
 namespace consensus {
 
 Status ReplicatedLog::Write(const Slice &log) {
-  return impl_->Write(log);
+  Status s;
+  SimpleChannel<Status> chan = impl_->AsyncWrite(log);
+  chan >>= s;
+  return s;
 }
 
 StatusWith<ReplicatedLog *> ReplicatedLog::New(const ReplicatedLogOptions &options) {
@@ -46,6 +49,10 @@ yaraft::RaftInfo ReplicatedLog::GetInfo() {
   barrier.Wait();
 
   return info;
+}
+
+SimpleChannel<Status> ReplicatedLog::AsyncWrite(const Slice &log) {
+  return impl_->AsyncWrite(log);
 }
 
 }  // namespace consensus

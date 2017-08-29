@@ -19,6 +19,7 @@
 
 #include "pb/raft_server.pb.h"
 
+#include "base/simple_channel.h"
 #include "base/slice.h"
 #include "base/status.h"
 #include "base/task_queue.h"
@@ -27,7 +28,7 @@
 #include "ready_flusher.h"
 
 #include <silly/disallow_copying.h>
-#include <yaraft/raw_node.h>
+#include <yaraft/raft_info.h>
 
 namespace consensus {
 
@@ -67,10 +68,13 @@ class ReplicatedLog {
  public:
   static StatusWith<ReplicatedLog*> New(const ReplicatedLogOptions&);
 
-  // Returns WalWriteToNonLeader if the current node is not leader.
+  // Write a slice of log in synchronous way.
+  // Returns error `WalWriteToNonLeader` if the current node is not leader.
   Status Write(const Slice& log);
 
-  // TODO: Status AsyncWrite(const Slice& log);
+  // Asynchronously write a slice of log into storage, the call will returns immediately
+  // with a SimpleChannel that's used to wait for the commit of this write.
+  SimpleChannel<Status> AsyncWrite(const Slice& log);
 
   // the life ownership of RaftService is still kept in ReplicatedLog.
   pb::RaftService* RaftServiceInstance();
