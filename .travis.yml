@@ -1,0 +1,20 @@
+language: cpp
+sudo: required
+dist: trusty
+compiler:
+- clang
+- g++
+
+branches:
+  only:
+  - master
+
+install:
+- sudo apt-get -y install libboost-all-dev libsnappy-dev
+- bash install_dependencies.sh
+- bash compile_proto.sh
+- bash run.sh build
+
+script:
+- cd build && cmake .. && make -j4
+- bash run.sh test

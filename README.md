@@ -1,4 +1,5 @@
 # consensus-yaraft
+[![Build Status](https://travis-ci.org/neverchanje/consensus-yaraft.svg)](https://travis-ci.org/neverchanje/consensus-yaraft)
 
 consensus-yaraft is an embeddable distributed log storage library that provides strong consistency based
 on the Raft algorithm.

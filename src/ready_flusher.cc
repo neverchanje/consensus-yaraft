@@ -64,11 +64,14 @@ class ReadyFlusher::Impl {
   }
 
   void flushReady(ReplicatedLogImpl *rl, yaraft::Ready *rd, boost::latch *latch) {
+    yaraft::pb::HardState *hs = nullptr;
+
     if (rd->hardState) {
+      hs = rd->hardState.get();
     }
 
     if (!rd->entries.empty()) {
-      FATAL_NOT_OK(rl->wal_->AppendEntries(rd->entries), "Wal::AppendEntries");
+      FATAL_NOT_OK(rl->wal_->Write(rd->entries, hs), "Wal::Write");
     }
 
     if (!rd->messages.empty()) {
