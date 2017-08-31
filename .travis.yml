@@ -16,5 +16,5 @@ install:
 - bash run.sh build
 
 script:
-- cd build && cmake .. && make -j4
-- bash run.sh test
+- cd cmake-build-debug && cmake .. && make -j4
+- cd ../ && bash run.sh test
