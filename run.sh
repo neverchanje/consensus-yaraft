@@ -26,7 +26,7 @@ function run_build() {
     mkdir -p ${PROJECT_DIR}/cmake-build-debug
     mkdir -p ${PROJECT_DIR}/output
     cd ${PROJECT_DIR}/cmake-build-debug
-    cmake .. -DCMAKE_INSTALL_PREFIX=${PROJECT_DIR}/output -DSANITIZE_ADDRESS=ON
+    cmake .. -DCMAKE_INSTALL_PREFIX=${PROJECT_DIR}/output -DCMAKE_BUILD_TYPE=Release
     make -j8 && make install
     popd
 }
