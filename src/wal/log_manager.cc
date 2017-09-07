@@ -36,11 +36,10 @@ Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore) {
 
   if (!vec.empty()) {
     if (e.term() < vec.rbegin()->term()) {
-      return Status::Make(
-          Error::YARaftError,
-          fmt::format(
-              "new entry [index:{}, term:{}] has lower term than last entry [index:{}, term:{}]",
-              e.index(), e.term(), vec.rbegin()->index(), vec.rbegin()->term()));
+      return FMT_Status(
+          YARaftError,
+          "new entry [index:{}, term:{}] has lower term than last entry [index:{}, term:{}]",
+          e.index(), e.term(), vec.rbegin()->index(), vec.rbegin()->term());
     }
 
     int del = vec.size() - 1;
@@ -64,15 +63,19 @@ Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore) {
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 
-LogManager::LogManager(const Slice& logsDir)
-    : lastIndex_(0), empty_(true), logsDir_(logsDir.ToString()) {}
+LogManager::LogManager(const WriteAheadLogOptions& options)
+    : lastIndex_(0), options_(options), empty_(false) {}
 
-LogManager::~LogManager() {}
+LogManager::~LogManager() {
+  Close();
+}
 
-StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
+StatusWith<LogManager*> LogManager::Recover(const WriteAheadLogOptions options,
                                             yaraft::MemoryStorage* memstore) {
+  RETURN_NOT_OK(Env::Default()->CreateDirIfMissing(options.log_dir));
+
   std::vector<std::string> files;
-  RETURN_NOT_OK(Env::Default()->GetChildren(logsDir, &files));
+  RETURN_NOT_OK(Env::Default()->GetChildren(options.log_dir, &files));
 
   // finds all files with suffix ".wal"
   std::map<uint64_t, uint64_t> wals;  // ordered by segId
@@ -84,21 +87,20 @@ StatusWith<LogManager*> LogManager::Recover(const std::string& logsDir,
     }
   }
 
-  std::unique_ptr<LogManager> m(new LogManager(logsDir));
+  std::unique_ptr<LogManager> m(new LogManager(options));
   if (wals.empty()) {
     return m.release();
   }
 
   m->empty_ = false;
 
-  LOG(INFO) << fmt::format("recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
-                           wals.begin()->first, wals.begin()->second, wals.rbegin()->first,
-                           wals.rbegin()->second);
+  FMT_LOG(INFO, "recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
+          wals.begin()->first, wals.begin()->second, wals.rbegin()->first, wals.rbegin()->second);
 
   for (auto it = wals.begin(); it != wals.end(); it++) {
-    std::string fname = logsDir + "/" + SegmentFileName(it->first, it->second);
+    std::string fname = options.log_dir + "/" + SegmentFileName(it->first, it->second);
     SegmentMetaData meta;
-    RETURN_NOT_OK(ReadSegmentIntoMemoryStorage(fname, memstore, &meta));
+    RETURN_NOT_OK(ReadSegmentIntoMemoryStorage(fname, memstore, &meta, options.verify_checksum));
     m->files_.push_back(std::move(meta));
   }
   return m.release();
@@ -143,25 +145,36 @@ Status LogManager::doWrite(ConstPBEntriesIterator begin, ConstPBEntriesIterator 
 
     lastIndex_ = std::prev(it)->index();
 
-    SegmentMetaData meta;
-    ASSIGN_IF_OK(current_->Finish(), meta);
-    delete current_.release();
-    files_.push_back(meta);
+    finishCurrentWriter();
 
     segStart = it;
   }
   return Status::OK();
 }
 
+Status LogManager::Sync() {
+  if (current_) {
+    return current_->Sync();
+  }
+  return Status::OK();
+}
+
 Status LogManager::Close() {
   if (current_) {
-    return current_->Finish().GetStatus();
+    finishCurrentWriter();
   }
   return Status::OK();
 }
 
 Status LogManager::GC(WriteAheadLog::CompactionHint* hint) {
   return Status::OK();
+}
+
+void LogManager::finishCurrentWriter() {
+  SegmentMetaData meta;
+  FATAL_NOT_OK(current_->Finish(&meta), "LogWriter::Finish");
+  files_.push_back(meta);
+  delete current_.release();
 }
 
 }  // namespace wal

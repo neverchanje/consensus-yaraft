@@ -17,19 +17,19 @@
 #include "base/env_util.h"
 #include "base/logging.h"
 #include "wal/format.h"
-#include "wal/options.h"
+
 #include <boost/crc.hpp>
 
 namespace consensus {
 namespace wal {
 
 Status ReadSegmentIntoMemoryStorage(const Slice &fname, yaraft::MemoryStorage *memStore,
-                                    SegmentMetaData *metaData) {
+                                    SegmentMetaData *metaData, bool verifyChecksum) {
   char *buf;
   Slice s;
   RETURN_NOT_OK(env_util::ReadFullyToBuffer(fname, &s, &buf));
 
-  ReadableLogSegment seg(s, memStore, metaData);
+  ReadableLogSegment seg(s, memStore, metaData, verifyChecksum);
   RETURN_NOT_OK_APPEND(seg.ReadHeader(), fmt::format(" [segment: {}] ", fname.ToString()));
   while (!seg.Eof()) {
     RETURN_NOT_OK_APPEND(seg.ReadRecord(), fmt::format(" [segment: {}] ", fname.ToString()));
@@ -59,7 +59,7 @@ Status ReadableLogSegment::ReadRecord() {
 
   RETURN_NOT_OK_APPEND(checkRemain(len), " [bad batch length] ");
 
-  if (FLAGS_verifiy_checksums) {
+  if (verifyChecksum_) {
     boost::crc_32_type crc32;
     crc32.process_bytes(buf_, len);
     if (crc32.checksum() != crc) {

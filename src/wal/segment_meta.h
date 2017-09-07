@@ -19,7 +19,7 @@
 namespace consensus {
 namespace wal {
 
-using silly::operator ""_sl;
+using silly::operator""_sl;
 static constexpr Slice kLogSegmentHeaderMagic = "yaraft_log"_sl;
 
 struct SegmentMetaData {

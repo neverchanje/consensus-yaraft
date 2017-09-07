@@ -19,13 +19,35 @@
 namespace consensus {
 namespace wal {
 
-Status WriteAheadLog::Default(const std::string& logsDir, WriteAheadLog** wal,
+Status WriteAheadLog::Default(const WriteAheadLogOptions& options, WriteAheadLog** wal,
                               yaraft::MemoryStorage* memstore) {
-  LogManager* manager;
-  ASSIGN_IF_OK(LogManager::Recover(logsDir, memstore), manager);
-  *wal = manager;
+  LogManager* lm;
+  ASSIGN_IF_OK(LogManager::Recover(options, memstore), lm);
+  *wal = lm;
 
   return Status::OK();
+}
+
+WriteAheadLogOptions::WriteAheadLogOptions()
+    : verify_checksum(true), log_segment_size(64 * 1024 * 1024) {}
+
+WriteAheadLog* TEST_GetWalStore(const std::string& testDir, yaraft::MemoryStorage* memstore) {
+  WriteAheadLogOptions options;
+  options.log_dir = testDir;
+
+  // automatically delete the memstore
+  std::unique_ptr<yaraft::MemoryStorage> d;
+  if (memstore == nullptr) {
+    memstore = new yaraft::MemoryStorage();
+    d.reset(memstore);
+  }
+
+  WriteAheadLog* wal = nullptr;
+  FATAL_NOT_OK(WriteAheadLog::Default(options, &wal, memstore), "WriteAheadLog::Default");
+
+  wal->Write({yaraft::pb::Entry()});
+
+  return wal;
 }
 
 }  // namespace wal

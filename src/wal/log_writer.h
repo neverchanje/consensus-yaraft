@@ -18,7 +18,6 @@
 #include "base/logging.h"
 #include "wal/format.h"
 #include "wal/log_manager.h"
-#include "wal/options.h"
 #include "wal/segment_meta.h"
 
 #include <fmt/format.h>
@@ -33,16 +32,17 @@ class LogWriter {
   static StatusWith<LogWriter *> New(LogManager *manager) {
     uint64_t newSegId = manager->files_.size() + 1;
     uint64_t newSegStart = manager->lastIndex_ + 1;
-    std::string fname = manager->logsDir_ + "/" + SegmentFileName(newSegId, newSegStart);
-    LOG(INFO) << fmt::format("creating new segment segId: {}, firstId: {}", newSegId, newSegStart);
+    std::string fname = manager->options_.log_dir + "/" + SegmentFileName(newSegId, newSegStart);
+    FMT_LOG(INFO, "creating new segment segId: {}, firstId: {}", newSegId, newSegStart);
 
     WritableFile *wf;
     ASSIGN_IF_OK(Env::Default()->NewWritableFile(fname, Env::CREATE_NON_EXISTING), wf);
 
-    return new LogWriter(wf, fname);
+    return new LogWriter(wf, fname, manager->options_.log_segment_size);
   }
 
-  LogWriter(WritableFile *wf, const std::string &fname) : file_(wf), empty_(true) {
+  LogWriter(WritableFile *wf, const std::string &fname, size_t logSegmentSize)
+      : file_(wf), empty_(true), logSegmentSize_(logSegmentSize) {
     meta_.fileName = fname;
   }
 
@@ -53,14 +53,16 @@ class LogWriter {
                                             ConstPBEntriesIterator end,
                                             const yaraft::pb::HardState *hs = nullptr);
 
-  StatusWith<SegmentMetaData> Finish() {
-    RETURN_NOT_OK(file_->Sync());
-    RETURN_NOT_OK(file_->Close());
-    return meta_;
+  Status Sync() {
+    return file_->Sync();
   }
 
-  bool Oversize() const {
-    return FLAGS_log_segment_size <= file_->Size();
+  Status Finish(SegmentMetaData *meta) {
+    RETURN_NOT_OK(file_->Sync());
+    RETURN_NOT_OK(file_->Close());
+
+    *meta = meta_;
+    return Status::OK();
   }
 
  private:
@@ -75,6 +77,8 @@ class LogWriter {
  private:
   std::unique_ptr<WritableFile> file_;
   SegmentMetaData meta_;
+
+  const size_t logSegmentSize_;
 
   bool empty_;
 };

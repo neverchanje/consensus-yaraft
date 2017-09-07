@@ -26,6 +26,21 @@ using PBEntryVec = std::vector<yaraft::pb::Entry>;
 using PBEntriesIterator = PBEntryVec::iterator;
 using ConstPBEntriesIterator = PBEntryVec::const_iterator;
 
+class WriteAheadLogOptions {
+ public:
+  // Approximate size of wal packed per segment.
+  // Default: 64MB
+  size_t log_segment_size;
+
+  // Whether to verify the checksum of each entry during recovery.
+  // Default: true
+  bool verify_checksum;
+
+  std::string log_dir;
+
+  WriteAheadLogOptions();
+};
+
 // WriteAheadLog provides an abstraction for writing log entries and raft state
 // into the underlying storage.
 class WriteAheadLog {
@@ -33,7 +48,11 @@ class WriteAheadLog {
   virtual ~WriteAheadLog() = default;
 
   // Save log entries and raft state into underlying storage.
-  virtual Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs) = 0;
+  virtual Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs = nullptr) = 0;
+
+  virtual Status Sync() = 0;
+
+  virtual Status Close() = 0;
 
   struct CompactionHint {};
 
@@ -41,9 +60,12 @@ class WriteAheadLog {
   virtual Status GC(CompactionHint* hint) = 0;
 
   // Default implementation of WAL.
-  static Status Default(const std::string& logsDir, WriteAheadLog** wal,
+  static Status Default(const WriteAheadLogOptions& options, WriteAheadLog** wal,
                         yaraft::MemoryStorage* memstore);
 };
+
+extern WriteAheadLog* TEST_GetWalStore(const std::string& testDir,
+                                       yaraft::MemoryStorage* memstore = nullptr);
 
 }  // namespace wal
 }  // namespace consensus

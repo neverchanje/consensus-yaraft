@@ -23,15 +23,19 @@ namespace consensus {
 namespace wal {
 
 extern Status ReadSegmentIntoMemoryStorage(const Slice &fname, yaraft::MemoryStorage *memstore,
-                                           SegmentMetaData *metaData);
+                                           SegmentMetaData *metaData, bool verifyChecksum);
 
 // ReadableLogSegment reads the data of a segment into memory all at once.
 // It's sufficient because it's only used in wal recovery.
 class ReadableLogSegment {
  public:
   ReadableLogSegment(const Slice &scratch, yaraft::MemoryStorage *memStore,
-                     SegmentMetaData *metaData)
-      : remain_(scratch.size()), buf_(scratch.data()), metaData_(metaData), memStore_(memStore) {}
+                     SegmentMetaData *metaData, bool verifyChecksum)
+      : remain_(scratch.size()),
+        buf_(scratch.data()),
+        metaData_(metaData),
+        memStore_(memStore),
+        verifyChecksum_(verifyChecksum) {}
 
   Status ReadHeader();
 
@@ -49,6 +53,8 @@ class ReadableLogSegment {
   size_t remain_;
   yaraft::MemoryStorage *memStore_;
   SegmentMetaData *metaData_;
+
+  const bool verifyChecksum_;
 };
 
 }  // namespace wal

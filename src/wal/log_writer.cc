@@ -28,7 +28,7 @@ StatusWith<ConstPBEntriesIterator> LogWriter::Append(ConstPBEntriesIterator begi
     empty_ = false;
   }
 
-  ssize_t remains = FLAGS_log_segment_size - file_->Size();
+  ssize_t remains = logSegmentSize_ - file_->Size();
   size_t totalSize = kLogBatchHeaderSize;
 
   if (hs) {

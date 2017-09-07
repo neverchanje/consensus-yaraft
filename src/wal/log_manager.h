@@ -31,13 +31,15 @@ class LogWriter;
 // Not-Thread-Safe
 class LogManager : public WriteAheadLog {
  public:
-  explicit LogManager(const Slice& logsDir);
+  explicit LogManager(const WriteAheadLogOptions& options);
 
-  // Reconstruct the in-memory metadata of wal, as well as reading the data into `memstore`.
-  static StatusWith<LogManager*> Recover(const std::string& logsDir,
+  // Recover from existing wal files.
+  // The options.log_dir will be created when it's not existed.
+  // All of the uncompacted log entries will be read into `memstore`.
+  static StatusWith<LogManager*> Recover(const WriteAheadLogOptions options,
                                          yaraft::MemoryStorage* memstore);
 
-  ~LogManager();
+  ~LogManager() override;
 
   // Required: no holes between logs and msg.entries.
   Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs = nullptr) override;
@@ -45,16 +47,20 @@ class LogManager : public WriteAheadLog {
   // naive implementation: delete all committed segments.
   Status GC(WriteAheadLog::CompactionHint* hint) override;
 
+  Status Sync() override;
+
+  Status Close() override;
+
   // the number of log segments
   size_t SegmentNum() const {
     return files_.size() + static_cast<size_t>(bool(current_));
   }
 
-  Status Close();
-
  private:
   Status doWrite(ConstPBEntriesIterator begin, ConstPBEntriesIterator end,
                  const yaraft::pb::HardState* hs);
+
+  void finishCurrentWriter();
 
  private:
   friend class LogManagerTest;
@@ -70,7 +76,7 @@ class LogManager : public WriteAheadLog {
   uint64_t lastIndex_;
   bool empty_;
 
-  std::string logsDir_;
+  const WriteAheadLogOptions options_;
 };
 
 Status AppendToMemStore(yaraft::pb::Entry& e, yaraft::MemoryStorage* memstore);
