@@ -23,6 +23,7 @@
 #include "base/slice.h"
 #include "base/status.h"
 #include "base/task_queue.h"
+#include "wal/wal.h"
 
 #include "raft_timer.h"
 #include "ready_flusher.h"
@@ -33,8 +34,6 @@
 namespace consensus {
 
 struct ReplicatedLogOptions {
-  std::string wal_dir;
-
   // id -> IP
   std::map<uint64_t, std::string> initial_cluster;
 
@@ -55,6 +54,13 @@ struct ReplicatedLogOptions {
 
   // the global ready flusher
   ReadyFlusher* flusher;
+
+  wal::WriteAheadLog* wal;
+  yaraft::MemoryStorage* memstore;
+
+  ReplicatedLogOptions();
+
+  Status Validate() const;
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single
