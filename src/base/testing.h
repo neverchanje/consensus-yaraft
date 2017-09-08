@@ -15,6 +15,7 @@
 #pragma once
 
 #include "base/env.h"
+#include "base/logging.h"
 
 #include <fmt/format.h>
 #include <gflags/gflags.h>
@@ -29,7 +30,7 @@ class Random;
 
 #define ASSERT_OK(status)                        \
   do {                                           \
-    const auto& _s = status;                     \
+    const auto &_s = status;                     \
     if (_s.IsOK()) {                             \
       SUCCEED();                                 \
     } else {                                     \
@@ -44,30 +45,34 @@ class Random;
     (var) = _sw.GetValue();                  \
   } while (0)
 
-class BaseTest : public ::testing::Test {
+class TestDirectoryHelper {
  public:
-  struct TestDirectoryGuard {
-    explicit TestDirectoryGuard(const BaseTest* base) : base_(base) {
-      acquire();
-    }
+  explicit TestDirectoryHelper(const std::string &testDir) : dir_(testDir) {
+    acquire();
+  }
 
-    ~TestDirectoryGuard() {
-      release();
-    }
+  ~TestDirectoryHelper() {
+    release();
+  }
 
-   private:
-    void acquire() {
-      ASSERT_OK(Env::Default()->CreateDirIfMissing(base_->GetTestDir()));
-    }
+  std::string GetTestDir() const {
+    return dir_;
+  }
 
-    void release() {
-      ASSERT_OK(Env::Default()->DeleteRecursively(base_->GetParentDir()));
-    }
+ private:
+  void acquire() {
+    FATAL_NOT_OK(Env::Default()->CreateDirIfMissing(dir_), "Env::CreateDirIfMissing");
+  }
 
-   private:
-    const BaseTest* base_;
-  };
+  void release() {
+    FATAL_NOT_OK(Env::Default()->DeleteRecursively(dir_), "Env::DeleteRecursively");
+  }
 
+ private:
+  std::string dir_;
+};
+
+class BaseTest : public ::testing::Test {
  public:
   BaseTest() {
     initTestDir();
@@ -75,43 +80,37 @@ class BaseTest : public ::testing::Test {
 
   virtual ~BaseTest() = default;
 
-  std::string GetTestDir() const {
-    return test_dir_;
-  }
-
-  std::string GetParentDir() const {
-    return parent_dir_;
-  }
-
   uint32_t SeedRandom();
 
-  WritableFile* OpenFileForWrite(const std::string& fname,
+  WritableFile *OpenFileForWrite(const std::string &fname,
                                  Env::CreateMode mode = Env::CREATE_IF_NON_EXISTING_TRUNCATE,
                                  bool sync_on_close = false);
 
   // Write 'size' bytes of data to a file, with a simple pattern stored in it.
-  void WriteTestFile(const Slice& path, size_t size, std::string* testData, Random* rng);
+  void WriteTestFile(const Slice &path, size_t size, std::string *testData, Random *rng);
 
-  TestDirectoryGuard* CreateTestDirGuard() const {
-    return new TestDirectoryGuard(this);
+  TestDirectoryHelper *CreateTestDirGuard() const {
+    return new TestDirectoryHelper(test_dir_);
+  }
+
+  std::string GetTestDir() const {
+    return test_dir_;
   }
 
  private:
   void initTestDir() {
-    parent_dir_ = fmt::format("/tmp/consensus-yaraft-test-{}", static_cast<int>(geteuid()));
-    test_dir_ =
-        parent_dir_ + fmt::format("/{}.{}", testInfo()->test_case_name(), testInfo()->name());
+    test_dir_ = fmt::format("/tmp/consensus-yaraft.{}.{}", testInfo()->test_case_name(),
+                            testInfo()->name());
   }
 
-  const ::testing::TestInfo* const testInfo() {
+  const ::testing::TestInfo *const testInfo() {
     return ::testing::UnitTest::GetInstance()->current_test_info();
   }
 
  private:
   std::string test_dir_;
-  std::string parent_dir_;
 };
 
-typedef std::unique_ptr<BaseTest::TestDirectoryGuard> TestDirGuard;
+typedef std::unique_ptr<TestDirectoryHelper> TestDirGuard;
 
 }  // namespace consensus
