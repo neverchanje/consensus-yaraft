@@ -44,3 +44,6 @@ cd $TP_DIR
 
 # install gflags
 install_if_necessary $GFLAG_NAME build_gflag
+
+# install google benchmark
+install_if_necessary $GOOGLE_BENCH_NAME build_google_bench

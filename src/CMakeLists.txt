@@ -1,3 +1,5 @@
+find_library(GOOGLE_BENCH_LIB benchmark)
+
 set(CONSENSUS_LINK_LIBS
         ${FMT_LIBRARY}
         ${SILLY_LIBRARY}
@@ -50,7 +52,6 @@ set(WAL_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/wal)
 
 set(WAL_SOURCES
         ${WAL_SOURCE_DIR}/segment_meta.cc
-        ${WAL_SOURCE_DIR}/options.cc
         ${WAL_SOURCE_DIR}/wal.cc
         ${WAL_SOURCE_DIR}/log_writer.cc
         ${WAL_SOURCE_DIR}/log_manager.cc
@@ -69,6 +70,9 @@ ADD_WAL_TEST(log_writer_test)
 
 ADD_WAL_TEST(log_manager_test)
 
+add_executable(wal_bench wal/wal_bench.cc)
+target_link_libraries(wal_bench ${GOOGLE_BENCH_LIB} ${CONSENSUS_LINK_LIBS})
+
 ##------------------- RPC -------------------##
 
 set(RPC_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/rpc)
@@ -77,7 +81,7 @@ set(RPC_SOURCES
         ${RPC_SOURCE_DIR}/peer.cc
         ${RPC_SOURCE_DIR}/cluster.cc
         ${PROJECT_SOURCE_DIR}/src/pb/raft_server.pb.cc
-)
+        )
 
 add_library(consensus_rpc ${RPC_SOURCES})
 target_link_libraries(consensus_rpc ${CONSENSUS_LINK_LIBS})

@@ -18,6 +18,10 @@ SOFA_PBRPC_VERSION=1.1.3
 SOFA_PBRPC_NAME=sofa-pbrpc-$SOFA_PBRPC_VERSION
 SOFA_PBRPC_SOURCE=$PROJECT_DIR/sofa-pbrpc
 
+GOOGLE_BENCH_VERSION=1.2.0
+GOOGLE_BENCH_NAME=benchmark-$GOOGLE_BENCH_VERSION
+GOOGLE_BENCH_SOURCE=$TP_DIR/$GOOGLE_BENCH_NAME
+
 QINIU_CDN_URL_PREFIX=http://onnzg1pyx.bkt.clouddn.com
 
 make_stamp() {
@@ -114,5 +118,21 @@ build_sofa_pbrpc() {
   echo "SNAPPY_DIR=$TP_BUILD_DIR" >> depends.mk
   make clean
   make -j4 && make install
+  popd
+}
+
+build_google_bench() {
+  mkdir -p $GOOGLE_BENCH_SOURCE/build
+  pushd $GOOGLE_BENCH_SOURCE/build
+  rm -rf CMakeCache.txt CMakeFiles/
+  cmake \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=On \
+    -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR \
+    -DBUILD_SHARED_LIBS=On \
+    -DBUILD_STATIC_LIBS=On \
+    -DREGISTER_INSTALL_PREFIX=Off \
+    $GOOGLE_BENCH_SOURCE
+  make -j8 install
   popd
 }
