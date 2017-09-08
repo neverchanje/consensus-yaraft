@@ -35,47 +35,54 @@ class ReplicatedLogImpl {
 
  public:
   static StatusWith<ReplicatedLog *> New(const ReplicatedLogOptions &options) {
+    // The construction order is:
+    // - RawNode
+    // - RaftTaskExecutor (depends on RawNode)
+    // - RaftTimer, (depends on RaftTaskExecutor)
+    // - ReadyFlusher (depends on WalCommitObserver, WAL, RPC)
+    // - ReplicatedLog
+    RETURN_NOT_OK(options.Validate());
+
     auto impl = new ReplicatedLogImpl;
 
-    impl->timer_ = options.timer;
-    impl->flusher_ = options.flusher;
-
-    wal::WriteAheadLog *wal;
-    auto memstore = new yaraft::MemoryStorage;
-    FATAL_NOT_OK(Env::Default()->CreateDirIfMissing(options.wal_dir),
-                 fmt::format("CreateDirIfMissing({})", options.wal_dir));
-    FATAL_NOT_OK(wal::WriteAheadLog::Default(options.wal_dir, &wal, memstore),
-                 "WriteAheadLog::Default");
-    impl->wal_.reset(wal);
-    impl->memstore_ = memstore;
-
-    impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
-    impl->walCommitObserver_.reset(new WalCommitObserver);
-
+    // -- RawNode --
     auto conf = new yaraft::Config;
     conf->electionTick = options.election_timeout;
     conf->heartbeatTick = options.heartbeat_interval;
     conf->id = options.id;
-    conf->storage = memstore;
+    conf->storage = options.memstore;
     for (const auto &e : options.initial_cluster) {
       conf->peers.push_back(e.first);
     }
-
     impl->node_.reset(new yaraft::RawNode(conf));
+
+    // -- RaftTaskExecutor --
     impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
+
+    // -- RaftTimer --
+    impl->timer_ = options.timer;
+    impl->timer_->Register(impl->executor_.get());
+
+    // -- ReadyFlusher --
+    impl->wal_.reset(options.wal);
+    impl->walCommitObserver_.reset(new WalCommitObserver);
+    impl->memstore_ = options.memstore;
+    impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
+    impl->flusher_ = options.flusher;
+    impl->flusher_->Register(impl);
+
+    // -- RaftService --
     impl->raftService_.reset(new RaftServiceImpl(impl->executor_.get()));
 
+    // -- Other stuff --
     impl->id_ = options.id;
-
-    impl->timer_->Register(impl->executor_.get());
-    impl->flusher_->Register(impl);
 
     auto rl = new ReplicatedLog;
     rl->impl_.reset(impl);
     return rl;
   }
 
-  ~ReplicatedLogImpl() {}
+  ~ReplicatedLogImpl() = default;
 
   SimpleChannel<Status> AsyncWrite(const Slice &log) {
     SimpleChannel<Status> channel;
