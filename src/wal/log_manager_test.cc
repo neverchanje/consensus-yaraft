@@ -50,24 +50,21 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
 
   for (auto t : tests) {
     TestDirGuard g(CreateTestDirGuard());
-    LogManager manager(GetTestDir());
-
-    // Always writes to only one segment
-    FLAGS_log_segment_size = 1024 * 1024 * 64;  // sufficient enough to hold all logs in one segment
+    std::unique_ptr<WriteAheadLog> wal(TEST_GetWalStore(GetTestDir()));
 
     EntryVec expected;
     for (uint64_t i = 1; i <= t.totalEntries; i++) {
       expected.push_back(PBEntry().Index(i).Term(i).v);
     }
-    ASSERT_OK(manager.Write(expected));
+    ASSERT_OK(wal->Write(expected));
 
     // flush data into file
-    ASSERT_OK(manager.Close());
+    ASSERT_OK(wal->Close());
 
     yaraft::MemoryStorage memStore;
     SegmentMetaData meta;
-    ASSERT_OK(
-        ReadSegmentIntoMemoryStorage(GetTestDir() + "/" + SegmentFileName(1, 1), &memStore, &meta));
+    ASSERT_OK(ReadSegmentIntoMemoryStorage(GetTestDir() + "/" + SegmentFileName(1, 1), &memStore,
+                                           &meta, true));
 
     EntryVec actual(memStore.TEST_Entries().begin() + 1, memStore.TEST_Entries().end());
     ASSERT_EQ(actual.size(), t.totalEntries);
@@ -128,12 +125,7 @@ TEST_F(LogManagerTest, AppendToMemStore) {
 TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
   TestDirGuard g(CreateTestDirGuard());
   yaraft::MemoryStorage memstore;
-  std::unique_ptr<LogManager> m;
-  {
-    auto sw = LogManager::Recover(GetTestDir(), &memstore);
-    ASSERT_OK(sw);
-    m.reset(sw.GetValue());
-  }
+  std::unique_ptr<WriteAheadLog> d(TEST_GetWalStore(GetTestDir(), &memstore));
 
   ASSERT_EQ(memstore.TEST_Entries().size(), 1);
 }
@@ -147,25 +139,29 @@ TEST_F(LogManagerTest, Recover) {
 
   for (auto t : tests) {
     TestDirGuard g(CreateTestDirGuard());
+    size_t segNum;
 
-    FLAGS_log_segment_size = 1024;
-
+    // prepare data
     EntryVec expected;
     for (uint64_t i = 1; i <= t.logsNum; i++) {
       expected.push_back(PBEntry().Index(i).Term(i).v);
     }
-
-    size_t segNum;
     {
-      LogManager m(GetTestDir());
-      ASSERT_OK(m.Write(expected));
-      segNum = m.SegmentNum();
-      ASSERT_OK(m.Close());
+      std::unique_ptr<WriteAheadLog> w(TEST_GetWalStore(GetTestDir()));
+      auto m = dynamic_cast<LogManager*>(w.get());
+
+      ASSERT_OK(m->Write(expected));
+      ASSERT_OK(m->Close());
+
+      segNum = m->SegmentNum();
     }
 
+    WriteAheadLogOptions options;
+    options.log_dir = GetTestDir();
+    options.log_segment_size = 1024;
     yaraft::MemoryStorage memstore;
     LogManager* m;
-    ASSIGN_IF_ASSERT_OK(LogManager::Recover(GetTestDir(), &memstore), m);
+    ASSIGN_IF_ASSERT_OK(LogManager::Recover(options, &memstore), m);
     std::unique_ptr<LogManager> d(m);
 
     ASSERT_EQ(segNum, m->SegmentNum());
