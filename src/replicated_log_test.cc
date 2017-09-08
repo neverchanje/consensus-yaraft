@@ -21,16 +21,15 @@ using namespace consensus;
 class ReplicatedLogTest : public BaseTest {
  public:
   void SetUp() override {
-    guard = CreateTestDirGuard();
-
     options.initial_cluster[1] = "127.0.0.1:12321";
     options.id = 1;
-    options.wal_dir = GetTestDir();
     options.heartbeat_interval = 100;
     options.election_timeout = 1000;
     options.taskQueue = new TaskQueue;
     options.timer = new RaftTimer;
     options.flusher = new ReadyFlusher;
+    options.memstore = new yaraft::MemoryStorage;
+    options.wal = wal::TEST_GetWalStore(GetTestDir(), options.memstore);
   }
 
   void TearDown() override {
@@ -38,18 +37,16 @@ class ReplicatedLogTest : public BaseTest {
     delete options.flusher;
 
     delete replicatedLog;
-    delete guard;
-
     delete options.taskQueue;
   }
 
  protected:
   ReplicatedLog* replicatedLog;
   ReplicatedLogOptions options;
-  TestDirectoryGuard* guard;
 };
 
 TEST_F(ReplicatedLogTest, WriteToNonLeader) {
+  TestDirGuard g(CreateTestDirGuard());
   ASSIGN_IF_ASSERT_OK(ReplicatedLog::New(options), replicatedLog);
 
   Status s = replicatedLog->Write("abc");
@@ -57,6 +54,7 @@ TEST_F(ReplicatedLogTest, WriteToNonLeader) {
 }
 
 TEST_F(ReplicatedLogTest, WriteLeader) {
+  TestDirGuard g(CreateTestDirGuard());
   ASSIGN_IF_ASSERT_OK(ReplicatedLog::New(options), replicatedLog);
 
   while (replicatedLog->GetInfo().currentTerm != 1) {
