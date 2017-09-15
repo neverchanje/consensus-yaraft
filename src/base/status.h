@@ -16,8 +16,6 @@
 
 #include "base/slice.h"
 
-#include <boost/optional.hpp>
-#include <glog/logging.h>
 #include <silly/status.h>
 
 namespace consensus {
@@ -41,65 +39,13 @@ class Error {
     WalWriteToNonLeader,
   };
 
- private:
-  static std::string toString(unsigned int code);
-
- private:
-  friend class silly::Status<Error, Error::ErrorCodes>;
+  static std::string toString(unsigned int errorCode);
 };
 
-typedef silly::Status<Error, Error::ErrorCodes> Status;
+typedef silly::Status<Error> Status;
 
 template <typename T>
-class StatusWith {
- public:
-  // for ok case
-  StatusWith(T value) : status_(Status::OK()), value_(value) {}
-
-  // for error case
-  StatusWith(Status status) : status_(std::move(status)) {}
-
-  StatusWith(Error::ErrorCodes code, const Slice &reason)
-      : StatusWith(Status::Make(code, reason)) {}
-
-  StatusWith(Error::ErrorCodes code) : StatusWith(Status::Make(code, nullptr)) {}
-
-  const T &GetValue() const {
-    LOG_ASSERT(status_.IsOK());
-    return *value_;
-  }
-
-  T &GetValue() {
-    LOG_ASSERT(status_.IsOK());
-    return *value_;
-  }
-
-  const Status &GetStatus() const {
-    return status_;
-  }
-
-  bool IsOK() const {
-    return status_.IsOK();
-  }
-
-  std::string ToString() const {
-    return status_.ToString();
-  }
-
- private:
-  Status status_;
-  boost::optional<T> value_;
-};
-
-#define ASSIGN_IF_OK(sw, var)                                                                   \
-  do {                                                                                          \
-    const auto &_sw = (sw);                                                                     \
-    auto &_var = (var);                                                                         \
-    RETURN_NOT_OK(_sw.GetStatus());                                                             \
-    static_assert(std::is_convertible<decltype(_var), decltype(_sw.GetValue())>::value == true, \
-                  #var " cannot be converted to " #sw ".GetValue()");                           \
-    _var = _sw.GetValue();                                                                      \
-  } while (0)
+using StatusWith = silly::StatusWith<Status, T>;
 
 #define FMT_Status(code, msg, args...) Status::Make(Error::code, fmt::format(msg, ##args))
 

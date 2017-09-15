@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "base/slice.h"
 #include "base/status.h"
 

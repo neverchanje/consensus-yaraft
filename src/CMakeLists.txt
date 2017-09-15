@@ -2,7 +2,6 @@ find_library(GOOGLE_BENCH_LIB benchmark)
 
 set(CONSENSUS_LINK_LIBS
         ${FMT_LIBRARY}
-        ${SILLY_LIBRARY}
         ${GLOG_STATIC_LIB}
         ${GFLAGS_STATIC_LIB}
         ${Boost_LIBRARIES}
