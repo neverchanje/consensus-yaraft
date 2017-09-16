@@ -21,11 +21,19 @@ namespace memkv {
 
 class MemKV {
  public:
-  Status CreateNode(const Slice& path);
+  Status Write(const Slice &path, const Slice &value);
 
-  Status DeleteNode(const Slice& path);
+  Status Delete(const Slice &path);
 
-  StatusWith<std::string> GetData(const Slice& path, std::string* data);
+  Status Get(const Slice &path, std::string *data);
+
+  MemKV();
+
+  ~MemKV();
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
 };
 
 }  // namespace memkv

@@ -13,3 +13,25 @@
 // limitations under the License.
 
 #include "status.h"
+
+#include <glog/logging.h>
+
+namespace memkv {
+
+#define ERROR_TO_STRING(err) \
+  case (err):                \
+    return #err
+
+std::string Error::toString(unsigned int c) {
+  auto code = static_cast<ErrorCodes>(c);
+  switch (code) {
+    ERROR_TO_STRING(OK);
+    ERROR_TO_STRING(InvalidArgument);
+    ERROR_TO_STRING(NodeNotExist);
+    default:
+      LOG(FATAL) << "invalid error code: " << c;
+      assert(false);
+  }
+}
+
+}  // namespace memkv

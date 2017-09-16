@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#pragma once
+
 #include <silly/status.h>
 
 namespace memkv {
@@ -20,6 +22,9 @@ class Error {
  public:
   enum ErrorCodes {
     OK,
+
+    InvalidArgument,
+    NodeNotExist,
   };
 
   static std::string toString(unsigned int code);
