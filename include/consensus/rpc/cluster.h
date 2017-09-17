@@ -14,35 +14,23 @@
 
 #pragma once
 
-#include <functional>
-#include <memory>
+#include <vector>
 
-#include "base/status.h"
+#include "consensus/base/status.h"
 
-#include <silly/disallow_copying.h>
+#include <yaraft/pb/raftpb.pb.h>
 
 namespace consensus {
+namespace rpc {
 
-class BackgroundWorker {
-  __DISALLOW_COPYING__(BackgroundWorker);
-
+class Cluster {
  public:
-  BackgroundWorker();
+  virtual ~Cluster() = default;
 
-  ~BackgroundWorker();
+  virtual Status Pass(std::vector<yaraft::pb::Message>& mails) = 0;
 
-  // Start looping on the given recurring task infinitely, until users call Stop().
-  Status StartLoop(std::function<void()> recurringTask);
-
-  // Stop looping. The function returns error status when the background thread
-  // is already stopped.
-  Status Stop();
-
-  bool Stopped() const;
-
- private:
-  class Impl;
-  std::unique_ptr<Impl> impl_;
+  static Cluster* Default(const std::map<uint64_t, std::string>& initialCluster);
 };
 
+}  // namespace rpc
 }  // namespace consensus

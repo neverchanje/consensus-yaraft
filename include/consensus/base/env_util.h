@@ -14,23 +14,23 @@
 
 #pragma once
 
-#include <vector>
+#include <cstddef>
+#include <cstdint>
 
-#include "base/status.h"
-
-#include <yaraft/pb/raftpb.pb.h>
+#include "consensus/base/slice.h"
+#include "consensus/base/status.h"
 
 namespace consensus {
-namespace rpc {
 
-class Cluster {
- public:
-  virtual ~Cluster() = default;
+class RandomAccessFile;
 
-  virtual Status Pass(std::vector<yaraft::pb::Message>& mails) = 0;
+namespace env_util {
 
-  static Cluster* Default(const std::map<uint64_t, std::string>& initialCluster);
-};
+// Read the full content of `file` into `scratch`.
+Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *result, char *scratch);
 
-}  // namespace rpc
+// Read data into an unallocated buffer.
+Status ReadFullyToBuffer(const Slice &fname, Slice *result, char **scratch);
+
+}  // namespace env_util
 }  // namespace consensus

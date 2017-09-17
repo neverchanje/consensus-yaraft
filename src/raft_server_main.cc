@@ -56,12 +56,12 @@ void InitReplicatedLog() {
     options.initial_cluster[i] = fmt::format("127.0.0.1:{}", 12321 + i - 1);
   }
   options.id = FLAGS_id;
-  options.wal_dir = FLAGS_wal_dir;
   options.heartbeat_interval = 100;
   options.election_timeout = 1000;
   options.taskQueue = new TaskQueue;
   options.timer = new RaftTimer;
   options.flusher = new ReadyFlusher;
+  options.wal = wal::TEST_GetWalStore(FLAGS_wal_dir, options.memstore);
 
   {
     auto sw = ReplicatedLog::New(options);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  if (!rpcServer.RegisterService(replicatedLog->RaftServiceInstance(), false)) {
+  if (!rpcServer.RegisterService(new RaftServiceImpl(replicatedLog->RaftTaskExecutorInstance()))) {
     FMT_LOG(ERROR, "export service failed");
     return EXIT_FAILURE;
   }

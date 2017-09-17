@@ -14,23 +14,35 @@
 
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
+#include <functional>
+#include <memory>
 
-#include "base/slice.h"
-#include "base/status.h"
+#include "consensus/base/status.h"
+
+#include <silly/disallow_copying.h>
 
 namespace consensus {
 
-class RandomAccessFile;
+class BackgroundWorker {
+  __DISALLOW_COPYING__(BackgroundWorker);
 
-namespace env_util {
+ public:
+  BackgroundWorker();
 
-// Read the full content of `file` into `scratch`.
-Status ReadFully(RandomAccessFile *file, uint64_t offset, size_t n, Slice *result, char *scratch);
+  ~BackgroundWorker();
 
-// Read data into an unallocated buffer.
-Status ReadFullyToBuffer(const Slice &fname, Slice *result, char **scratch);
+  // Start looping on the given recurring task infinitely, until users call Stop().
+  Status StartLoop(std::function<void()> recurringTask);
 
-}  // namespace env_util
+  // Stop looping. The function returns error status when the background thread
+  // is already stopped.
+  Status Stop();
+
+  bool Stopped() const;
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
+
 }  // namespace consensus

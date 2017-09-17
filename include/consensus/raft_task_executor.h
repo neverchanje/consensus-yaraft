@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "base/task_queue.h"
+#include "consensus/base/task_queue.h"
 
 #include <yaraft/raw_node.h>
 

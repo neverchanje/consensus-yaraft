@@ -112,19 +112,14 @@ ADD_CONSENSUS_TEST(raft_timer_test)
 ADD_CONSENSUS_TEST(raft_service_test)
 ADD_CONSENSUS_TEST(replicated_log_test)
 
-set(CONSENSUS_YARAFT_INSTALL_HEADERS
-        replicated_log.h
-        raft_service.h
-        wal/wal.h
-        rpc/cluster.h
-        pb/raft_server.pb.h
-        base/logging.h)
-
 install(TARGETS consensus_yaraft DESTINATION lib)
-install(FILES ${CONSENSUS_YARAFT_INSTALL_HEADERS} DESTINATION include/yaraft)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/consensus DESTINATION include)
 
 ##------------------- raft_server -------------------##
 
-add_executable(raft_server raft_server_main.cc)
+file(GLOB CONSENSUS_YARAFT_HEADERS ${PROJECT_SOURCE_DIR}/include */*.h)
+add_executable(raft_server
+        ${CONSENSUS_YARAFT_HEADERS}
+        raft_server_main.cc)
 target_link_libraries(raft_server ${CONSENSUS_LINK_LIBS})
 install(TARGETS raft_server DESTINATION bin)

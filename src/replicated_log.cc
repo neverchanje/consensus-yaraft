@@ -32,8 +32,8 @@ StatusWith<ReplicatedLog *> ReplicatedLog::New(const ReplicatedLogOptions &optio
   return ReplicatedLogImpl::New(options);
 }
 
-pb::RaftService *ReplicatedLog::RaftServiceInstance() {
-  return impl_->raftService_.get();
+RaftTaskExecutor *ReplicatedLog::RaftTaskExecutorInstance() const {
+  return impl_->executor_.get();
 }
 
 ReplicatedLog::~ReplicatedLog() {}

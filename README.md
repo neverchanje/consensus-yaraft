@@ -36,7 +36,7 @@ Once the building becomes success, the library would be installed in the directo
 
 ## Test on it
 
-There is a simple http server that exposes the `ReplciatedLog` methods through http APIs, which can be found in `output/bin/raft_server`.
+There is a simple http server that exposes the `ReplicatedLog` methods through http APIs, which can be found in `output/bin/raft_server`.
 To set up a local cluster of 3 nodes, you need only to run the command:
 
 ```sh

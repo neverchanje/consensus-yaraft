@@ -13,8 +13,8 @@
 #include <string.h>
 #include <string>
 
-#include "base/endianness.h"
-#include "base/slice.h"
+#include "consensus/base/endianness.h"
+#include "consensus/base/slice.h"
 
 namespace consensus {
 

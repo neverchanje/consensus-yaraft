@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include "base/env.h"
-#include "base/logging.h"
+#include "consensus/base/env.h"
+#include "consensus/base/logging.h"
 
 #include <fmt/format.h>
 #include <gflags/gflags.h>

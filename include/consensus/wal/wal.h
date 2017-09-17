@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "base/status.h"
+#include "consensus/base/status.h"
 
 #include <yaraft/memory_storage.h>
 #include <yaraft/pb/raftpb.pb.h>

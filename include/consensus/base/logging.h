@@ -14,12 +14,8 @@
 
 #pragma once
 
-#include "base/status.h"
-
 #include <fmt/format.h>
 #include <glog/logging.h>
-
-namespace consensus {
 
 /// @brief Emit a warning if @c to_call returns a bad status.
 #define WARN_NOT_OK(to_call, warning_prefix)                     \
@@ -42,5 +38,3 @@ namespace consensus {
 #define FMT_LOG(level, formatStr, args...) LOG(level) << fmt::format(formatStr, ##args)
 
 #define FMT_SLOG(level, formatStr, args...) LOG(level) << fmt::sprintf(formatStr, ##args)
-
-}  // namespace consensus

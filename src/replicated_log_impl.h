@@ -71,9 +71,6 @@ class ReplicatedLogImpl {
     impl->flusher_ = options.flusher;
     impl->flusher_->Register(impl);
 
-    // -- RaftService --
-    impl->raftService_.reset(new RaftServiceImpl(impl->executor_.get()));
-
     // -- Other stuff --
     impl->id_ = options.id;
 
@@ -123,8 +120,6 @@ class ReplicatedLogImpl {
   std::unique_ptr<WalCommitObserver> walCommitObserver_;
 
   std::unique_ptr<rpc::Cluster> cluster_;
-
-  std::unique_ptr<pb::RaftService> raftService_;
 
   RaftTimer *timer_;
 

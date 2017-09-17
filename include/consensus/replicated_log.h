@@ -17,16 +17,13 @@
 #include <map>
 #include <memory>
 
-#include "pb/raft_server.pb.h"
-
-#include "base/simple_channel.h"
-#include "base/slice.h"
-#include "base/status.h"
-#include "base/task_queue.h"
-#include "wal/wal.h"
-
-#include "raft_timer.h"
-#include "ready_flusher.h"
+#include "consensus/base/simple_channel.h"
+#include "consensus/base/slice.h"
+#include "consensus/base/status.h"
+#include "consensus/base/task_queue.h"
+#include "consensus/wal/wal.h"
+#include "consensus/raft_timer.h"
+#include "consensus/ready_flusher.h"
 
 #include <silly/disallow_copying.h>
 #include <yaraft/raft_info.h>
@@ -82,8 +79,7 @@ class ReplicatedLog {
   // with a SimpleChannel that's used to wait for the commit of this write.
   SimpleChannel<Status> AsyncWrite(const Slice& log);
 
-  // the life ownership of RaftService is still kept in ReplicatedLog.
-  pb::RaftService* RaftServiceInstance();
+  RaftTaskExecutor* RaftTaskExecutorInstance() const;
 
   yaraft::RaftInfo GetInfo();
 

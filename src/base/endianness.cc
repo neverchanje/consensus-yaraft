@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "endianness.h"
+#include "base/endianness.h"
 
 #include <gflags/gflags.h>
 #include <google/protobuf/io/coded_stream.h>

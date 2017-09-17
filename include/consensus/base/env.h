@@ -25,8 +25,8 @@
 
 #include <vector>
 
-#include "base/slice.h"
-#include "base/status.h"
+#include "consensus/base/slice.h"
+#include "consensus/base/status.h"
 
 namespace consensus {
 

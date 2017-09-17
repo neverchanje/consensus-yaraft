@@ -15,7 +15,7 @@
 #include <atomic>
 #include <thread>
 
-#include "background_worker.h"
+#include "base/background_worker.h"
 
 namespace consensus {
 

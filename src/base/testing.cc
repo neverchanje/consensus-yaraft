@@ -16,9 +16,7 @@
 
 #include "base/env.h"
 #include "base/testing.h"
-#include "random.h"
-
-#include <glog/logging.h>
+#include "base/random.h"
 
 namespace consensus {
 

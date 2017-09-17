@@ -43,5 +43,7 @@ include_directories(${THIRDPARTY_DIR}/include)
 include_directories(${YARAFT_THIRDPARTY_DIR}/include)
 include_directories(${SOFA_PBRPC_THIRDPARTY_DIR}/include)
 include_directories(src)
+include_directories(include)
+include_directories(include/consensus)
 
 add_subdirectory(src)

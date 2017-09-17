@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "base/slice.h"
+#include "consensus/base/slice.h"
 
 #include <silly/status.h>
 
