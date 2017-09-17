@@ -64,7 +64,7 @@ class ReplicatedLogImpl {
     impl->timer_->Register(impl->executor_.get());
 
     // -- ReadyFlusher --
-    impl->wal_.reset(options.wal);
+    impl->wal_ = options.wal;
     impl->walCommitObserver_.reset(new WalCommitObserver);
     impl->memstore_ = options.memstore;
     impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
@@ -113,8 +113,6 @@ class ReplicatedLogImpl {
 
   std::unique_ptr<yaraft::RawNode> node_;
 
-  std::unique_ptr<wal::WriteAheadLog> wal_;
-
   std::unique_ptr<RaftTaskExecutor> executor_;
 
   std::unique_ptr<WalCommitObserver> walCommitObserver_;
@@ -126,6 +124,8 @@ class ReplicatedLogImpl {
   ReadyFlusher *flusher_;
 
   yaraft::MemoryStorage *memstore_;
+
+  wal::WriteAheadLog *wal_;
 
   uint64_t id_;
 };

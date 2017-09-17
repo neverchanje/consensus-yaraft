@@ -38,6 +38,8 @@ class ReplicatedLogTest : public BaseTest {
 
     delete replicatedLog;
     delete options.taskQueue;
+
+    delete options.wal;
   }
 
  protected:
