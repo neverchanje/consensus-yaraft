@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "memkv.h"
+#include "memkv_store.h"
 #include "testing.h"
 
 using namespace memkv;
@@ -22,7 +22,7 @@ class TestMemKV : public testing::Test {
 };
 
 TEST_F(TestMemKV, WriteAndGet) {
-  MemKV kv;
+  MemKvStore kv;
   std::string expected = "1";
 
   ASSERT_OK(kv.Write("/tmp/xiaomi/ads/pegasus-1/table-num-counter", expected));
@@ -35,7 +35,7 @@ TEST_F(TestMemKV, WriteAndGet) {
 }
 
 TEST_F(TestMemKV, Delete) {
-  MemKV kv;
+  MemKvStore kv;
   std::string key = "/tmp", expected = "1";
   ASSERT_OK(kv.Write(key, expected));
 
@@ -48,7 +48,7 @@ TEST_F(TestMemKV, Delete) {
 }
 
 TEST_F(TestMemKV, DeleteRecursively) {
-  MemKV kv;
+  MemKvStore kv;
   std::string expected = "1";
   ASSERT_OK(kv.Write("/tmp/xiaomi/ads/pegasus-1/table-num-counter", expected));
 

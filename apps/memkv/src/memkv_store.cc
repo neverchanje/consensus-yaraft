@@ -16,7 +16,7 @@
 #include <unordered_map>
 
 #include "logging.h"
-#include "memkv.h"
+#include "memkv_store.h"
 
 #include <boost/algorithm/string/split.hpp>
 
@@ -35,7 +35,7 @@ struct Node {
   std::string data;
 };
 
-class MemKV::Impl {
+class MemKvStore::Impl {
  public:
   Status Write(const Slice &path, const Slice &value) {
     std::vector<Slice> pathVec;
@@ -145,20 +145,20 @@ class MemKV::Impl {
   mutable std::mutex mu_;
 };
 
-Status MemKV::Write(const Slice &path, const Slice &value) {
+Status MemKvStore::Write(const Slice &path, const Slice &value) {
   return impl_->Write(path, value);
 }
 
-Status MemKV::Delete(const Slice &path) {
+Status MemKvStore::Delete(const Slice &path) {
   return impl_->Delete(path);
 }
 
-Status MemKV::Get(const Slice &path, std::string *data) {
+Status MemKvStore::Get(const Slice &path, std::string *data) {
   return impl_->Get(path, data);
 }
 
-MemKV::MemKV() : impl_(new Impl) {}
+MemKvStore::MemKvStore() : impl_(new Impl) {}
 
-MemKV::~MemKV() = default;
+MemKvStore::~MemKvStore() = default;
 
 }  // namespace memkv

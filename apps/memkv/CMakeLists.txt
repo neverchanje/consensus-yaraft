@@ -9,11 +9,17 @@ get_filename_component(CONSENSUS_YARAFT_DIR ${CONSENSUS_YARAFT_DIR} PATH)
 
 set(YARAFT_THIRDPARTY_DIR ${CONSENSUS_YARAFT_DIR}/yaraft/build/third_parties)
 set(CONSENSUS_YARAFT_THIRDPARTY_DIR ${CONSENSUS_YARAFT_DIR}/build/third_parties)
+set(CONSENSUS_YARAFT_OUTPUT ${CONSENSUS_YARAFT_DIR}/output)
 
-set(CMAKE_PREFIX_PATH ${CONSENSUS_YARAFT_THIRDPARTY_DIR} ${YARAFT_THIRDPARTY_DIR} ${CMAKE_PREFIX_PATH})
+set(CMAKE_PREFIX_PATH
+        ${CONSENSUS_YARAFT_OUTPUT}
+        ${CONSENSUS_YARAFT_THIRDPARTY_DIR}
+        ${YARAFT_THIRDPARTY_DIR}
+        ${CMAKE_PREFIX_PATH})
 set(CMAKE_MODULE_PATH "${CONSENSUS_YARAFT_DIR}/cmake_modules")
 message(${CMAKE_MODULE_PATH})
 
+find_package(Protobuf REQUIRED)
 find_package(GLog REQUIRED)
 find_package(Gflags REQUIRED)
 
@@ -27,5 +33,6 @@ message("-- Found ${GTEST_MAIN_LIB}")
 
 include_directories(${YARAFT_THIRDPARTY_DIR}/include)
 include_directories(${CONSENSUS_YARAFT_THIRDPARTY_DIR}/include)
+include_directories(${CONSENSUS_YARAFT_DIR}/output/include)
 
 add_subdirectory(src)

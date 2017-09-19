@@ -14,26 +14,41 @@
 
 #pragma once
 
-#include <silly/status.h>
+#include "slice.h"
+#include "status.h"
 
 namespace memkv {
 
-class Error {
- public:
-  enum ErrorCodes {
-    OK,
-
-    InvalidArgument,
-    NodeNotExist,
-    ConsensusError,
-  };
-
-  static std::string toString(unsigned int code);
+// Abstract handle to particular state of a DB.
+// A Snapshot is an immutable object and can therefore be safely
+// accessed from multiple threads without any external synchronization.
+class Snapshot {
+ protected:
+  virtual ~Snapshot();
 };
 
-typedef silly::Status<Error> Status;
+class DBOptions {
+ public:
+  uint64_t member_id;
+};
 
-template <typename T>
-using StatusWith = silly::StatusWith<Status, T>;
+class DB {
+ public:
+  static StatusWith<DB *> Bootstrap(const DBOptions& options);
+
+  Status Write(const Slice &path, const Slice &value);
+
+  Status Delete(const Slice &path);
+
+  Status Get(const Slice &path, std::string *data);
+
+  DB();
+
+  ~DB();
+
+ private:
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+};
 
 }  // namespace memkv

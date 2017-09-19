@@ -19,7 +19,10 @@
 
 namespace memkv {
 
-class MemKV {
+// MemKvStore is the internal in-memory storage of memkv. It's thread-safe.
+// A request will first go through DB, after WAL committed, it finally applies
+// in MemKvStore.
+class MemKvStore {
  public:
   Status Write(const Slice &path, const Slice &value);
 
@@ -27,9 +30,9 @@ class MemKV {
 
   Status Get(const Slice &path, std::string *data);
 
-  MemKV();
+  MemKvStore();
 
-  ~MemKV();
+  ~MemKvStore();
 
  private:
   class Impl;

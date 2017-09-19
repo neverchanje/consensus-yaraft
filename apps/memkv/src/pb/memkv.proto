@@ -1,0 +1,50 @@
+syntax = "proto2";
+
+package memkv.pb;
+
+option cc_generic_services = true;
+option java_generic_services = true;
+option py_generic_services = true;
+
+enum ErrCode {
+    OK = 0;
+    InvalidArgument = 1;
+    NodeNotExist = 2;
+    ConsensusError = 3;
+}
+
+message ReadRequest {
+    optional string path = 1;
+}
+
+message ReadResult {
+    optional ErrCode errorCode = 1;
+    optional string errorMessage = 2;
+
+    optional bytes value = 3;
+}
+
+message WriteRequest {
+    optional string path = 1;
+    optional string value = 2;
+}
+
+message WriteResult {
+    optional ErrCode errorCode = 1;
+    optional string errorMessage = 2;
+}
+
+message DeleteRequest {
+    optional string path = 1;
+}
+
+message DeleteResult {
+    optional ErrCode errorCode = 1;
+    optional string errorMessage = 2;
+}
+
+service MemKVService {
+    rpc Write (WriteRequest) returns (WriteResult);
+    rpc Read (ReadRequest) returns (ReadResult);
+    rpc Delete (DeleteRequest) returns (DeleteResult);
+}
