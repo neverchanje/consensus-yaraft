@@ -35,10 +35,6 @@ class RaftTaskExecutorTest : public ::testing::Test {
     taskQueue_ = new TaskQueue;
   }
 
-  virtual void TearDown() override {
-    delete taskQueue_;
-  }
-
  protected:
   yaraft::Config *conf_;
   yaraft::MemoryStorage *memstore_;

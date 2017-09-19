@@ -34,13 +34,14 @@ class ReplicatedLogImpl {
   friend class ReplicatedLog;
 
  public:
-  static StatusWith<ReplicatedLog *> New(const ReplicatedLogOptions &options) {
+  static StatusWith<ReplicatedLog *> New(const ReplicatedLogOptions &oldOptions) {
     // The construction order is:
     // - RawNode
     // - RaftTaskExecutor (depends on RawNode)
     // - RaftTimer, (depends on RaftTaskExecutor)
     // - ReadyFlusher (depends on WalCommitObserver, WAL, RPC)
     // - ReplicatedLog
+    ReplicatedLogOptions options = oldOptions;
     RETURN_NOT_OK(options.Validate());
 
     auto impl = new ReplicatedLogImpl;
@@ -60,7 +61,7 @@ class ReplicatedLogImpl {
     impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
 
     // -- RaftTimer --
-    impl->timer_ = options.timer;
+    impl->timer_.reset(options.timer);
     impl->timer_->Register(impl->executor_.get());
 
     // -- ReadyFlusher --
@@ -68,7 +69,7 @@ class ReplicatedLogImpl {
     impl->walCommitObserver_.reset(new WalCommitObserver);
     impl->memstore_ = options.memstore;
     impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
-    impl->flusher_ = options.flusher;
+    impl->flusher_.reset(options.flusher);
     impl->flusher_->Register(impl);
 
     // -- Other stuff --
@@ -119,9 +120,9 @@ class ReplicatedLogImpl {
 
   std::unique_ptr<rpc::Cluster> cluster_;
 
-  RaftTimer *timer_;
+  std::shared_ptr<RaftTimer> timer_;
 
-  ReadyFlusher *flusher_;
+  std::shared_ptr<ReadyFlusher> flusher_;
 
   yaraft::MemoryStorage *memstore_;
 

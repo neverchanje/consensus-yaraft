@@ -21,9 +21,9 @@
 #include "consensus/base/slice.h"
 #include "consensus/base/status.h"
 #include "consensus/base/task_queue.h"
-#include "consensus/wal/wal.h"
 #include "consensus/raft_timer.h"
 #include "consensus/ready_flusher.h"
+#include "consensus/wal/wal.h"
 
 #include <silly/disallow_copying.h>
 #include <yaraft/raft_info.h>
@@ -57,7 +57,7 @@ struct ReplicatedLogOptions {
 
   ReplicatedLogOptions();
 
-  Status Validate() const;
+  Status Validate();
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single

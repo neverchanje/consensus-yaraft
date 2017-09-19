@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "consensus/base/task_queue.h"
+#include "base/task_queue.h"
 
 #include <yaraft/raw_node.h>
 
@@ -39,7 +39,7 @@ class RaftTaskExecutor {
 
  private:
   yaraft::RawNode* node_;
-  TaskQueue* queue_;
+  std::shared_ptr<TaskQueue> queue_;
 };
 
 }  // namespace consensus

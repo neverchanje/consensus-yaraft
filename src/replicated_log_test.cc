@@ -25,20 +25,12 @@ class ReplicatedLogTest : public BaseTest {
     options.id = 1;
     options.heartbeat_interval = 100;
     options.election_timeout = 1000;
-    options.taskQueue = new TaskQueue;
-    options.timer = new RaftTimer;
-    options.flusher = new ReadyFlusher;
     options.memstore = new yaraft::MemoryStorage;
     options.wal = wal::TEST_GetWalStore(GetTestDir(), options.memstore);
   }
 
   void TearDown() override {
-    delete options.timer;
-    delete options.flusher;
-
     delete replicatedLog;
-    delete options.taskQueue;
-
     delete options.wal;
   }
 

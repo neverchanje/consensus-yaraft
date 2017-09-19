@@ -18,6 +18,8 @@
 
 namespace consensus {
 
+// TaskQueue is a Multi-Producer-Single-Consumer queue running in the background thread,
+// waiting to consume tasks.
 class TaskQueue {
  public:
   TaskQueue();
