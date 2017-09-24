@@ -14,9 +14,9 @@ SNAPPY_VERSION=1.1.3
 SNAPPY_NAME=snappy-$SNAPPY_VERSION
 SNAPPY_SOURCE=$TP_DIR/$SNAPPY_NAME
 
-SOFA_PBRPC_VERSION=1.1.3
-SOFA_PBRPC_NAME=sofa-pbrpc-$SOFA_PBRPC_VERSION
-SOFA_PBRPC_SOURCE=$PROJECT_DIR/sofa-pbrpc
+BRPC_VERSION=1.1.3
+BRPC_NAME=brpc-$BRPC_VERSION
+BRPC_SOURCE=$PROJECT_DIR/brpc
 
 GOOGLE_BENCH_VERSION=1.2.0
 GOOGLE_BENCH_NAME=benchmark-$GOOGLE_BENCH_VERSION
@@ -103,21 +103,9 @@ build_gflag() {
   popd
 }
 
-build_snappy() {
-  pushd ${SNAPPY_SOURCE}
-  ./configure --prefix=${TP_BUILD_DIR}
-  make -j4
-  make install
-  popd
-}
-
-build_sofa_pbrpc() {
-  pushd $SOFA_PBRPC_SOURCE
-  echo "BOOST_HEADER_DIR=/usr/include" > depends.mk
-  echo "PROTOBUF_DIR=$PROJECT_DIR/yaraft/build/third_parties" >> depends.mk
-  echo "SNAPPY_DIR=$TP_BUILD_DIR" >> depends.mk
-  make clean
-  make -j4 && make install
+build_brpc() {
+  pushd $BRPC_SOURCE
+  bash $PROJECT_DIR/build_brpc.sh
   popd
 }
 

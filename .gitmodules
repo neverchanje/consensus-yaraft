@@ -7,3 +7,6 @@
 [submodule "readerwriterqueue"]
     path = src/readerwriterqueue
     url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "brpc"]
+    path = brpc
+    url = https://github.com/brpc/brpc.git
