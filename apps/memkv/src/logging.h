@@ -17,7 +17,7 @@
 #include "status.h"
 
 #include <fmt/format.h>
-#include <glog/logging.h>
+#include <butil/logging.h>
 
 namespace consensus {
 

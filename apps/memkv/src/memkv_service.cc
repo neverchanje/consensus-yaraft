@@ -35,7 +35,7 @@ void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
                              const ::memkv::pb::WriteRequest *request,
                              ::memkv::pb::WriteResult *response,
                              ::google::protobuf::Closure *done) {
-  Status s = memkv_->Write(request->path(), request->value());
+  Status s = db_->Write(request->path(), request->value());
   response->set_errorcode(memkvErrorToRpcErrno(s.Code()));
   if (!s.IsOK()) {
     response->set_errormessage(s.ToString());
@@ -47,7 +47,7 @@ void MemKVServiceImpl::Read(::google::protobuf::RpcController *controller,
                             const ::memkv::pb::ReadRequest *request,
                             ::memkv::pb::ReadResult *response, ::google::protobuf::Closure *done) {
   auto result = new std::string;
-  Status s = memkv_->Get(request->path(), result);
+  Status s = db_->Get(request->path(), result);
   response->set_allocated_value(result);
   response->set_errorcode(memkvErrorToRpcErrno(s.Code()));
   if (!s.IsOK()) {
@@ -61,7 +61,7 @@ void MemKVServiceImpl::Delete(::google::protobuf::RpcController *controller,
                               ::memkv::pb::DeleteResult *response,
                               ::google::protobuf::Closure *done) {}
 
-MemKVServiceImpl::MemKVServiceImpl() : memkv_(new DB) {}
+MemKVServiceImpl::MemKVServiceImpl(DB *db) : db_(db) {}
 
 MemKVServiceImpl::~MemKVServiceImpl() = default;
 

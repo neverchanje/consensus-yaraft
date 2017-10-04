@@ -35,12 +35,12 @@ class MemKVServiceImpl : public pb::MemKVService {
               const ::memkv::pb::DeleteRequest* request, ::memkv::pb::DeleteResult* response,
               ::google::protobuf::Closure* done) override;
 
-  MemKVServiceImpl();
+  explicit MemKVServiceImpl(DB* db);
 
   ~MemKVServiceImpl() override;
 
  private:
-  std::unique_ptr<DB> memkv_;
+  std::shared_ptr<DB> db_;
 };
 
 }  // namespace memkv

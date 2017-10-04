@@ -48,19 +48,17 @@ static std::string LogEncode(OpType type, const Slice &path, const Slice &value)
 
 class DB::Impl {
  public:
-  static StatusWith<DB *> Bootstrap(const DBOptions& options) {
-  }
-
-  Impl(): kv_(new MemKvStore) {}
+  Impl() : kv_(new MemKvStore) {}
 
   Status Get(const Slice &path, std::string *data) {
+    return kv_->Get(path, data);
   }
 
   Status Delete(const Slice &path) {
-    std::string log = LogEncode(OpType::kWrite, path, nullptr);
+    std::string log = LogEncode(OpType::kDelete, path, nullptr);
 
     consensus::Status s = log_->Write(log);
-    if(!s.IsOK()) {
+    if (!s.IsOK()) {
       return Status::Make(Error::ConsensusError, s.ToString());
     }
 
@@ -72,7 +70,7 @@ class DB::Impl {
     std::string log = LogEncode(OpType::kWrite, path, value);
 
     consensus::Status s = log_->Write(log);
-    if(!s.IsOK()) {
+    if (!s.IsOK()) {
       return Status::Make(Error::ConsensusError, s.ToString());
     }
 
@@ -87,7 +85,7 @@ class DB::Impl {
   std::unique_ptr<MemKvStore> kv_;
 };
 
-StatusWith<DB *> DB::Bootstrap(const DBOptions& options) {
+StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   using consensus::ReplicatedLogOptions;
   using consensus::ReplicatedLog;
 
@@ -98,8 +96,17 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions& options) {
   rlogOptions.heartbeat_interval = 100;
   rlogOptions.election_timeout = 1000;
 
-  consensus::StatusWith<ReplicatedLog*> sw = ReplicatedLog::New(rlogOptions);
-  if(!sw.IsOK()) {
+  consensus::wal::WriteAheadLogOptions walOptions;
+  walOptions.log_dir = options.wal_dir;
+
+  consensus::Status s =
+      consensus::wal::WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
+  if (!s.IsOK()) {
+    return Status::Make(Error::ConsensusError, s.ToString());
+  }
+
+  consensus::StatusWith<ReplicatedLog *> sw = ReplicatedLog::New(rlogOptions);
+  if (!sw.IsOK()) {
     return Status::Make(Error::ConsensusError, sw.ToString());
   }
   db->impl_->log_.reset(sw.GetValue());

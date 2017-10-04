@@ -30,11 +30,12 @@ class Snapshot {
 class DBOptions {
  public:
   uint64_t member_id;
+  std::string wal_dir;
 };
 
 class DB {
  public:
-  static StatusWith<DB *> Bootstrap(const DBOptions& options);
+  static StatusWith<DB *> Bootstrap(const DBOptions &options);
 
   Status Write(const Slice &path, const Slice &value);
 
