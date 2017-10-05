@@ -13,8 +13,7 @@
 // limitations under the License.
 
 #include "errno.h"
-
-#include <glog/logging.h>
+#include "base/logging.h"
 
 namespace consensus {
 

@@ -15,8 +15,6 @@
 #include "base/random.h"
 #include "base/testing.h"
 
-#include <glog/logging.h>
-
 using namespace consensus;
 
 class RandomTest : public BaseTest {
