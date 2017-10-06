@@ -17,104 +17,45 @@
 #include "base/logging.h"
 #include "pb/raft_server.pb.h"
 
-#include <sofa/pbrpc/pbrpc.h>
+#include <brpc/channel.h>
 
 namespace consensus {
 namespace rpc {
 
-class SyncRaftClient : sofa::pbrpc::RpcClient {
- public:
-  explicit SyncRaftClient(const std::string& url)
-      : channel_(this, url, sofa::pbrpc::RpcChannelOptions()) {}
-
-  // Synchronously sending request to specified url.
-  // NOTE: The ownership of `msg` will be taken over by this method.
-  StatusWith<pb::StepResponse> Step(yaraft::pb::Message* msg) {
-    pb::StepRequest request;
-    request.set_allocated_message(msg);
-
-    return sendRequest(request);
+static void doneCallBack(pb::StepResponse* response, brpc::Controller* cntl) {
+  if (cntl->Failed()) {
+    FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
+  } else {
+    delete response;
   }
+  delete cntl;
+}
 
- private:
-  StatusWith<pb::StepResponse> sendRequest(pb::StepRequest& request) {
-    sofa::pbrpc::RpcController cntl;
-    cntl.SetTimeout(3000);
-
-    pb::StepResponse response;
-    pb::RaftService_Stub stub(&channel_);
-    stub.Step(&cntl, &request, &response, NULL);
-
-    if (cntl.Failed()) {
-      auto errStr = fmt::format("request failed: {}", cntl.ErrorText());
-      LOG(ERROR) << errStr;
-      return Status::Make(Error::RpcError, errStr);
-    }
-    return response;
-  }
-
- private:
-  sofa::pbrpc::RpcChannel channel_;
-};
-
-class AsyncRaftClient : sofa::pbrpc::RpcClient {
+class AsyncRaftClient {
  public:
-  explicit AsyncRaftClient(const std::string& url)
-      : channel_(this, url, sofa::pbrpc::RpcChannelOptions()) {}
+  explicit AsyncRaftClient(const std::string& url) {
+    channel_.Init(url.c_str(), nullptr);
+  }
 
   // Asynchronously sending request to specified url.
   void Step(yaraft::pb::Message* msg) {
     // -- prepare parameters --
 
-    auto cntl = new sofa::pbrpc::RpcController();
-    cntl->SetTimeout(3000);
+    auto cntl = new brpc::Controller;
+    cntl->set_timeout_ms(3000);
 
-    auto request = new pb::StepRequest();
-    request->set_allocated_message(msg);
-
-    auto response = new pb::StepResponse();
-
-    auto done =
-        sofa::pbrpc::NewClosure(this, &AsyncRaftClient::doneCallBack, cntl, request, response);
+    pb::StepRequest request;
+    request.set_allocated_message(msg);
+    auto response = new pb::StepResponse;
 
     // -- request --
 
     pb::RaftService_Stub stub(&channel_);
-    stub.Step(cntl, request, response, done);
-  }
-
-  // `onSuccess` should not destroy the response object.
-  void RegisterOnSuccess(std::function<void(pb::StepResponse*)> onSuccess) {
-    onSuccess_ = onSuccess;
-  }
-
-  void RegisterOnFail(std::function<void()> onFail) {
-    onFail_ = onFail;
+    stub.Step(cntl, &request, response, brpc::NewCallback(&doneCallBack, response, cntl));
   }
 
  private:
-  void doneCallBack(const sofa::pbrpc::RpcController* cntl, pb::StepRequest* request,
-                    pb::StepResponse* response) {
-    if (cntl->Failed()) {
-      FMT_SLOG(ERROR, "request failed: %s", cntl->ErrorText().c_str());
-
-      if (onFail_) {
-        onFail_();
-      }
-    } else {
-      if (onSuccess_) {
-        onSuccess_(response);
-      }
-      delete response;
-    }
-    delete cntl;
-    delete request;
-  }
-
- private:
-  sofa::pbrpc::RpcChannel channel_;
-  std::function<void(pb::StepResponse*)> onSuccess_;
-  std::function<void()> onFail_;
+  brpc::Channel channel_;
 };
 
 }  // namespace rpc

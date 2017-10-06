@@ -19,7 +19,6 @@
 #include "base/logging.h"
 #include "base/simple_channel.h"
 
-#include <sofa/pbrpc/pbrpc.h>
 #include <yaraft/pb_utils.h>
 
 namespace consensus {
@@ -31,7 +30,7 @@ static pb::StatusCode yaraftErrorCodeToRpcStatusCode(yaraft::Error::ErrorCodes c
     case yaraft::Error::StepPeerNotFound:
       return pb::StepPeerNotFound;
     default:
-      LOG(FATAL) << "Unexpected error code: " << yaraft::Error::ToString(code);
+      LOG(FATAL) << "Unexpected error code: " << yaraft::Error::toString(code);
       return pb::OK;
   }
 }

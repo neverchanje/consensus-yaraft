@@ -15,9 +15,6 @@
 #include "raft_service.h"
 #include "raft_task_executor_test.h"
 
-#include <sofa/pbrpc/closure.h>
-#include <sofa/pbrpc/rpc_controller.h>
-
 using namespace consensus;
 
 class RaftServiceTest : public RaftTaskExecutorTest {
@@ -35,7 +32,7 @@ TEST_F(RaftServiceTest, Step) {
   auto msg = new yaraft::pb::Message;
   msg->set_type(yaraft::pb::MsgHup);
   request.set_allocated_message(msg);
-  auto done = sofa::pbrpc::NewClosure([]() {});
+  auto done = google::protobuf::NewCallback([]() {});
   service.Step(nullptr, &request, &response, done);
   ASSERT_EQ(response.code(), pb::StepLocalMsg);
 
@@ -43,7 +40,7 @@ TEST_F(RaftServiceTest, Step) {
   msg->set_from(111);
   msg->set_type(yaraft::pb::MsgHeartbeatResp);
   request.set_allocated_message(msg);
-  done = sofa::pbrpc::NewClosure([]() {});
+  done = google::protobuf::NewCallback([]() {});
   service.Step(nullptr, &request, &response, done);
   ASSERT_EQ(response.code(), pb::StepPeerNotFound);
 }

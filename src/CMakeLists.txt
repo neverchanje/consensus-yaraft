@@ -7,10 +7,13 @@ set(CONSENSUS_LINK_LIBS
         ${Boost_LIBRARIES}
         ${YARAFT_LIBRARY}
         ${PROTOBUF_STATIC_LIBRARY}
-        ${SOFA_PBRPC_LIBRARY}
-        ${SNAPPY_LIBRARY}
+        ${PROTOBUF_PROTOC_STATIC_LIBRARY}
+        ${BRPC_LIBRARY}
+        ${OPENSSL_LIBRARIES}
+        ${LEVELDB_LIBRARY}
         ${ZLIB_LIBRARIES}
-        pthread)
+        pthread
+        dl)
 
 ##------------------- Base -------------------##
 
@@ -79,6 +82,7 @@ set(RPC_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src/rpc)
 set(RPC_SOURCES
         ${RPC_SOURCE_DIR}/peer.cc
         ${RPC_SOURCE_DIR}/cluster.cc
+        ${RPC_SOURCE_DIR}/raft_client.h
         ${PROJECT_SOURCE_DIR}/src/pb/raft_server.pb.cc
         )
 
@@ -110,16 +114,7 @@ endfunction()
 ADD_CONSENSUS_TEST(raft_task_executor_test)
 ADD_CONSENSUS_TEST(raft_timer_test)
 ADD_CONSENSUS_TEST(raft_service_test)
-ADD_CONSENSUS_TEST(replicated_log_test)
+# ADD_CONSENSUS_TEST(replicated_log_test)
 
 install(TARGETS consensus_yaraft DESTINATION lib)
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/consensus DESTINATION include)
-
-##------------------- raft_server -------------------##
-
-file(GLOB CONSENSUS_YARAFT_HEADERS ${PROJECT_SOURCE_DIR}/include */*.h)
-add_executable(raft_server
-        ${CONSENSUS_YARAFT_HEADERS}
-        raft_server_main.cc)
-target_link_libraries(raft_server ${CONSENSUS_LINK_LIBS})
-install(TARGETS raft_server DESTINATION bin)
