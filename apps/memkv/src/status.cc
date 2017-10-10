@@ -28,6 +28,7 @@ std::string Error::toString(unsigned int c) {
     ERROR_TO_STRING(OK);
     ERROR_TO_STRING(InvalidArgument);
     ERROR_TO_STRING(NodeNotExist);
+    ERROR_TO_STRING(ConsensusError);
     default:
       LOG(FATAL) << "invalid error code: " << c;
       assert(false);

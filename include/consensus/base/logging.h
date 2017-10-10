@@ -15,7 +15,7 @@
 #pragma once
 
 #include <fmt/format.h>
-#include <glog/logging.h>
+#include <butil/logging.h>
 
 /// @brief Emit a warning if @c to_call returns a bad status.
 #define WARN_NOT_OK(to_call, warning_prefix)                     \

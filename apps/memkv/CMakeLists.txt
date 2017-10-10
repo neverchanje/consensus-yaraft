@@ -20,6 +20,7 @@ set(CMAKE_PREFIX_PATH
         ${CMAKE_PREFIX_PATH})
 set(CMAKE_MODULE_PATH "${CONSENSUS_YARAFT_DIR}/cmake_modules")
 
+find_package(Boost COMPONENTS system filesystem thread REQUIRED)
 find_package(Protobuf REQUIRED)
 find_package(Gflags REQUIRED)
 
@@ -33,6 +34,18 @@ message("-- Found ${GTEST_MAIN_LIB}")
 
 find_library(BRPC_LIBRARY libbrpc.a brpc)
 message("-- Found ${BRPC_LIBRARY}")
+
+find_package(ZLIB REQUIRED)
+find_package(GLog REQUIRED)
+find_package(OpenSSL REQUIRED)
+
+find_library(LEVELDB_LIBRARY leveldb)
+message("-- Found ${LEVELDB_LIBRARY}")
+
+find_library(CONSENSUS_YARAFT_LIBRARY consensus_yaraft)
+message("-- Found ${CONSENSUS_YARAFT_LIBRARY}")
+find_library(YARAFT_LIBRARY yaraft)
+message("-- Found ${YARAFT_LIBRARY}")
 
 include_directories(${YARAFT_THIRDPARTY_DIR}/include)
 include_directories(${CONSENSUS_YARAFT_THIRDPARTY_DIR}/include)

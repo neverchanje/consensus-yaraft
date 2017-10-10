@@ -11,8 +11,10 @@ cd $PROJECT_DIR/yaraft
 bash install_deps_if_necessary.sh
 cd build && cmake .. -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR -DBUILD_TEST=OFF && make -j8 && make install
 
-if [ ! -d $PROJECT_DIR/brpc/output ]; then
+# build brpc
+if [ ! -f $TP_STAMP_DIR/$BRPC_NAME ]; then
     build_brpc
+    make_stamp $BRPC_NAME
 fi
 
 # install other dependencies
@@ -34,8 +36,8 @@ install_if_necessary(){
 
 cd $TP_DIR
 
-# install gflags
-install_if_necessary $GFLAG_NAME build_gflag
-
 # install google benchmark
 install_if_necessary $GOOGLE_BENCH_NAME build_google_bench
+
+install_if_necessary $GFLAG_NAME build_gflag
+install_if_necessary $GLOG_NAME build_glog
