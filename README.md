@@ -23,6 +23,9 @@ consensus-yaraft is written in C++11, please ensure a compiler with C++11 suppor
 
 Ensure you have cmake, unzip, libtool, autoconf installed on your system.
 
+Ensure you have leveldb, zlib, openssl installed, because 
+[brpc relies on them](https://github.com/brpc/brpc/blob/master/docs/cn/getting_started.md).
+
 On Ubuntu 14.04
 
 ```sh
@@ -34,38 +37,20 @@ bash run.sh build
 
 Once the building becomes success, the library would be installed in the directory `output/`.
 
-## Test on it
+## Internals
 
-There is a simple http server that exposes the `ReplicatedLog` methods through http APIs, which can be found in `output/bin/raft_server`.
-To set up a local cluster of 3 nodes, you need only to run the command:
+For more details about the architecture and design of consensus-yaraft, please read 
+[this article](https://github.com/neverchanje/consensus-yaraft/wiki).
+Currently we relies on [brpc](brpc) to implement network communication.
 
-```sh
-bash run.sh start_onebox --server_count 3
-```
+## MemKV
 
-After that, there will be 3 raftserver processes running in the background, each in one of the "127.0.0.1:12321", "127.0.0.1:12322", "127.0.0.1:12323".
-
-If you want to know the status of the RSM node in "127.0.0.1:12321", just send GET request to this address:
-
-```
-http "127.0.0.1:12321/info" # using httpie
-```
-
-This will get result like:
-
-```
-Access-Control-Allow-Origin: *
-Content-Length: 71
-Content-Type: text/html; charset=UTF-8
-
-{
-    "commitIndex": 1,
-    "currentLeader": 3,
-    "currentTerm": 1,
-    "logIndex": 1
-}
-```
+[Memkv](memkv) is a prototype of using consensus-yaraft to implement a raft-based key-value store.
 
 ## License
 
 consensus-yaraft is under the Apache 2.0 license. See the LICENSE file for details.
+
+[memkv]: https://github.com/neverchanje/consensus-yaraft/tree/master/apps/memkv
+[brpc]: https://github.com/brpc/brpc
+[raft]: https://raft.github.io
