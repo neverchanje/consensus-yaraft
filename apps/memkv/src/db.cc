@@ -88,6 +88,8 @@ class DB::Impl {
 StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   using consensus::ReplicatedLogOptions;
   using consensus::ReplicatedLog;
+  using consensus::wal::WriteAheadLogOptions;
+  using consensus::wal::WriteAheadLog;
 
   auto db = new DB;
 
@@ -96,18 +98,18 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   rlogOptions.heartbeat_interval = 100;
   rlogOptions.election_timeout = 1000;
 
-  consensus::wal::WriteAheadLogOptions walOptions;
+  WriteAheadLogOptions walOptions;
   walOptions.log_dir = options.wal_dir;
 
   consensus::Status s =
-      consensus::wal::WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
+      WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
   if (!s.IsOK()) {
-    return Status::Make(Error::ConsensusError, s.ToString());
+    return Status::Make(Error::ConsensusError, s.ToString()) << " [WriteAheadLog::Default]";
   }
 
   consensus::StatusWith<ReplicatedLog *> sw = ReplicatedLog::New(rlogOptions);
   if (!sw.IsOK()) {
-    return Status::Make(Error::ConsensusError, sw.ToString());
+    return Status::Make(Error::ConsensusError, sw.ToString()) << " [ReplicatedLog::New]";
   }
   db->impl_->log_.reset(sw.GetValue());
 

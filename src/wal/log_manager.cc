@@ -72,10 +72,12 @@ LogManager::~LogManager() {
 
 StatusWith<LogManager*> LogManager::Recover(const WriteAheadLogOptions options,
                                             yaraft::MemoryStorage* memstore) {
-  RETURN_NOT_OK(Env::Default()->CreateDirIfMissing(options.log_dir));
+  RETURN_NOT_OK_APPEND(Env::Default()->CreateDirIfMissing(options.log_dir),
+                       fmt::format(" [log_dir: \"{}\"]", options.log_dir));
 
   std::vector<std::string> files;
-  RETURN_NOT_OK(Env::Default()->GetChildren(options.log_dir, &files));
+  RETURN_NOT_OK_APPEND(Env::Default()->GetChildren(options.log_dir, &files),
+                       fmt::format(" [log_dir: \"{}\"]", options.log_dir));
 
   // finds all files with suffix ".wal"
   std::map<uint64_t, uint64_t> wals;  // ordered by segId
