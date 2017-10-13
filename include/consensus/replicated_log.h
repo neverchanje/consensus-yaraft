@@ -57,7 +57,7 @@ struct ReplicatedLogOptions {
 
   ReplicatedLogOptions();
 
-  Status Validate();
+  Status Validate() const;
 };
 
 // A ReplicatedLog is a distributed log storage with strong consistency. Every single

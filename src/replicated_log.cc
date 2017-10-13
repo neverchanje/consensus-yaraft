@@ -55,24 +55,14 @@ SimpleChannel<Status> ReplicatedLog::AsyncWrite(const Slice &log) {
   return impl_->AsyncWrite(log);
 }
 
-Status ReplicatedLogOptions::Validate() {
-  if(timer == nullptr) {
-    timer = new RaftTimer;
-  }
-
-  if(flusher == nullptr) {
-    flusher = new ReadyFlusher;
-  }
-
-  if(taskQueue == nullptr) {
-    taskQueue = new TaskQueue;
-  }
-
+Status ReplicatedLogOptions::Validate() const {
 #define ConfigNotNull(var) \
   if ((var) == nullptr)    \
     return FMT_Status(BadConfig, "ReplicatedLogOptions::" #var " should not be null");
-  ConfigNotNull(memstore);
   ConfigNotNull(wal);
+
+  // memstore is allowed to be null, when no log exists.
+
   return Status::OK();
 }
 

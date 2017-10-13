@@ -52,16 +52,26 @@ class ReplicatedLogImpl {
     conf->heartbeatTick = options.heartbeat_interval;
     conf->id = options.id;
     conf->storage = options.memstore;
+    if (!conf->storage) {
+      conf->storage = new yaraft::MemoryStorage;
+    }
     for (const auto &e : options.initial_cluster) {
       conf->peers.push_back(e.first);
     }
     impl->node_.reset(new yaraft::RawNode(conf));
 
     // -- RaftTaskExecutor --
-    impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), options.taskQueue));
+    TaskQueue *taskQueue = options.taskQueue;
+    if (!taskQueue) {
+      taskQueue = new TaskQueue;
+    }
+    impl->executor_.reset(new RaftTaskExecutor(impl->node_.get(), taskQueue));
 
     // -- RaftTimer --
     impl->timer_.reset(options.timer);
+    if (!impl->timer_) {
+      impl->timer_.reset(new RaftTimer);
+    }
     impl->timer_->Register(impl->executor_.get());
 
     // -- ReadyFlusher --
@@ -70,6 +80,9 @@ class ReplicatedLogImpl {
     impl->memstore_ = options.memstore;
     impl->cluster_.reset(rpc::Cluster::Default(options.initial_cluster));
     impl->flusher_.reset(options.flusher);
+    if (!impl->flusher_) {
+      impl->flusher_.reset(new ReadyFlusher);
+    }
     impl->flusher_->Register(impl);
 
     // -- Other stuff --
