@@ -83,7 +83,7 @@ set(RPC_SOURCES
         ${RPC_SOURCE_DIR}/peer.cc
         ${RPC_SOURCE_DIR}/cluster.cc
         ${RPC_SOURCE_DIR}/raft_client.h
-        ${PROJECT_SOURCE_DIR}/src/pb/raft_server.pb.cc
+        ${PROJECT_SOURCE_DIR}/include/consensus/pb/raft_server.pb.cc
         )
 
 add_library(consensus_rpc ${RPC_SOURCES})

@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "pb/raft_server.pb.h"
+#include <consensus/pb/raft_server.pb.h>
 
 namespace consensus {
 
