@@ -143,3 +143,20 @@ build_glog() {
   make -j4 && make install
   popd
 }
+
+build_yaraft() {
+  YARAFT_SOURCE=$PROJECT_DIR/yaraft
+  YARAFT_BDIR=$YARAFT_SOURCE/build
+  mkdir -p $YARAFT_BDIR
+  pushd $YARAFT_SOURCE
+    bash $YARAFT_SOURCE/install_deps_if_necessary.sh
+  popd
+  pushd $YARAFT_BDIR
+  cmake \
+    -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR \
+    -DBUILD_TEST=OFF \
+    -DCMAKE_BUILD_TYPE=Release \
+    $YARAFT_SOURCE
+  make -j4 && make install
+  popd
+}

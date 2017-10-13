@@ -47,6 +47,9 @@ typedef silly::Status<Error> Status;
 template <typename T>
 using StatusWith = silly::StatusWith<Status, T>;
 
+#ifdef FMT_Status
+#undef FMT_Status
+#endif
 #define FMT_Status(code, msg, args...) Status::Make(Error::code, fmt::format(msg, ##args))
 
 }  // namespace consensus
