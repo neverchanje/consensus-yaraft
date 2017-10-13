@@ -13,11 +13,11 @@
 // limitations under the License.
 
 #include "db.h"
+#include "logging.h"
 #include "memkv_store.h"
 
 #include <consensus/base/coding.h>
 #include <consensus/replicated_log.h>
-#include <fmt/format.h>
 
 namespace memkv {
 
@@ -97,12 +97,12 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   rlogOptions.id = options.member_id;
   rlogOptions.heartbeat_interval = 100;
   rlogOptions.election_timeout = 1000;
+  rlogOptions.initial_cluster = options.initial_cluster;
 
   WriteAheadLogOptions walOptions;
   walOptions.log_dir = options.wal_dir;
 
-  consensus::Status s =
-      WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
+  consensus::Status s = WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
   if (!s.IsOK()) {
     return Status::Make(Error::ConsensusError, s.ToString()) << " [WriteAheadLog::Default]";
   }

@@ -16,33 +16,4 @@
 
 #include "status.h"
 
-#include <fmt/format.h>
-#include <butil/logging.h>
-
-namespace consensus {
-
-/// @brief Emit a warning if @c to_call returns a bad status.
-#define WARN_NOT_OK(to_call, warning_prefix)                     \
-  do {                                                           \
-    const auto& _s = (to_call);                                  \
-    if (UNLIKELY(!_s.IsOK())) {                                  \
-      LOG(WARNING) << (warning_prefix) << ": " << _s.ToString(); \
-    }                                                            \
-  } while (0);
-
-/// @brief Emit a fatal error if @c to_call returns a bad status.
-#define FATAL_NOT_OK(to_call, fatal_prefix)                  \
-  do {                                                       \
-    const auto& _s = (to_call);                              \
-    if (UNLIKELY(!_s.IsOK())) {                              \
-      LOG(FATAL) << (fatal_prefix) << ": " << _s.ToString(); \
-    }                                                        \
-  } while (0);
-
-#define FMT_LOG(level, formatStr, args...) LOG(level) << fmt::format(formatStr, ##args)
-
-#define FMT_SLOG(level, formatStr, args...) LOG(level) << fmt::sprintf(formatStr, ##args)
-
-#define FMT_Status(code, msg, args...) Status::Make(code, fmt::format(msg, ##args))
-
-}  // namespace consensus%
+#include <consensus/base/logging.h>

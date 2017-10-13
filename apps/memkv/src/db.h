@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "slice.h"
 #include "status.h"
 
@@ -31,6 +33,7 @@ class DBOptions {
  public:
   uint64_t member_id;
   std::string wal_dir;
+  std::map<uint64_t, std::string> initial_cluster;
 };
 
 class DB {

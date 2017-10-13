@@ -21,7 +21,7 @@ using namespace memkv;
 
 DEFINE_uint64(id, 1, "one of the values in {1, 2, 3}");
 DEFINE_string(wal_dir, "", "directory to store wal");
-DEFINE_int32(server_num, 3, "number of servers in the cluster");
+DEFINE_int32(server_count, 3, "number of servers in the cluster");
 
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
@@ -29,6 +29,10 @@ int main(int argc, char* argv[]) {
   DBOptions options;
   options.member_id = FLAGS_id;
   options.wal_dir = FLAGS_wal_dir;
+  for (int i = 1; i <= FLAGS_server_count; i++) {
+    // TODO: initial_cluster should be configured by user
+    options.initial_cluster[i] = fmt::format("127.0.0.1:{}", 12320 + i);
+  }
 
   auto sw = DB::Bootstrap(options);
   if (!sw.IsOK()) {
@@ -39,8 +43,12 @@ int main(int argc, char* argv[]) {
 
   brpc::ServerOptions opts;
   brpc::Server server;
-  server.AddService(new MemKVServiceImpl(db), brpc::SERVER_OWNS_SERVICE, "/");
-  server.Start(static_cast<int>(12345 + FLAGS_id), &opts);
+  server.AddService(new MemKVServiceImpl(db), brpc::SERVER_OWNS_SERVICE);
+
+  FMT_LOG(INFO, "Starting memkv server {} at {}", FLAGS_id, options.initial_cluster[FLAGS_id]);
+  LOG(INFO) << "--wal_dir: " << FLAGS_wal_dir;
+  server.Start(options.initial_cluster[FLAGS_id].c_str(), &opts);
+  server.RunUntilAskedToQuit();
 
   return 0;
 }
