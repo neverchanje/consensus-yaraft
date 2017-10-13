@@ -25,6 +25,8 @@ Status WriteAheadLog::Default(const WriteAheadLogOptions& options, WriteAheadLog
   ASSIGN_IF_OK(LogManager::Recover(options, memstore), lm);
   *wal = lm;
 
+  LOG_ASSERT(lm != nullptr);
+
   return Status::OK();
 }
 
