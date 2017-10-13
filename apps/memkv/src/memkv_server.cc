@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "db.h"
 #include "logging.h"
 #include "memkv_service.h"
-
-#include <brpc/server.h>
 
 using namespace memkv;
 
@@ -26,6 +25,9 @@ DEFINE_int32(server_count, 3, "number of servers in the cluster");
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
 
+  //
+  // -- create DB instance --
+  //
   DBOptions options;
   options.member_id = FLAGS_id;
   options.wal_dir = FLAGS_wal_dir;
@@ -33,20 +35,21 @@ int main(int argc, char* argv[]) {
     // TODO: initial_cluster should be configured by user
     options.initial_cluster[i] = fmt::format("127.0.0.1:{}", 12320 + i);
   }
-
   auto sw = DB::Bootstrap(options);
   if (!sw.IsOK()) {
     LOG(FATAL) << sw.GetStatus();
   }
-
   DB* db = sw.GetValue();
 
+  //
+  // -- start memkv server --
+  //
+  FMT_LOG(INFO, "Starting memkv server {} at {}", FLAGS_id, options.initial_cluster[FLAGS_id]);
+  FMT_LOG(INFO, "--wal_dir: {}", FLAGS_wal_dir);
   brpc::ServerOptions opts;
   brpc::Server server;
   server.AddService(new MemKVServiceImpl(db), brpc::SERVER_OWNS_SERVICE);
-
-  FMT_LOG(INFO, "Starting memkv server {} at {}", FLAGS_id, options.initial_cluster[FLAGS_id]);
-  LOG(INFO) << "--wal_dir: " << FLAGS_wal_dir;
+  server.AddService(db->CreateRaftServiceInstance(), brpc::SERVER_OWNS_SERVICE);
   server.Start(options.initial_cluster[FLAGS_id].c_str(), &opts);
   server.RunUntilAskedToQuit();
 

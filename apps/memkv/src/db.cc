@@ -14,7 +14,7 @@
 
 #include "db.h"
 #include "logging.h"
-#include "memkv_store.h"
+#include "memkv_service.h"
 
 #include <consensus/base/coding.h>
 #include <consensus/replicated_log.h>
@@ -111,8 +111,9 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   if (!sw.IsOK()) {
     return Status::Make(Error::ConsensusError, sw.ToString()) << " [ReplicatedLog::New]";
   }
-  db->impl_->log_.reset(sw.GetValue());
 
+  ReplicatedLog *rlog = sw.GetValue();
+  db->impl_->log_.reset(rlog);
   return db;
 }
 
@@ -131,5 +132,9 @@ Status DB::Write(const Slice &path, const Slice &value) {
 DB::DB() : impl_(new Impl) {}
 
 DB::~DB() = default;
+
+consensus::RaftServiceImpl *DB::CreateRaftServiceInstance() const {
+  return new consensus::RaftServiceImpl(impl_->log_->RaftTaskExecutorInstance());
+}
 
 }  // namespace memkv

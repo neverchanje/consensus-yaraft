@@ -19,6 +19,9 @@
 #include "slice.h"
 #include "status.h"
 
+#include <brpc/server.h>
+#include <consensus/raft_service.h>
+
 namespace memkv {
 
 // Abstract handle to particular state of a DB.
@@ -45,6 +48,8 @@ class DB {
   Status Delete(const Slice &path);
 
   Status Get(const Slice &path, std::string *data);
+
+  consensus::RaftServiceImpl *CreateRaftServiceInstance() const;
 
   DB();
 
