@@ -19,37 +19,29 @@
 namespace consensus {
 namespace wal {
 
-Status WriteAheadLog::Default(const WriteAheadLogOptions& options, WriteAheadLog** wal,
-                              yaraft::MemoryStorage* memstore) {
-  LogManager* lm;
-  ASSIGN_IF_OK(LogManager::Recover(options, memstore), lm);
-  *wal = lm;
-
+Status WriteAheadLog::Default(const WriteAheadLogOptions& options, WriteAheadLogUPtr* wal,
+                              yaraft::MemStoreUptr* memstore) {
+  LogManagerUPtr lm;
+  RETURN_NOT_OK(LogManager::Recover(options, memstore, &lm));
   LOG_ASSERT(lm != nullptr);
 
+  wal->reset(lm.release());
   return Status::OK();
 }
 
 WriteAheadLogOptions::WriteAheadLogOptions()
     : verify_checksum(true), log_segment_size(64 * 1024 * 1024) {}
 
-WriteAheadLog* TEST_GetWalStore(const std::string& testDir, yaraft::MemoryStorage* memstore) {
+WriteAheadLogUPtr TEST_CreateWalStore(const std::string& testDir, yaraft::MemStoreUptr* pMemstore) {
   WriteAheadLogOptions options;
   options.log_dir = testDir;
+  options.verify_checksum = true;
 
-  // automatically delete the memstore
-  std::unique_ptr<yaraft::MemoryStorage> d;
-  if (memstore == nullptr) {
-    memstore = new yaraft::MemoryStorage();
-    d.reset(memstore);
-  }
-
-  WriteAheadLog* wal = nullptr;
-  FATAL_NOT_OK(WriteAheadLog::Default(options, &wal, memstore), "WriteAheadLog::Default");
-
+  WriteAheadLogUPtr wal;
+  FATAL_NOT_OK(WriteAheadLog::Default(options, &wal, pMemstore), "WriteAheadLog::Default");
   wal->Write({yaraft::pb::Entry()});
 
-  return wal;
+  return std::move(wal);
 }
 
 }  // namespace wal

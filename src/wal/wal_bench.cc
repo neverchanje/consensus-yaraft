@@ -27,7 +27,7 @@ using namespace consensus::wal;
 
 void WalBench(benchmark::State& state) {
   TestDirectoryHelper dirHelper("/tmp/consensus-wal-bench");
-  std::unique_ptr<WriteAheadLog> wal(TEST_GetWalStore(dirHelper.GetTestDir()));
+  WriteAheadLogUPtr wal(TEST_CreateWalStore(dirHelper.GetTestDir()));
 
   size_t per_size = state.range(0);
   int num_entries = state.range(1);

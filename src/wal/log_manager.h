@@ -28,6 +28,9 @@ namespace wal {
 
 class LogWriter;
 
+class LogManager;
+using LogManagerUPtr = std::unique_ptr<LogManager>;
+
 // Not-Thread-Safe
 class LogManager : public WriteAheadLog {
  public:
@@ -36,13 +39,15 @@ class LogManager : public WriteAheadLog {
   // Recover from existing wal files.
   // The options.log_dir will be created when it's not existed.
   // All of the uncompacted log entries will be read into `memstore`.
-  static StatusWith<LogManager*> Recover(const WriteAheadLogOptions options,
-                                         yaraft::MemoryStorage* memstore);
+  //
+  // ASSERT: *memstore == null
+  static Status Recover(const WriteAheadLogOptions& options, yaraft::MemStoreUptr* memstore,
+                        LogManagerUPtr* pLogManager);
 
   ~LogManager() override;
 
   // Required: no holes between logs and msg.entries.
-  Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs = nullptr) override;
+  Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs) override;
 
   // naive implementation: delete all committed segments.
   Status GC(WriteAheadLog::CompactionHint* hint) override;

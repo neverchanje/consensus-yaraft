@@ -70,8 +70,8 @@ LogManager::~LogManager() {
   Close();
 }
 
-StatusWith<LogManager*> LogManager::Recover(const WriteAheadLogOptions options,
-                                            yaraft::MemoryStorage* memstore) {
+Status LogManager::Recover(const WriteAheadLogOptions& options, yaraft::MemStoreUptr* memstore,
+                           LogManagerUPtr* pLogManager) {
   RETURN_NOT_OK_APPEND(Env::Default()->CreateDirIfMissing(options.log_dir),
                        fmt::format(" [log_dir: \"{}\"]", options.log_dir));
 
@@ -89,12 +89,15 @@ StatusWith<LogManager*> LogManager::Recover(const WriteAheadLogOptions options,
     }
   }
 
-  std::unique_ptr<LogManager> m(new LogManager(options));
+  LogManagerUPtr& m = *pLogManager;
+  m.reset(new LogManager(options));
   if (wals.empty()) {
-    return m.release();
+    return Status::OK();
   }
-
   m->empty_ = false;
+
+  LOG_ASSERT(*memstore == nullptr);
+  memstore->reset(new yaraft::MemoryStorage);
 
   FMT_LOG(INFO, "recovering from {} wals, starts from {}-{}, ends at {}-{}", wals.size(),
           wals.begin()->first, wals.begin()->second, wals.rbegin()->first, wals.rbegin()->second);
@@ -102,10 +105,11 @@ StatusWith<LogManager*> LogManager::Recover(const WriteAheadLogOptions options,
   for (auto it = wals.begin(); it != wals.end(); it++) {
     std::string fname = options.log_dir + "/" + SegmentFileName(it->first, it->second);
     SegmentMetaData meta;
-    RETURN_NOT_OK(ReadSegmentIntoMemoryStorage(fname, memstore, &meta, options.verify_checksum));
+    RETURN_NOT_OK(
+        ReadSegmentIntoMemoryStorage(fname, memstore->get(), &meta, options.verify_checksum));
     m->files_.push_back(std::move(meta));
   }
-  return m.release();
+  return Status::OK();
 }
 
 Status LogManager::Write(const PBEntryVec& entries, const yaraft::pb::HardState* hs) {

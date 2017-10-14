@@ -41,6 +41,9 @@ class WriteAheadLogOptions {
   WriteAheadLogOptions();
 };
 
+class WriteAheadLog;
+using WriteAheadLogUPtr = std::unique_ptr<WriteAheadLog>;
+
 // WriteAheadLog provides an abstraction for writing log entries and raft state
 // into the underlying storage.
 class WriteAheadLog {
@@ -48,7 +51,17 @@ class WriteAheadLog {
   virtual ~WriteAheadLog() = default;
 
   // Save log entries and raft state into underlying storage.
-  virtual Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs = nullptr) = 0;
+  virtual Status Write(const PBEntryVec& vec, const yaraft::pb::HardState* hs) = 0;
+
+  // write log entries only
+  Status Write(const PBEntryVec& vec) {
+    return Write(vec, nullptr);
+  }
+
+  // write hard state only
+  Status Write(const yaraft::pb::HardState* hs) {
+    return Write(PBEntryVec(), hs);
+  }
 
   virtual Status Sync() = 0;
 
@@ -60,12 +73,16 @@ class WriteAheadLog {
   virtual Status GC(CompactionHint* hint) = 0;
 
   // Default implementation of WAL.
-  static Status Default(const WriteAheadLogOptions& options, WriteAheadLog** wal,
-                        yaraft::MemoryStorage* memstore);
+  static Status Default(const WriteAheadLogOptions& options, WriteAheadLogUPtr* wal,
+                        yaraft::MemStoreUptr* memstore);
 };
 
-extern WriteAheadLog* TEST_GetWalStore(const std::string& testDir,
-                                       yaraft::MemoryStorage* memstore = nullptr);
+extern WriteAheadLogUPtr TEST_CreateWalStore(const std::string& testDir, yaraft::MemStoreUptr* pMemstore);
+
+inline WriteAheadLogUPtr TEST_CreateWalStore(const std::string& testDir) {
+  yaraft::MemStoreUptr memstore;
+  return TEST_CreateWalStore(testDir, &memstore);
+}
 
 }  // namespace wal
 }  // namespace consensus

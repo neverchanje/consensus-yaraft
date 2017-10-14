@@ -25,6 +25,8 @@ namespace wal {
 
 Status ReadSegmentIntoMemoryStorage(const Slice &fname, yaraft::MemoryStorage *memStore,
                                     SegmentMetaData *metaData, bool verifyChecksum) {
+  LOG_ASSERT(memStore != nullptr);
+
   char *buf;
   Slice s;
   RETURN_NOT_OK(env_util::ReadFullyToBuffer(fname, &s, &buf));

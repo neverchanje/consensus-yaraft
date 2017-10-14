@@ -14,7 +14,6 @@
 
 #include "base/testing.h"
 #include "wal/log_manager.h"
-#include "wal/log_writer.h"
 #include "wal/readable_log_segment.h"
 
 namespace consensus {
@@ -36,10 +35,7 @@ inline bool operator==(EntryVec v1, EntryVec v2) {
   return true;
 }
 
-class LogManagerTest : public BaseTest {
- public:
-  LogManagerTest() {}
-};
+class LogManagerTest : public BaseTest {};
 
 TEST_F(LogManagerTest, AppendToOneSegment) {
   using namespace yaraft;
@@ -50,7 +46,7 @@ TEST_F(LogManagerTest, AppendToOneSegment) {
 
   for (auto t : tests) {
     TestDirGuard g(CreateTestDirGuard());
-    std::unique_ptr<WriteAheadLog> wal(TEST_GetWalStore(GetTestDir()));
+    WriteAheadLogUPtr wal(TEST_CreateWalStore(GetTestDir()));
 
     EntryVec expected;
     for (uint64_t i = 1; i <= t.totalEntries; i++) {
@@ -124,10 +120,10 @@ TEST_F(LogManagerTest, AppendToMemStore) {
 // This test verifies that no logs will be loaded when LogManager recovers from empty directory.
 TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
   TestDirGuard g(CreateTestDirGuard());
-  yaraft::MemoryStorage memstore;
-  std::unique_ptr<WriteAheadLog> d(TEST_GetWalStore(GetTestDir(), &memstore));
+  yaraft::MemStoreUptr memstore;
+  WriteAheadLogUPtr d(TEST_CreateWalStore(GetTestDir(), &memstore));
 
-  ASSERT_EQ(memstore.TEST_Entries().size(), 1);
+  ASSERT_EQ(memstore->TEST_Entries().size(), 1);
 }
 
 TEST_F(LogManagerTest, Recover) {
@@ -147,26 +143,25 @@ TEST_F(LogManagerTest, Recover) {
       expected.push_back(PBEntry().Index(i).Term(i).v);
     }
     {
-      std::unique_ptr<WriteAheadLog> w(TEST_GetWalStore(GetTestDir()));
+      WriteAheadLogUPtr w(TEST_CreateWalStore(GetTestDir()));
+      ASSERT_OK(w->Write(expected));
+      ASSERT_OK(w->Close());
+
       auto m = dynamic_cast<LogManager*>(w.get());
-
-      ASSERT_OK(m->Write(expected));
-      ASSERT_OK(m->Close());
-
       segNum = m->SegmentNum();
     }
 
     WriteAheadLogOptions options;
     options.log_dir = GetTestDir();
     options.log_segment_size = 1024;
-    yaraft::MemoryStorage memstore;
-    LogManager* m;
-    ASSIGN_IF_ASSERT_OK(LogManager::Recover(options, &memstore), m);
-    std::unique_ptr<LogManager> d(m);
+
+    yaraft::MemStoreUptr memstore;
+    LogManagerUPtr m;
+    ASSERT_OK(LogManager::Recover(options, &memstore, &m));
 
     ASSERT_EQ(segNum, m->SegmentNum());
 
-    EntryVec actual(memstore.TEST_Entries().begin() + 1, memstore.TEST_Entries().end());
+    EntryVec actual(memstore->TEST_Entries().begin() + 1, memstore->TEST_Entries().end());
     for (int i = 1; i < actual.size(); i++) {
       ASSERT_TRUE(expected == actual);
     }

@@ -53,7 +53,6 @@ function run_test() {
     unit_test background_worker_test
     unit_test random_test
 
-    unit_test segment_meta_test
     unit_test log_writer_test
     unit_test log_manager_test
 
