@@ -16,14 +16,34 @@
 #include "logging.h"
 #include "memkv_service.h"
 
+#include <boost/make_unique.hpp>
+#include <consensus/base/env.h>
+#include <consensus/base/glog_logger.h>
+
 using namespace memkv;
 
 DEFINE_uint64(id, 1, "one of the values in {1, 2, 3}");
 DEFINE_string(wal_dir, "", "directory to store wal");
 DEFINE_int32(server_count, 3, "number of servers in the cluster");
+DEFINE_string(memkv_log_dir, "",
+              "If specified, logfiles are written into this directory instead "
+              "of the default logging directory.");
+
+void InitLogging(const char* argv0) {
+  google::InitGoogleLogging(argv0);
+  FLAGS_log_dir = FLAGS_memkv_log_dir;
+  if (!FLAGS_log_dir.empty()) {
+    FATAL_NOT_OK(consensus::Env::Default()->CreateDirIfMissing(FLAGS_log_dir), FLAGS_log_dir);
+  } else {
+    // print to stderr when log_dir is not specified.
+    FLAGS_logtostderr = true;
+  }
+  yaraft::SetLogger(boost::make_unique<consensus::GLogLogger>());
+}
 
 int main(int argc, char* argv[]) {
   gflags::ParseCommandLineFlags(&argc, &argv, true);
+  InitLogging(argv[0]);
 
   //
   // -- create DB instance --

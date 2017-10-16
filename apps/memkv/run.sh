@@ -74,13 +74,17 @@ function run_start_onebox() {
     for i in $(seq ${SERVER_COUNT})
     do
         # restart from empty wal dir
-        if [ -d ./output/infra${i}.consensus ]; then
-            rm -rf ./output/infra${i}.consensus
+        SERVER_DIR=${PROJECT_DIR}/output/server${i}.consensus
+        if [ -d $SERVER_DIR ]; then
+            echo "rm -rf $SERVER_DIR"
+            rm -rf $SERVER_DIR
         fi
+        echo "./output/bin/memkv_server --id=${i} --server_count=${SERVER_COUNT} --wal_dir=$SERVER_DIR/wal --memkv_log_dir=$SERVER_DIR/log &> /dev/null &"
         ./output/bin/memkv_server \
             --id=${i} \
             --server_count=${SERVER_COUNT} \
-            --wal_dir=${PROJECT_DIR}/output/infra${i}.consensus  &>./output/bin/server${i}.log &
+            --wal_dir=$SERVER_DIR/wal \
+            --memkv_log_dir=$SERVER_DIR/log &> /dev/null &
     done
 }
 

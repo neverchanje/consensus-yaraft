@@ -88,8 +88,7 @@ class DB::Impl {
 StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   using consensus::ReplicatedLogOptions;
   using consensus::ReplicatedLog;
-  using consensus::wal::WriteAheadLogOptions;
-  using consensus::wal::WriteAheadLog;
+  using namespace consensus::wal;
 
   auto db = new DB;
 
@@ -102,10 +101,14 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   WriteAheadLogOptions walOptions;
   walOptions.log_dir = options.wal_dir;
 
-  consensus::Status s = WriteAheadLog::Default(walOptions, &rlogOptions.wal, rlogOptions.memstore);
+  WriteAheadLogUPtr wal;
+  yaraft::MemStoreUptr memstore;
+  consensus::Status s = WriteAheadLog::Default(walOptions, &wal, &memstore);
   if (!s.IsOK()) {
     return Status::Make(Error::ConsensusError, s.ToString()) << " [WriteAheadLog::Default]";
   }
+  rlogOptions.wal = wal.release();
+  rlogOptions.memstore = memstore.release();
 
   consensus::StatusWith<ReplicatedLog *> sw = ReplicatedLog::New(rlogOptions);
   if (!sw.IsOK()) {
