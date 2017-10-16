@@ -26,7 +26,10 @@ class ReplicatedLogTest : public BaseTest {
     options.heartbeat_interval = 100;
     options.election_timeout = 1000;
     options.memstore = new yaraft::MemoryStorage;
-    options.wal = wal::TEST_GetWalStore(GetTestDir(), options.memstore);
+
+    yaraft::MemStoreUptr memstore;
+    options.wal = wal::TEST_CreateWalStore(GetTestDir(), &memstore).release();
+    options.memstore = memstore.release();
   }
 
   void TearDown() override {

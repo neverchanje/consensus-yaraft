@@ -130,6 +130,8 @@ build_gflag() {
   popd
 }
 
+# Due to some sort of historical reason, glog seems conflicting with gflags.
+# If we build glog with gflags, some undefined reference problems will come up.
 build_glog() {
   GLOG_BDIR=$GLOG_SOURCE/build
   mkdir -p $GLOG_BDIR

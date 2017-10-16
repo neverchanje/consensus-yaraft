@@ -14,5 +14,6 @@ PROTOBUF_LIBS_DIR=$PROTOBUF_DEP_DIR/lib
 # leveldb-dev should have been installed.
 
 bash $BRPC_CONFIG_SCRIPT --headers="$GFLAGS_HEADER_DIR $PROTOBUF_HEADER_DIR /usr/include" \
-    --libs="$GFLAGS_LIBS_DIR $PROTOBUF_LIBS_DIR /usr/lib64" --cxx=g++ --cc=gcc
+    --libs="$GFLAGS_LIBS_DIR $PROTOBUF_LIBS_DIR /usr/lib64" --cxx=g++ --cc=gcc \
+    --with-glog=true
 make -j4
