@@ -45,12 +45,11 @@ Currently we relies on [brpc](brpc) to implement network communication.
 
 ## MemKV
 
-[Memkv](memkv) is a prototype of using consensus-yaraft to implement a raft-based key-value store.
+[apps/memkv](apps/memkv) is a prototype of using consensus-yaraft to implement a raft-based in-memory key-value store.
 
 ## License
 
 consensus-yaraft is under the Apache 2.0 license. See the LICENSE file for details.
 
-[memkv]: https://github.com/neverchanje/consensus-yaraft/tree/master/apps/memkv
 [brpc]: https://github.com/brpc/brpc
 [raft]: https://raft.github.io
