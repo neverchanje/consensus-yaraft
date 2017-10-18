@@ -35,7 +35,7 @@ endfunction()
 
 ADD_TEST(memkv_store_test)
 
-add_executable(memkv_server memkv_server.cc ${MEMKV_SOURCES})
+add_executable(memkv_server memkv_server.cc)
 target_link_libraries(memkv_server ${MEMKV_LINK_LIBS})
 
 install(TARGETS memkv_server DESTINATION bin)

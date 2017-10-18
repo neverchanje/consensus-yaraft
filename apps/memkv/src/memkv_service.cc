@@ -25,17 +25,31 @@ static inline pb::ErrCode memkvErrorToRpcErrno(Error::ErrorCodes code) {
       return pb::InvalidArgument;
     case Error::NodeNotExist:
       return pb::NodeNotExist;
+    case Error::ConsensusError:
+      return pb::ConsensusError;
     default:
       LOG(FATAL) << "Unexpected error code: " << Error::toString(code);
       return pb::OK;
   }
 }
 
+// write request via http goes like this:
+//  http URL:PORT/Write/abc/a body="hello"
+// if ok, path "/abc/a" will be set to "hello"
 void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
                              const ::memkv::pb::WriteRequest *request,
                              ::memkv::pb::WriteResult *response,
                              ::google::protobuf::Closure *done) {
-  Status s = db_->Write(request->path(), request->value());
+  auto cntl = static_cast<brpc::Controller *>(controller);
+  Status s;
+  if (cntl->has_http_request()) {
+    Slice path(cntl->http_request().unresolved_path());
+    Slice value(cntl->request_attachment().to_string());
+    s = db_->Write(path, value);
+  } else {
+    s = db_->Write(request->path(), request->value());
+  }
+
   response->set_errorcode(memkvErrorToRpcErrno(s.Code()));
   if (!s.IsOK()) {
     response->set_errormessage(s.ToString());
@@ -46,8 +60,16 @@ void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
 void MemKVServiceImpl::Read(::google::protobuf::RpcController *controller,
                             const ::memkv::pb::ReadRequest *request,
                             ::memkv::pb::ReadResult *response, ::google::protobuf::Closure *done) {
+  auto cntl = static_cast<brpc::Controller *>(controller);
   auto result = new std::string;
-  Status s = db_->Get(request->path(), result);
+  Status s;
+  if (cntl->has_http_request()) {
+    Slice path(cntl->http_request().unresolved_path());
+    s = db_->Get(path, result);
+  } else {
+    s = db_->Get(request->path(), result);
+  }
+
   response->set_allocated_value(result);
   response->set_errorcode(memkvErrorToRpcErrno(s.Code()));
   if (!s.IsOK()) {

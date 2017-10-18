@@ -51,5 +51,6 @@ include_directories(${YARAFT_THIRDPARTY_DIR}/include)
 include_directories(${CONSENSUS_YARAFT_THIRDPARTY_DIR}/include)
 include_directories(${CONSENSUS_YARAFT_DIR}/output/include)
 include_directories(${BRPC_THIRDPARTY_DIR}/include)
+include_directories(src)
 
 add_subdirectory(src)
