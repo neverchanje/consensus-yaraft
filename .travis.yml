@@ -10,7 +10,7 @@ branches:
   - master
 
 install:
-- sudo apt-get -y install libboost-all-dev libsnappy-dev
+- sudo apt-get -y install libboost-all-dev libsnappy-dev realpath
 - bash install_dependencies.sh
 - bash compile_proto.sh
 - bash run.sh build
