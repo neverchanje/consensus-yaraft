@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
   FMT_LOG(INFO, "Starting memkv server {} at {}", FLAGS_id, options.initial_cluster[FLAGS_id]);
   FMT_LOG(INFO, "--wal_dir: {}", FLAGS_wal_dir);
   brpc::ServerOptions opts;
+  opts.num_threads = 1;
   brpc::Server server;
   server.AddService(new MemKVServiceImpl(db), brpc::SERVER_OWNS_SERVICE);
   server.AddService(db->CreateRaftServiceInstance(), brpc::SERVER_OWNS_SERVICE);

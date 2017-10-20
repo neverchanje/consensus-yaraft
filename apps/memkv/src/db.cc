@@ -48,9 +48,17 @@ static std::string LogEncode(OpType type, const Slice &path, const Slice &value)
 
 class DB::Impl {
  public:
-  Impl() : kv_(new MemKvStore) {}
+  explicit Impl() : kv_(new MemKvStore) {}
 
-  Status Get(const Slice &path, std::string *data) {
+  Status Get(const Slice &path, bool stale, std::string *data) {
+    bool allowed = false;
+    uint64_t currentLeader = log_->GetInfo().currentLeader;
+    uint64_t id = log_->Id();
+    if (currentLeader != id && !stale) {
+      return FMT_Status(ConsensusError,
+                        "read from a non-leader node, stale read not allowed [id: {}, leader: {}]",
+                        id, currentLeader);
+    }
     return kv_->Get(path, data);
   }
 
@@ -91,6 +99,7 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   using namespace consensus::wal;
 
   auto db = new DB;
+  db->impl_.reset(new Impl());
 
   ReplicatedLogOptions rlogOptions;
   rlogOptions.id = options.member_id;
@@ -120,8 +129,8 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   return db;
 }
 
-Status DB::Get(const Slice &path, std::string *data) {
-  return impl_->Get(path, data);
+Status DB::Get(const Slice &path, bool stale, std::string *data) {
+  return impl_->Get(path, stale, data);
 }
 
 Status DB::Delete(const Slice &path) {
@@ -132,7 +141,7 @@ Status DB::Write(const Slice &path, const Slice &value) {
   return impl_->Write(path, value);
 }
 
-DB::DB() : impl_(new Impl) {}
+DB::DB() {}
 
 DB::~DB() = default;
 

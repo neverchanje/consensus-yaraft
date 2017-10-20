@@ -34,7 +34,7 @@ static inline pb::ErrCode memkvErrorToRpcErrno(Error::ErrorCodes code) {
 }
 
 // write request via http goes like this:
-//  http URL:PORT/Write/abc/a body="hello"
+//  http 'URL:PORT/Write/abc/a?value=hello'
 // if ok, path "/abc/a" will be set to "hello"
 void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
                              const ::memkv::pb::WriteRequest *request,
@@ -44,7 +44,8 @@ void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
   Status s;
   if (cntl->has_http_request()) {
     Slice path(cntl->http_request().unresolved_path());
-    Slice value(cntl->request_attachment().to_string());
+    Slice value(*cntl->http_request().uri().GetQuery("value"));
+    LOG(ERROR) << "path: " << path << " value: " << value;
     s = db_->Write(path, value);
   } else {
     s = db_->Write(request->path(), request->value());
@@ -65,9 +66,14 @@ void MemKVServiceImpl::Read(::google::protobuf::RpcController *controller,
   Status s;
   if (cntl->has_http_request()) {
     Slice path(cntl->http_request().unresolved_path());
-    s = db_->Get(path, result);
+    bool stale = false;
+    if (cntl->http_request().uri().GetQuery("stale") != nullptr) {
+      stale = true;
+    }
+    LOG(ERROR) << "path: " << path << " stale: " << stale;
+    s = db_->Get(path, stale, result);
   } else {
-    s = db_->Get(request->path(), result);
+    s = db_->Get(request->path(), request->stale(), result);
   }
 
   response->set_allocated_value(result);

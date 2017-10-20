@@ -15,6 +15,10 @@ enum ErrCode {
 
 message ReadRequest {
     optional string path = 1;
+
+    // is stale read allowed
+    // if false, requests will get rejected when current node is not leader.
+    optional bool stale = 2;
 }
 
 message ReadResult {

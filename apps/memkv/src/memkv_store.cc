@@ -109,7 +109,7 @@ class MemKvStore::Impl {
 
       auto it = n->children.find(seg.ToString());
       if (it == n->children.end()) {
-        return FMT_Status(Error::NodeNotExist, "node does not exist on path {}", path.data());
+        return FMT_Status(NodeNotExist, "node does not exist on path {}", path.data());
       }
 
       parent = n;
@@ -130,7 +130,7 @@ class MemKvStore::Impl {
 
     for (size_t i = 0; i < path.size(); i++) {
       if (path[i] == '\0') {
-        return FMT_Status(Error::InvalidArgument, "path contains NUL at index {}", i);
+        return FMT_Status(InvalidArgument, "path contains NUL at index {}", i);
       }
     }
 

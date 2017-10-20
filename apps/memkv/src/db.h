@@ -47,7 +47,7 @@ class DB {
 
   Status Delete(const Slice &path);
 
-  Status Get(const Slice &path, std::string *data);
+  Status Get(const Slice &path, bool stale, std::string *data);
 
   consensus::RaftServiceImpl *CreateRaftServiceInstance() const;
 
