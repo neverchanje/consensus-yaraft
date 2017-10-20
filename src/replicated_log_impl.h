@@ -51,10 +51,10 @@ class ReplicatedLogImpl {
     conf->electionTick = options.election_timeout;
     conf->heartbeatTick = options.heartbeat_interval;
     conf->id = options.id;
-    conf->storage = options.memstore;
-    if (!conf->storage) {
-      conf->storage = new yaraft::MemoryStorage;
+    if (!options.memstore) {
+      options.memstore = new yaraft::MemoryStorage;
     }
+    conf->storage = options.memstore;
     for (const auto &e : options.initial_cluster) {
       conf->peers.push_back(e.first);
     }

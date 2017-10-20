@@ -123,7 +123,7 @@ TEST_F(LogManagerTest, RecoverFromEmtpyDirectory) {
   yaraft::MemStoreUptr memstore;
   WriteAheadLogUPtr d(TEST_CreateWalStore(GetTestDir(), &memstore));
 
-  ASSERT_EQ(memstore->TEST_Entries().size(), 1);
+  ASSERT_EQ(memstore, nullptr);
 }
 
 TEST_F(LogManagerTest, Recover) {

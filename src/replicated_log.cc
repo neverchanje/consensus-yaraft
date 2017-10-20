@@ -55,6 +55,10 @@ SimpleChannel<Status> ReplicatedLog::AsyncWrite(const Slice &log) {
   return impl_->AsyncWrite(log);
 }
 
+uint64_t ReplicatedLog::Id() const {
+  return impl_->id_;
+}
+
 Status ReplicatedLogOptions::Validate() const {
 #define ConfigNotNull(var) \
   if ((var) == nullptr)    \
@@ -73,7 +77,6 @@ ReplicatedLogOptions::ReplicatedLogOptions()
       flusher(nullptr),
       timer(nullptr),
       wal(nullptr),
-      memstore(nullptr) {
-}
+      memstore(nullptr) {}
 
 }  // namespace consensus
