@@ -81,6 +81,8 @@ class ReplicatedLog {
 
   RaftTaskExecutor* RaftTaskExecutorInstance() const;
 
+  uint64_t Id() const;
+
   yaraft::RaftInfo GetInfo();
 
   ~ReplicatedLog();

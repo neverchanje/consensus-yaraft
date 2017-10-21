@@ -85,9 +85,6 @@ class ReplicatedLogImpl {
     }
     impl->flusher_->Register(impl);
 
-    // -- Other stuff --
-    impl->id_ = options.id;
-
     auto rl = new ReplicatedLog;
     rl->impl_.reset(impl);
     return rl;
@@ -100,10 +97,11 @@ class ReplicatedLogImpl {
 
     executor_->Submit([&](yaraft::RawNode *node) {
       auto info = node->GetInfo();
-      if (info.currentLeader != id_) {
+      uint64_t id = Id();
+      if (info.currentLeader != id) {
         channel <<=
             FMT_Status(WalWriteToNonLeader, "writing to a non-leader node, [id: {}, leader: {}]",
-                       id_, info.currentLeader);
+                       id, info.currentLeader);
         return;
       }
 
@@ -120,6 +118,10 @@ class ReplicatedLogImpl {
     });
 
     return channel;
+  }
+
+  uint64_t Id() const {
+    return node_->Id();
   }
 
  private:
@@ -140,8 +142,6 @@ class ReplicatedLogImpl {
   yaraft::MemoryStorage *memstore_;
 
   wal::WriteAheadLog *wal_;
-
-  uint64_t id_;
 };
 
 }  // namespace consensus

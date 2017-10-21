@@ -56,7 +56,7 @@ SimpleChannel<Status> ReplicatedLog::AsyncWrite(const Slice &log) {
 }
 
 uint64_t ReplicatedLog::Id() const {
-  return impl_->id_;
+  return impl_->Id();
 }
 
 Status ReplicatedLogOptions::Validate() const {
