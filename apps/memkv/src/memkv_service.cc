@@ -65,6 +65,10 @@ void MemKVServiceImpl::Read(::google::protobuf::RpcController *controller,
   auto result = new std::string;
   Status s;
   if (cntl->has_http_request()) {
+    // by default brpc will encode string to base64
+    // we don't need this feature here.
+    cntl->set_pb_bytes_to_base64(false);
+
     Slice path(cntl->http_request().unresolved_path());
     bool stale = false;
     if (cntl->http_request().uri().GetQuery("stale") != nullptr) {
