@@ -38,19 +38,6 @@ RaftTaskExecutor *ReplicatedLog::RaftTaskExecutorInstance() const {
 
 ReplicatedLog::~ReplicatedLog() {}
 
-yaraft::RaftInfo ReplicatedLog::GetInfo() {
-  Barrier barrier;
-  yaraft::RaftInfo info;
-
-  impl_->executor_->Submit([&](yaraft::RawNode *node) {
-    info = node->GetInfo();
-    barrier.Signal();
-  });
-  barrier.Wait();
-
-  return info;
-}
-
 SimpleChannel<Status> ReplicatedLog::AsyncWrite(const Slice &log) {
   return impl_->AsyncWrite(log);
 }

@@ -96,16 +96,15 @@ class ReplicatedLogImpl {
     SimpleChannel<Status> channel;
 
     executor_->Submit([&](yaraft::RawNode *node) {
-      auto info = node->GetInfo();
       uint64_t id = Id();
-      if (info.currentLeader != id) {
+      if (node->IsLeader()) {
         channel <<=
             FMT_Status(WalWriteToNonLeader, "writing to a non-leader node, [id: {}, leader: {}]",
-                       id, info.currentLeader);
+                       id, node->LeaderHint());
         return;
       }
 
-      uint64_t newIndex = info.logIndex + 1;
+      uint64_t newIndex = node->LastIndex() + 1;
 
       yaraft::Status s = node->Propose(log);
       if (UNLIKELY(!s.IsOK())) {

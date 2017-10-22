@@ -26,7 +26,6 @@
 #include "consensus/wal/wal.h"
 
 #include <silly/disallow_copying.h>
-#include <yaraft/raft_info.h>
 
 namespace consensus {
 
@@ -82,8 +81,6 @@ class ReplicatedLog {
   RaftTaskExecutor* RaftTaskExecutorInstance() const;
 
   uint64_t Id() const;
-
-  yaraft::RaftInfo GetInfo();
 
   ~ReplicatedLog();
 

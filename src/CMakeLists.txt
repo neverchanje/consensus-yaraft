@@ -27,6 +27,7 @@ set(BASE_SOURCES
         ${BASE_SOURCE_DIR}/testing.cc
         ${BASE_SOURCE_DIR}/env_util.cc
         ${BASE_SOURCE_DIR}/coding.cc
+        ${BASE_SOURCE_DIR}/glog_logger.cc
         ${BASE_SOURCE_DIR}/endianness.cc
         ${BASE_SOURCE_DIR}/background_worker.cc
         ${BASE_SOURCE_DIR}/task_queue.cc)

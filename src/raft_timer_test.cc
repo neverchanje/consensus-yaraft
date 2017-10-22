@@ -32,15 +32,18 @@ TEST_F(RaftTimerTest, Timeout) {
 
   sleep(2);
 
-  yaraft::RaftInfo info;
+  uint64_t currentTerm = 0;
+  uint64_t lastIndex = 0;
+
   Barrier barrier;
   executor.Submit([&](yaraft::RawNode *n) {
-    info = n->GetInfo();
+    currentTerm = n->CurrentTerm();
+    lastIndex = n->LastIndex();
 
     barrier.Signal();
   });
   barrier.Wait();
 
-  ASSERT_GE(info.currentTerm, 1);
-  ASSERT_GE(info.logIndex, 1);
+  ASSERT_GE(currentTerm, 1);
+  ASSERT_GE(lastIndex, 1);
 }
