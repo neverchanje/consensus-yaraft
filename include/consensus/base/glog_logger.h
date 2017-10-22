@@ -12,36 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <glog/logging.h>
+#pragma once
+
 #include <yaraft/logger.h>
 
 namespace consensus {
 
 class GLogLogger : public yaraft::Logger {
  public:
-  void Log(yaraft::LogLevel level, int line, const char* file, const yaraft::Slice& log) override {
-    google::LogSeverity severity;
-    switch (level) {
-      case yaraft::INFO:
-        severity = google::INFO;
-        break;
-      case yaraft::WARNING:
-        severity = google::WARNING;
-        break;
-      case yaraft::ERROR:
-        severity = google::ERROR;
-        break;
-      case yaraft::FATAL:
-        severity = google::FATAL;
-        break;
-      default:
-        assert(false);
-    }
-    google::LogMessage logMessage(file, line, severity);
-    std::ostream& logStream = logMessage.stream();
-    logStream.write(log.data(), log.size());
-    logStream.flush();
-  }
+  void Log(yaraft::LogLevel level, int line, const char* file, const yaraft::Slice& log) override;
 };
 
 }  // namespace consensus
