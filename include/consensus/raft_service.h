@@ -32,6 +32,9 @@ class RaftServiceImpl : public pb::RaftService {
   void Step(google::protobuf::RpcController *controller, const pb::StepRequest *request,
             pb::StepResponse *response, google::protobuf::Closure *done) override;
 
+  void Status(::google::protobuf::RpcController *controller, const pb::StatusRequest *request,
+              pb::StatusResponse *response, ::google::protobuf::Closure *done) override;
+
  private:
   RaftTaskExecutor *executor_;
 };

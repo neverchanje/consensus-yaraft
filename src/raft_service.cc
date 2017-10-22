@@ -57,4 +57,22 @@ void RaftServiceImpl::Step(google::protobuf::RpcController *controller,
   done->Run();
 }
 
+void RaftServiceImpl::Status(::google::protobuf::RpcController *controller,
+                             const pb::StatusRequest *request, pb::StatusResponse *response,
+                             ::google::protobuf::Closure *done) {
+  Barrier barrier;
+  executor_->Submit(std::bind(
+      [&](yaraft::RawNode *node) {
+        response->set_leader(node->LeaderHint());
+        response->set_raftindex(node->LastIndex());
+        response->set_raftterm(node->CurrentTerm());
+
+        barrier.Signal();
+      },
+      std::placeholders::_1));
+  barrier.Wait();
+
+  done->Run();
+}
+
 }  // namespace consensus
