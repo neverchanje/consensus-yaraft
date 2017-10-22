@@ -49,7 +49,7 @@ class DB {
 
   Status Get(const Slice &path, bool stale, std::string *data);
 
-  consensus::RaftServiceImpl *CreateRaftServiceInstance() const;
+  consensus::pb::RaftService *CreateRaftServiceInstance() const;
 
   DB();
 

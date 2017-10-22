@@ -17,6 +17,7 @@
 #include "memkv_service.h"
 
 #include <consensus/base/coding.h>
+#include <consensus/raft_task_executor.h>
 #include <consensus/replicated_log.h>
 
 namespace memkv {
@@ -52,7 +53,9 @@ class DB::Impl {
 
   Status Get(const Slice &path, bool stale, std::string *data) {
     bool allowed = false;
-    uint64_t currentLeader = log_->GetInfo().currentLeader;
+    uint64_t currentLeader;
+    log_->RaftTaskExecutorInstance()->Submit(
+        [&](yaraft::RawNode *node) { currentLeader = node->LeaderHint(); });
     uint64_t id = log_->Id();
     if (currentLeader != id && !stale) {
       return FMT_Status(ConsensusError,
@@ -145,7 +148,7 @@ DB::DB() {}
 
 DB::~DB() = default;
 
-consensus::RaftServiceImpl *DB::CreateRaftServiceInstance() const {
+consensus::pb::RaftService *DB::CreateRaftServiceInstance() const {
   return new consensus::RaftServiceImpl(impl_->log_->RaftTaskExecutorInstance());
 }
 
