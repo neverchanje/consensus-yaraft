@@ -6,14 +6,14 @@
 
 #include <algorithm>
 
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/generated_message_reflection.h>
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/reflection_ops.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
-#include <google/protobuf/wire_format.h>
+#include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/wire_format_lite_inl.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 
 namespace consensus {
@@ -22,63 +22,91 @@ namespace pb {
 namespace {
 
 const ::google::protobuf::Descriptor* StepRequest_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection* StepRequest_reflection_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  StepRequest_reflection_ = NULL;
 const ::google::protobuf::Descriptor* StepResponse_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection* StepResponse_reflection_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  StepResponse_reflection_ = NULL;
 const ::google::protobuf::Descriptor* StatusRequest_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection* StatusRequest_reflection_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  StatusRequest_reflection_ = NULL;
 const ::google::protobuf::Descriptor* StatusResponse_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection* StatusResponse_reflection_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  StatusResponse_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* StatusCode_descriptor_ = NULL;
 const ::google::protobuf::ServiceDescriptor* RaftService_descriptor_ = NULL;
 
 }  // namespace
 
+
 void protobuf_AssignDesc_raft_5fserver_2eproto() {
   protobuf_AddDesc_raft_5fserver_2eproto();
   const ::google::protobuf::FileDescriptor* file =
-      ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName("raft_server.proto");
+    ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
+      "raft_server.proto");
   GOOGLE_CHECK(file != NULL);
   StepRequest_descriptor_ = file->message_type(0);
   static const int StepRequest_offsets_[1] = {
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepRequest, message_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepRequest, message_),
   };
-  StepRequest_reflection_ = new ::google::protobuf::internal::GeneratedMessageReflection(
-      StepRequest_descriptor_, StepRequest::default_instance_, StepRequest_offsets_,
+  StepRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      StepRequest_descriptor_,
+      StepRequest::default_instance_,
+      StepRequest_offsets_,
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepRequest, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepRequest, _unknown_fields_), -1,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepRequest, _unknown_fields_),
+      -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(), sizeof(StepRequest));
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(StepRequest));
   StepResponse_descriptor_ = file->message_type(1);
   static const int StepResponse_offsets_[1] = {
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepResponse, code_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepResponse, code_),
   };
-  StepResponse_reflection_ = new ::google::protobuf::internal::GeneratedMessageReflection(
-      StepResponse_descriptor_, StepResponse::default_instance_, StepResponse_offsets_,
+  StepResponse_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      StepResponse_descriptor_,
+      StepResponse::default_instance_,
+      StepResponse_offsets_,
       GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepResponse, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepResponse, _unknown_fields_), -1,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StepResponse, _unknown_fields_),
+      -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(), sizeof(StepResponse));
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(StepResponse));
   StatusRequest_descriptor_ = file->message_type(2);
-  static const int StatusRequest_offsets_[1] = {};
-  StatusRequest_reflection_ = new ::google::protobuf::internal::GeneratedMessageReflection(
-      StatusRequest_descriptor_, StatusRequest::default_instance_, StatusRequest_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusRequest, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusRequest, _unknown_fields_), -1,
-      ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(), sizeof(StatusRequest));
-  StatusResponse_descriptor_ = file->message_type(3);
-  static const int StatusResponse_offsets_[3] = {
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, leader_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, raftindex_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, raftterm_),
+  static const int StatusRequest_offsets_[1] = {
   };
-  StatusResponse_reflection_ = new ::google::protobuf::internal::GeneratedMessageReflection(
-      StatusResponse_descriptor_, StatusResponse::default_instance_, StatusResponse_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, _unknown_fields_), -1,
+  StatusRequest_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      StatusRequest_descriptor_,
+      StatusRequest::default_instance_,
+      StatusRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusRequest, _unknown_fields_),
+      -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(), sizeof(StatusResponse));
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(StatusRequest));
+  StatusResponse_descriptor_ = file->message_type(3);
+  static const int StatusResponse_offsets_[4] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, leader_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, raftindex_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, raftterm_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, raftcommit_),
+  };
+  StatusResponse_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      StatusResponse_descriptor_,
+      StatusResponse::default_instance_,
+      StatusResponse_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(StatusResponse, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(StatusResponse));
   StatusCode_descriptor_ = file->enum_type(0);
   RaftService_descriptor_ = file->service(0);
 }
@@ -88,19 +116,19 @@ namespace {
 GOOGLE_PROTOBUF_DECLARE_ONCE(protobuf_AssignDescriptors_once_);
 inline void protobuf_AssignDescriptorsOnce() {
   ::google::protobuf::GoogleOnceInit(&protobuf_AssignDescriptors_once_,
-                                     &protobuf_AssignDesc_raft_5fserver_2eproto);
+                 &protobuf_AssignDesc_raft_5fserver_2eproto);
 }
 
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      StepRequest_descriptor_, &StepRequest::default_instance());
+    StepRequest_descriptor_, &StepRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      StepResponse_descriptor_, &StepResponse::default_instance());
+    StepResponse_descriptor_, &StepResponse::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      StatusRequest_descriptor_, &StatusRequest::default_instance());
+    StatusRequest_descriptor_, &StatusRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-      StatusResponse_descriptor_, &StatusResponse::default_instance());
+    StatusResponse_descriptor_, &StatusResponse::default_instance());
 }
 
 }  // namespace
@@ -118,28 +146,27 @@ void protobuf_ShutdownFile_raft_5fserver_2eproto() {
 
 void protobuf_AddDesc_raft_5fserver_2eproto() {
   static bool already_here = false;
-  if (already_here)
-    return;
+  if (already_here) return;
   already_here = true;
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::yaraft::pb::protobuf_AddDesc_yaraft_2fpb_2fraftpb_2eproto();
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      "\n\021raft_server.proto\022\014consensus.pb\032\026yaraf"
-      "t/pb/raftpb.proto\"2\n\013StepRequest\022#\n\007mess"
-      "age\030\001 \002(\0132\022.yaraft.pb.Message\"6\n\014StepRes"
-      "ponse\022&\n\004code\030\001 \002(\0162\030.consensus.pb.Statu"
-      "sCode\"\017\n\rStatusRequest\"E\n\016StatusResponse"
-      "\022\016\n\006leader\030\004 \001(\004\022\021\n\traftIndex\030\005 \001(\004\022\020\n\010r"
-      "aftTerm\030\006 \001(\004*<\n\nStatusCode\022\006\n\002OK\020\000\022\020\n\014S"
-      "tepLocalMsg\020\001\022\024\n\020StepPeerNotFound\020\0022\221\001\n\013"
-      "RaftService\022=\n\004Step\022\031.consensus.pb.StepR"
-      "equest\032\032.consensus.pb.StepResponse\022C\n\006St"
-      "atus\022\033.consensus.pb.StatusRequest\032\034.cons"
-      "ensus.pb.StatusResponseB\t\200\001\001\210\001\001\220\001\001",
-      474);
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile("raft_server.proto",
-                                                                    &protobuf_RegisterTypes);
+    "\n\021raft_server.proto\022\014consensus.pb\032\026yaraf"
+    "t/pb/raftpb.proto\"2\n\013StepRequest\022#\n\007mess"
+    "age\030\001 \002(\0132\022.yaraft.pb.Message\"6\n\014StepRes"
+    "ponse\022&\n\004code\030\001 \002(\0162\030.consensus.pb.Statu"
+    "sCode\"\017\n\rStatusRequest\"Y\n\016StatusResponse"
+    "\022\016\n\006leader\030\001 \001(\004\022\021\n\traftIndex\030\002 \001(\004\022\020\n\010r"
+    "aftTerm\030\003 \001(\004\022\022\n\nraftCommit\030\004 \001(\004*<\n\nSta"
+    "tusCode\022\006\n\002OK\020\000\022\020\n\014StepLocalMsg\020\001\022\024\n\020Ste"
+    "pPeerNotFound\020\0022\221\001\n\013RaftService\022=\n\004Step\022"
+    "\031.consensus.pb.StepRequest\032\032.consensus.p"
+    "b.StepResponse\022C\n\006Status\022\033.consensus.pb."
+    "StatusRequest\032\034.consensus.pb.StatusRespo"
+    "nseB\t\200\001\001\210\001\001\220\001\001", 494);
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
+    "raft_server.proto", &protobuf_RegisterTypes);
   StepRequest::default_instance_ = new StepRequest();
   StepResponse::default_instance_ = new StepResponse();
   StatusRequest::default_instance_ = new StatusRequest();
@@ -162,7 +189,7 @@ const ::google::protobuf::EnumDescriptor* StatusCode_descriptor() {
   return StatusCode_descriptor_;
 }
 bool StatusCode_IsValid(int value) {
-  switch (value) {
+  switch(value) {
     case 0:
     case 1:
     case 2:
@@ -172,22 +199,25 @@ bool StatusCode_IsValid(int value) {
   }
 }
 
+
 // ===================================================================
 
 #ifndef _MSC_VER
 const int StepRequest::kMessageFieldNumber;
 #endif  // !_MSC_VER
 
-StepRequest::StepRequest() : ::google::protobuf::Message() {
+StepRequest::StepRequest()
+  : ::google::protobuf::Message() {
   SharedCtor();
   // @@protoc_insertion_point(constructor:consensus.pb.StepRequest)
 }
 
 void StepRequest::InitAsDefaultInstance() {
-  message_ = const_cast<::yaraft::pb::Message*>(&::yaraft::pb::Message::default_instance());
+  message_ = const_cast< ::yaraft::pb::Message*>(&::yaraft::pb::Message::default_instance());
 }
 
-StepRequest::StepRequest(const StepRequest& from) : ::google::protobuf::Message() {
+StepRequest::StepRequest(const StepRequest& from)
+  : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:consensus.pb.StepRequest)
@@ -221,8 +251,7 @@ const ::google::protobuf::Descriptor* StepRequest::descriptor() {
 }
 
 const StepRequest& StepRequest::default_instance() {
-  if (default_instance_ == NULL)
-    protobuf_AddDesc_raft_5fserver_2eproto();
+  if (default_instance_ == NULL) protobuf_AddDesc_raft_5fserver_2eproto();
   return *default_instance_;
 }
 
@@ -234,35 +263,31 @@ StepRequest* StepRequest::New() const {
 
 void StepRequest::Clear() {
   if (has_message()) {
-    if (message_ != NULL)
-      message_->::yaraft::pb::Message::Clear();
+    if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
   }
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
 
-bool StepRequest::MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) \
-  if (!(EXPRESSION))    \
-  goto failure
+bool StepRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:consensus.pb.StepRequest)
   for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
-    if (!p.second)
-      goto handle_unusual;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required .yaraft.pb.Message message = 1;
       case 1: {
         if (tag == 10) {
           DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
-              input, mutable_message()));
+               input, mutable_message()));
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectAtEnd())
-          goto success;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
@@ -270,11 +295,11 @@ bool StepRequest::MergePartialFromCodedStream(::google::protobuf::io::CodedInput
       handle_unusual:
         if (tag == 0 ||
             ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-                ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
           goto success;
         }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(input, tag,
-                                                                mutable_unknown_fields()));
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
         break;
       }
     }
@@ -293,12 +318,13 @@ void StepRequest::SerializeWithCachedSizes(
   // @@protoc_insertion_point(serialize_start:consensus.pb.StepRequest)
   // required .yaraft.pb.Message message = 1;
   if (has_message()) {
-    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(1, this->message(),
-                                                                           output);
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      1, this->message(), output);
   }
 
   if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(unknown_fields(), output);
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
   }
   // @@protoc_insertion_point(serialize_end:consensus.pb.StepRequest)
 }
@@ -308,7 +334,8 @@ void StepRequest::SerializeWithCachedSizes(
   // @@protoc_insertion_point(serialize_to_array_start:consensus.pb.StepRequest)
   // required .yaraft.pb.Message message = 1;
   if (has_message()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteMessageNoVirtualToArray(
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
         1, this->message(), target);
   }
 
@@ -326,13 +353,16 @@ int StepRequest::ByteSize() const {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     // required .yaraft.pb.Message message = 1;
     if (has_message()) {
-      total_size +=
-          1 + ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(this->message());
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+          this->message());
     }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
-        ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(unknown_fields());
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
   }
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = total_size;
@@ -343,7 +373,8 @@ int StepRequest::ByteSize() const {
 void StepRequest::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
   const StepRequest* source =
-      ::google::protobuf::internal::dynamic_cast_if_available<const StepRequest*>(&from);
+    ::google::protobuf::internal::dynamic_cast_if_available<const StepRequest*>(
+      &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -362,22 +393,19 @@ void StepRequest::MergeFrom(const StepRequest& from) {
 }
 
 void StepRequest::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void StepRequest::CopyFrom(const StepRequest& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 bool StepRequest::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001)
-    return false;
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   return true;
 }
@@ -399,20 +427,24 @@ void StepRequest::Swap(StepRequest* other) {
   return metadata;
 }
 
+
 // ===================================================================
 
 #ifndef _MSC_VER
 const int StepResponse::kCodeFieldNumber;
 #endif  // !_MSC_VER
 
-StepResponse::StepResponse() : ::google::protobuf::Message() {
+StepResponse::StepResponse()
+  : ::google::protobuf::Message() {
   SharedCtor();
   // @@protoc_insertion_point(constructor:consensus.pb.StepResponse)
 }
 
-void StepResponse::InitAsDefaultInstance() {}
+void StepResponse::InitAsDefaultInstance() {
+}
 
-StepResponse::StepResponse(const StepResponse& from) : ::google::protobuf::Message() {
+StepResponse::StepResponse(const StepResponse& from)
+  : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:consensus.pb.StepResponse)
@@ -445,8 +477,7 @@ const ::google::protobuf::Descriptor* StepResponse::descriptor() {
 }
 
 const StepResponse& StepResponse::default_instance() {
-  if (default_instance_ == NULL)
-    protobuf_AddDesc_raft_5fserver_2eproto();
+  if (default_instance_ == NULL) protobuf_AddDesc_raft_5fserver_2eproto();
   return *default_instance_;
 }
 
@@ -462,34 +493,32 @@ void StepResponse::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool StepResponse::MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) \
-  if (!(EXPRESSION))    \
-  goto failure
+bool StepResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:consensus.pb.StepResponse)
   for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
-    if (!p.second)
-      goto handle_unusual;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
       // required .consensus.pb.StatusCode code = 1;
       case 1: {
         if (tag == 8) {
           int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-               int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(input, &value)));
+                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
+                 input, &value)));
           if (::consensus::pb::StatusCode_IsValid(value)) {
-            set_code(static_cast<::consensus::pb::StatusCode>(value));
+            set_code(static_cast< ::consensus::pb::StatusCode >(value));
           } else {
             mutable_unknown_fields()->AddVarint(1, value);
           }
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectAtEnd())
-          goto success;
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
@@ -497,11 +526,11 @@ bool StepResponse::MergePartialFromCodedStream(::google::protobuf::io::CodedInpu
       handle_unusual:
         if (tag == 0 ||
             ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-                ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
           goto success;
         }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(input, tag,
-                                                                mutable_unknown_fields()));
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
         break;
       }
     }
@@ -520,11 +549,13 @@ void StepResponse::SerializeWithCachedSizes(
   // @@protoc_insertion_point(serialize_start:consensus.pb.StepResponse)
   // required .consensus.pb.StatusCode code = 1;
   if (has_code()) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(1, this->code(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteEnum(
+      1, this->code(), output);
   }
 
   if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(unknown_fields(), output);
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
   }
   // @@protoc_insertion_point(serialize_end:consensus.pb.StepResponse)
 }
@@ -534,8 +565,8 @@ void StepResponse::SerializeWithCachedSizes(
   // @@protoc_insertion_point(serialize_to_array_start:consensus.pb.StepResponse)
   // required .consensus.pb.StatusCode code = 1;
   if (has_code()) {
-    target =
-        ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(1, this->code(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
+      1, this->code(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -552,12 +583,15 @@ int StepResponse::ByteSize() const {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     // required .consensus.pb.StatusCode code = 1;
     if (has_code()) {
-      total_size += 1 + ::google::protobuf::internal::WireFormatLite::EnumSize(this->code());
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::EnumSize(this->code());
     }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
-        ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(unknown_fields());
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
   }
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = total_size;
@@ -568,7 +602,8 @@ int StepResponse::ByteSize() const {
 void StepResponse::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
   const StepResponse* source =
-      ::google::protobuf::internal::dynamic_cast_if_available<const StepResponse*>(&from);
+    ::google::protobuf::internal::dynamic_cast_if_available<const StepResponse*>(
+      &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -587,22 +622,19 @@ void StepResponse::MergeFrom(const StepResponse& from) {
 }
 
 void StepResponse::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void StepResponse::CopyFrom(const StepResponse& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 bool StepResponse::IsInitialized() const {
-  if ((_has_bits_[0] & 0x00000001) != 0x00000001)
-    return false;
+  if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   return true;
 }
@@ -624,19 +656,23 @@ void StepResponse::Swap(StepResponse* other) {
   return metadata;
 }
 
+
 // ===================================================================
 
 #ifndef _MSC_VER
 #endif  // !_MSC_VER
 
-StatusRequest::StatusRequest() : ::google::protobuf::Message() {
+StatusRequest::StatusRequest()
+  : ::google::protobuf::Message() {
   SharedCtor();
   // @@protoc_insertion_point(constructor:consensus.pb.StatusRequest)
 }
 
-void StatusRequest::InitAsDefaultInstance() {}
+void StatusRequest::InitAsDefaultInstance() {
+}
 
-StatusRequest::StatusRequest(const StatusRequest& from) : ::google::protobuf::Message() {
+StatusRequest::StatusRequest(const StatusRequest& from)
+  : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:consensus.pb.StatusRequest)
@@ -668,8 +704,7 @@ const ::google::protobuf::Descriptor* StatusRequest::descriptor() {
 }
 
 const StatusRequest& StatusRequest::default_instance() {
-  if (default_instance_ == NULL)
-    protobuf_AddDesc_raft_5fserver_2eproto();
+  if (default_instance_ == NULL) protobuf_AddDesc_raft_5fserver_2eproto();
   return *default_instance_;
 }
 
@@ -684,24 +719,23 @@ void StatusRequest::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool StatusRequest::MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) \
-  if (!(EXPRESSION))    \
-  goto failure
+bool StatusRequest::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:consensus.pb.StatusRequest)
   for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
-    if (!p.second)
-      goto handle_unusual;
+    if (!p.second) goto handle_unusual;
   handle_unusual:
     if (tag == 0 ||
         ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+        ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
       goto success;
     }
-    DO_(::google::protobuf::internal::WireFormat::SkipField(input, tag, mutable_unknown_fields()));
+    DO_(::google::protobuf::internal::WireFormat::SkipField(
+          input, tag, mutable_unknown_fields()));
   }
 success:
   // @@protoc_insertion_point(parse_success:consensus.pb.StatusRequest)
@@ -716,7 +750,8 @@ void StatusRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:consensus.pb.StatusRequest)
   if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(unknown_fields(), output);
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
   }
   // @@protoc_insertion_point(serialize_end:consensus.pb.StatusRequest)
 }
@@ -737,7 +772,8 @@ int StatusRequest::ByteSize() const {
 
   if (!unknown_fields().empty()) {
     total_size +=
-        ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(unknown_fields());
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
   }
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = total_size;
@@ -748,7 +784,8 @@ int StatusRequest::ByteSize() const {
 void StatusRequest::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
   const StatusRequest* source =
-      ::google::protobuf::internal::dynamic_cast_if_available<const StatusRequest*>(&from);
+    ::google::protobuf::internal::dynamic_cast_if_available<const StatusRequest*>(
+      &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -762,20 +799,19 @@ void StatusRequest::MergeFrom(const StatusRequest& from) {
 }
 
 void StatusRequest::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void StatusRequest::CopyFrom(const StatusRequest& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 bool StatusRequest::IsInitialized() const {
+
   return true;
 }
 
@@ -794,22 +830,27 @@ void StatusRequest::Swap(StatusRequest* other) {
   return metadata;
 }
 
+
 // ===================================================================
 
 #ifndef _MSC_VER
 const int StatusResponse::kLeaderFieldNumber;
 const int StatusResponse::kRaftIndexFieldNumber;
 const int StatusResponse::kRaftTermFieldNumber;
+const int StatusResponse::kRaftCommitFieldNumber;
 #endif  // !_MSC_VER
 
-StatusResponse::StatusResponse() : ::google::protobuf::Message() {
+StatusResponse::StatusResponse()
+  : ::google::protobuf::Message() {
   SharedCtor();
   // @@protoc_insertion_point(constructor:consensus.pb.StatusResponse)
 }
 
-void StatusResponse::InitAsDefaultInstance() {}
+void StatusResponse::InitAsDefaultInstance() {
+}
 
-StatusResponse::StatusResponse(const StatusResponse& from) : ::google::protobuf::Message() {
+StatusResponse::StatusResponse(const StatusResponse& from)
+  : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
   // @@protoc_insertion_point(copy_constructor:consensus.pb.StatusResponse)
@@ -820,6 +861,7 @@ void StatusResponse::SharedCtor() {
   leader_ = GOOGLE_ULONGLONG(0);
   raftindex_ = GOOGLE_ULONGLONG(0);
   raftterm_ = GOOGLE_ULONGLONG(0);
+  raftcommit_ = GOOGLE_ULONGLONG(0);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -844,8 +886,7 @@ const ::google::protobuf::Descriptor* StatusResponse::descriptor() {
 }
 
 const StatusResponse& StatusResponse::default_instance() {
-  if (default_instance_ == NULL)
-    protobuf_AddDesc_raft_5fserver_2eproto();
+  if (default_instance_ == NULL) protobuf_AddDesc_raft_5fserver_2eproto();
   return *default_instance_;
 }
 
@@ -856,17 +897,17 @@ StatusResponse* StatusResponse::New() const {
 }
 
 void StatusResponse::Clear() {
-#define OFFSET_OF_FIELD_(f) \
-  (reinterpret_cast<char*>(&reinterpret_cast<StatusResponse*>(16)->f) - reinterpret_cast<char*>(16))
+#define OFFSET_OF_FIELD_(f) (reinterpret_cast<char*>(      \
+  &reinterpret_cast<StatusResponse*>(16)->f) - \
+   reinterpret_cast<char*>(16))
 
-#define ZR_(first, last)                                  \
-  do {                                                    \
-    size_t f = OFFSET_OF_FIELD_(first);                   \
-    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last); \
-    ::memset(&first, 0, n);                               \
+#define ZR_(first, last) do {                              \
+    size_t f = OFFSET_OF_FIELD_(first);                    \
+    size_t n = OFFSET_OF_FIELD_(last) - f + sizeof(last);  \
+    ::memset(&first, 0, n);                                \
   } while (0)
 
-  ZR_(leader_, raftterm_);
+  ZR_(leader_, raftcommit_);
 
 #undef OFFSET_OF_FIELD_
 #undef ZR_
@@ -875,62 +916,72 @@ void StatusResponse::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool StatusResponse::MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) \
-  if (!(EXPRESSION))    \
-  goto failure
+bool StatusResponse::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
   // @@protoc_insertion_point(parse_start:consensus.pb.StatusResponse)
   for (;;) {
-    ::std::pair<::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(127);
     tag = p.first;
-    if (!p.second)
-      goto handle_unusual;
+    if (!p.second) goto handle_unusual;
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional uint64 leader = 4;
-      case 4: {
-        if (tag == 32) {
+      // optional uint64 leader = 1;
+      case 1: {
+        if (tag == 8) {
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-               ::google::protobuf::uint64,
-               ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(input, &leader_)));
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &leader_)));
           set_has_leader();
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(40))
-          goto parse_raftIndex;
+        if (input->ExpectTag(16)) goto parse_raftIndex;
         break;
       }
 
-      // optional uint64 raftIndex = 5;
-      case 5: {
-        if (tag == 40) {
-        parse_raftIndex:
+      // optional uint64 raftIndex = 2;
+      case 2: {
+        if (tag == 16) {
+         parse_raftIndex:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-               ::google::protobuf::uint64,
-               ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(input, &raftindex_)));
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &raftindex_)));
           set_has_raftindex();
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectTag(48))
-          goto parse_raftTerm;
+        if (input->ExpectTag(24)) goto parse_raftTerm;
         break;
       }
 
-      // optional uint64 raftTerm = 6;
-      case 6: {
-        if (tag == 48) {
-        parse_raftTerm:
+      // optional uint64 raftTerm = 3;
+      case 3: {
+        if (tag == 24) {
+         parse_raftTerm:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-               ::google::protobuf::uint64,
-               ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(input, &raftterm_)));
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &raftterm_)));
           set_has_raftterm();
         } else {
           goto handle_unusual;
         }
-        if (input->ExpectAtEnd())
-          goto success;
+        if (input->ExpectTag(32)) goto parse_raftCommit;
+        break;
+      }
+
+      // optional uint64 raftCommit = 4;
+      case 4: {
+        if (tag == 32) {
+         parse_raftCommit:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &raftcommit_)));
+          set_has_raftcommit();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
         break;
       }
 
@@ -938,11 +989,11 @@ bool StatusResponse::MergePartialFromCodedStream(::google::protobuf::io::CodedIn
       handle_unusual:
         if (tag == 0 ||
             ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-                ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
           goto success;
         }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(input, tag,
-                                                                mutable_unknown_fields()));
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
         break;
       }
     }
@@ -959,23 +1010,29 @@ failure:
 void StatusResponse::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:consensus.pb.StatusResponse)
-  // optional uint64 leader = 4;
+  // optional uint64 leader = 1;
   if (has_leader()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->leader(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->leader(), output);
   }
 
-  // optional uint64 raftIndex = 5;
+  // optional uint64 raftIndex = 2;
   if (has_raftindex()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(5, this->raftindex(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->raftindex(), output);
   }
 
-  // optional uint64 raftTerm = 6;
+  // optional uint64 raftTerm = 3;
   if (has_raftterm()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt64(6, this->raftterm(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(3, this->raftterm(), output);
+  }
+
+  // optional uint64 raftCommit = 4;
+  if (has_raftcommit()) {
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(4, this->raftcommit(), output);
   }
 
   if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(unknown_fields(), output);
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
   }
   // @@protoc_insertion_point(serialize_end:consensus.pb.StatusResponse)
 }
@@ -983,22 +1040,24 @@ void StatusResponse::SerializeWithCachedSizes(
 ::google::protobuf::uint8* StatusResponse::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // @@protoc_insertion_point(serialize_to_array_start:consensus.pb.StatusResponse)
-  // optional uint64 leader = 4;
+  // optional uint64 leader = 1;
   if (has_leader()) {
-    target =
-        ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->leader(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->leader(), target);
   }
 
-  // optional uint64 raftIndex = 5;
+  // optional uint64 raftIndex = 2;
   if (has_raftindex()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(5, this->raftindex(),
-                                                                              target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->raftindex(), target);
   }
 
-  // optional uint64 raftTerm = 6;
+  // optional uint64 raftTerm = 3;
   if (has_raftterm()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(6, this->raftterm(),
-                                                                              target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(3, this->raftterm(), target);
+  }
+
+  // optional uint64 raftCommit = 4;
+  if (has_raftcommit()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(4, this->raftcommit(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -1013,24 +1072,39 @@ int StatusResponse::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional uint64 leader = 4;
+    // optional uint64 leader = 1;
     if (has_leader()) {
-      total_size += 1 + ::google::protobuf::internal::WireFormatLite::UInt64Size(this->leader());
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->leader());
     }
 
-    // optional uint64 raftIndex = 5;
+    // optional uint64 raftIndex = 2;
     if (has_raftindex()) {
-      total_size += 1 + ::google::protobuf::internal::WireFormatLite::UInt64Size(this->raftindex());
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->raftindex());
     }
 
-    // optional uint64 raftTerm = 6;
+    // optional uint64 raftTerm = 3;
     if (has_raftterm()) {
-      total_size += 1 + ::google::protobuf::internal::WireFormatLite::UInt64Size(this->raftterm());
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->raftterm());
     }
+
+    // optional uint64 raftCommit = 4;
+    if (has_raftcommit()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->raftcommit());
+    }
+
   }
   if (!unknown_fields().empty()) {
     total_size +=
-        ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(unknown_fields());
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
   }
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = total_size;
@@ -1041,7 +1115,8 @@ int StatusResponse::ByteSize() const {
 void StatusResponse::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
   const StatusResponse* source =
-      ::google::protobuf::internal::dynamic_cast_if_available<const StatusResponse*>(&from);
+    ::google::protobuf::internal::dynamic_cast_if_available<const StatusResponse*>(
+      &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
@@ -1061,25 +1136,27 @@ void StatusResponse::MergeFrom(const StatusResponse& from) {
     if (from.has_raftterm()) {
       set_raftterm(from.raftterm());
     }
+    if (from.has_raftcommit()) {
+      set_raftcommit(from.raftcommit());
+    }
   }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
 void StatusResponse::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void StatusResponse::CopyFrom(const StatusResponse& from) {
-  if (&from == this)
-    return;
+  if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 bool StatusResponse::IsInitialized() const {
+
   return true;
 }
 
@@ -1088,6 +1165,7 @@ void StatusResponse::Swap(StatusResponse* other) {
     std::swap(leader_, other->leader_);
     std::swap(raftindex_, other->raftindex_);
     std::swap(raftterm_, other->raftterm_);
+    std::swap(raftcommit_, other->raftcommit_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);
@@ -1101,6 +1179,7 @@ void StatusResponse::Swap(StatusResponse* other) {
   metadata.reflection = StatusResponse_reflection_;
   return metadata;
 }
+
 
 // ===================================================================
 
@@ -1117,14 +1196,16 @@ const ::google::protobuf::ServiceDescriptor* RaftService::GetDescriptor() {
 }
 
 void RaftService::Step(::google::protobuf::RpcController* controller,
-                       const ::consensus::pb::StepRequest*, ::consensus::pb::StepResponse*,
-                       ::google::protobuf::Closure* done) {
+                         const ::consensus::pb::StepRequest*,
+                         ::consensus::pb::StepResponse*,
+                         ::google::protobuf::Closure* done) {
   controller->SetFailed("Method Step() not implemented.");
   done->Run();
 }
 
 void RaftService::Status(::google::protobuf::RpcController* controller,
-                         const ::consensus::pb::StatusRequest*, ::consensus::pb::StatusResponse*,
+                         const ::consensus::pb::StatusRequest*,
+                         ::consensus::pb::StatusResponse*,
                          ::google::protobuf::Closure* done) {
   controller->SetFailed("Method Status() not implemented.");
   done->Run();
@@ -1136,15 +1217,18 @@ void RaftService::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              ::google::protobuf::Message* response,
                              ::google::protobuf::Closure* done) {
   GOOGLE_DCHECK_EQ(method->service(), RaftService_descriptor_);
-  switch (method->index()) {
+  switch(method->index()) {
     case 0:
-      Step(controller, ::google::protobuf::down_cast<const ::consensus::pb::StepRequest*>(request),
-           ::google::protobuf::down_cast<::consensus::pb::StepResponse*>(response), done);
+      Step(controller,
+             ::google::protobuf::down_cast<const ::consensus::pb::StepRequest*>(request),
+             ::google::protobuf::down_cast< ::consensus::pb::StepResponse*>(response),
+             done);
       break;
     case 1:
       Status(controller,
              ::google::protobuf::down_cast<const ::consensus::pb::StatusRequest*>(request),
-             ::google::protobuf::down_cast<::consensus::pb::StatusResponse*>(response), done);
+             ::google::protobuf::down_cast< ::consensus::pb::StatusResponse*>(response),
+             done);
       break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
@@ -1155,53 +1239,55 @@ void RaftService::CallMethod(const ::google::protobuf::MethodDescriptor* method,
 const ::google::protobuf::Message& RaftService::GetRequestPrototype(
     const ::google::protobuf::MethodDescriptor* method) const {
   GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch (method->index()) {
+  switch(method->index()) {
     case 0:
       return ::consensus::pb::StepRequest::default_instance();
     case 1:
       return ::consensus::pb::StatusRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast<::google::protobuf::Message*>(NULL);
+      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
   }
 }
 
 const ::google::protobuf::Message& RaftService::GetResponsePrototype(
     const ::google::protobuf::MethodDescriptor* method) const {
   GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch (method->index()) {
+  switch(method->index()) {
     case 0:
       return ::consensus::pb::StepResponse::default_instance();
     case 1:
       return ::consensus::pb::StatusResponse::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast<::google::protobuf::Message*>(NULL);
+      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
   }
 }
 
 RaftService_Stub::RaftService_Stub(::google::protobuf::RpcChannel* channel)
-    : channel_(channel), owns_channel_(false) {}
-RaftService_Stub::RaftService_Stub(::google::protobuf::RpcChannel* channel,
-                                   ::google::protobuf::Service::ChannelOwnership ownership)
-    : channel_(channel),
-      owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}
+  : channel_(channel), owns_channel_(false) {}
+RaftService_Stub::RaftService_Stub(
+    ::google::protobuf::RpcChannel* channel,
+    ::google::protobuf::Service::ChannelOwnership ownership)
+  : channel_(channel),
+    owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}
 RaftService_Stub::~RaftService_Stub() {
-  if (owns_channel_)
-    delete channel_;
+  if (owns_channel_) delete channel_;
 }
 
 void RaftService_Stub::Step(::google::protobuf::RpcController* controller,
-                            const ::consensus::pb::StepRequest* request,
-                            ::consensus::pb::StepResponse* response,
-                            ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(0), controller, request, response, done);
+                              const ::consensus::pb::StepRequest* request,
+                              ::consensus::pb::StepResponse* response,
+                              ::google::protobuf::Closure* done) {
+  channel_->CallMethod(descriptor()->method(0),
+                       controller, request, response, done);
 }
 void RaftService_Stub::Status(::google::protobuf::RpcController* controller,
                               const ::consensus::pb::StatusRequest* request,
                               ::consensus::pb::StatusResponse* response,
                               ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(1), controller, request, response, done);
+  channel_->CallMethod(descriptor()->method(1),
+                       controller, request, response, done);
 }
 
 // @@protoc_insertion_point(namespace_scope)

@@ -19,21 +19,21 @@
 #error regenerate this file with a newer version of protoc.
 #endif
 
-#include "yaraft/pb/raftpb.pb.h"
-#include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
+#include <google/protobuf/extension_set.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
+#include "yaraft/pb/raftpb.pb.h"
 // @@protoc_insertion_point(includes)
 
 namespace consensus {
 namespace pb {
 
 // Internal implementation detail -- do not call these.
-void protobuf_AddDesc_raft_5fserver_2eproto();
+void  protobuf_AddDesc_raft_5fserver_2eproto();
 void protobuf_AssignDesc_raft_5fserver_2eproto();
 void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
@@ -42,7 +42,11 @@ class StepResponse;
 class StatusRequest;
 class StatusResponse;
 
-enum StatusCode { OK = 0, StepLocalMsg = 1, StepPeerNotFound = 2 };
+enum StatusCode {
+  OK = 0,
+  StepLocalMsg = 1,
+  StepPeerNotFound = 2
+};
 bool StatusCode_IsValid(int value);
 const StatusCode StatusCode_MIN = OK;
 const StatusCode StatusCode_MAX = StepPeerNotFound;
@@ -50,11 +54,13 @@ const int StatusCode_ARRAYSIZE = StatusCode_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* StatusCode_descriptor();
 inline const ::std::string& StatusCode_Name(StatusCode value) {
-  return ::google::protobuf::internal::NameOfEnum(StatusCode_descriptor(), value);
+  return ::google::protobuf::internal::NameOfEnum(
+    StatusCode_descriptor(), value);
 }
-inline bool StatusCode_Parse(const ::std::string& name, StatusCode* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<StatusCode>(StatusCode_descriptor(), name,
-                                                                  value);
+inline bool StatusCode_Parse(
+    const ::std::string& name, StatusCode* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<StatusCode>(
+    StatusCode_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -94,20 +100,17 @@ class StepRequest : public ::google::protobuf::Message {
   bool IsInitialized() const;
 
   int ByteSize() const;
-  bool MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
-      ::google::protobuf::uint8* output) const;
-  int GetCachedSize() const {
-    return _cached_size_;
-  }
-
- private:
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-
- public:
+  public:
   ::google::protobuf::Metadata GetMetadata() const;
 
   // nested types ----------------------------------------------------
@@ -133,7 +136,7 @@ class StepRequest : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   ::yaraft::pb::Message* message_;
-  friend void protobuf_AddDesc_raft_5fserver_2eproto();
+  friend void  protobuf_AddDesc_raft_5fserver_2eproto();
   friend void protobuf_AssignDesc_raft_5fserver_2eproto();
   friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
@@ -178,20 +181,17 @@ class StepResponse : public ::google::protobuf::Message {
   bool IsInitialized() const;
 
   int ByteSize() const;
-  bool MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
-      ::google::protobuf::uint8* output) const;
-  int GetCachedSize() const {
-    return _cached_size_;
-  }
-
- private:
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-
- public:
+  public:
   ::google::protobuf::Metadata GetMetadata() const;
 
   // nested types ----------------------------------------------------
@@ -215,7 +215,7 @@ class StepResponse : public ::google::protobuf::Message {
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
   int code_;
-  friend void protobuf_AddDesc_raft_5fserver_2eproto();
+  friend void  protobuf_AddDesc_raft_5fserver_2eproto();
   friend void protobuf_AssignDesc_raft_5fserver_2eproto();
   friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
@@ -260,20 +260,17 @@ class StatusRequest : public ::google::protobuf::Message {
   bool IsInitialized() const;
 
   int ByteSize() const;
-  bool MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
-      ::google::protobuf::uint8* output) const;
-  int GetCachedSize() const {
-    return _cached_size_;
-  }
-
- private:
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-
- public:
+  public:
   ::google::protobuf::Metadata GetMetadata() const;
 
   // nested types ----------------------------------------------------
@@ -282,11 +279,12 @@ class StatusRequest : public ::google::protobuf::Message {
 
   // @@protoc_insertion_point(class_scope:consensus.pb.StatusRequest)
  private:
+
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint32 _has_bits_[1];
   mutable int _cached_size_;
-  friend void protobuf_AddDesc_raft_5fserver_2eproto();
+  friend void  protobuf_AddDesc_raft_5fserver_2eproto();
   friend void protobuf_AssignDesc_raft_5fserver_2eproto();
   friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
@@ -331,46 +329,50 @@ class StatusResponse : public ::google::protobuf::Message {
   bool IsInitialized() const;
 
   int ByteSize() const;
-  bool MergePartialFromCodedStream(::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(
-      ::google::protobuf::uint8* output) const;
-  int GetCachedSize() const {
-    return _cached_size_;
-  }
-
- private:
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const;
-
- public:
+  public:
   ::google::protobuf::Metadata GetMetadata() const;
 
   // nested types ----------------------------------------------------
 
   // accessors -------------------------------------------------------
 
-  // optional uint64 leader = 4;
+  // optional uint64 leader = 1;
   inline bool has_leader() const;
   inline void clear_leader();
-  static const int kLeaderFieldNumber = 4;
+  static const int kLeaderFieldNumber = 1;
   inline ::google::protobuf::uint64 leader() const;
   inline void set_leader(::google::protobuf::uint64 value);
 
-  // optional uint64 raftIndex = 5;
+  // optional uint64 raftIndex = 2;
   inline bool has_raftindex() const;
   inline void clear_raftindex();
-  static const int kRaftIndexFieldNumber = 5;
+  static const int kRaftIndexFieldNumber = 2;
   inline ::google::protobuf::uint64 raftindex() const;
   inline void set_raftindex(::google::protobuf::uint64 value);
 
-  // optional uint64 raftTerm = 6;
+  // optional uint64 raftTerm = 3;
   inline bool has_raftterm() const;
   inline void clear_raftterm();
-  static const int kRaftTermFieldNumber = 6;
+  static const int kRaftTermFieldNumber = 3;
   inline ::google::protobuf::uint64 raftterm() const;
   inline void set_raftterm(::google::protobuf::uint64 value);
+
+  // optional uint64 raftCommit = 4;
+  inline bool has_raftcommit() const;
+  inline void clear_raftcommit();
+  static const int kRaftCommitFieldNumber = 4;
+  inline ::google::protobuf::uint64 raftcommit() const;
+  inline void set_raftcommit(::google::protobuf::uint64 value);
 
   // @@protoc_insertion_point(class_scope:consensus.pb.StatusResponse)
  private:
@@ -380,6 +382,8 @@ class StatusResponse : public ::google::protobuf::Message {
   inline void clear_has_raftindex();
   inline void set_has_raftterm();
   inline void clear_has_raftterm();
+  inline void set_has_raftcommit();
+  inline void clear_has_raftcommit();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -388,7 +392,8 @@ class StatusResponse : public ::google::protobuf::Message {
   ::google::protobuf::uint64 leader_;
   ::google::protobuf::uint64 raftindex_;
   ::google::protobuf::uint64 raftterm_;
-  friend void protobuf_AddDesc_raft_5fserver_2eproto();
+  ::google::protobuf::uint64 raftcommit_;
+  friend void  protobuf_AddDesc_raft_5fserver_2eproto();
   friend void protobuf_AssignDesc_raft_5fserver_2eproto();
   friend void protobuf_ShutdownFile_raft_5fserver_2eproto();
 
@@ -402,8 +407,7 @@ class RaftService_Stub;
 class RaftService : public ::google::protobuf::Service {
  protected:
   // This class should be treated as an abstract interface.
-  inline RaftService(){};
-
+  inline RaftService() {};
  public:
   virtual ~RaftService();
 
@@ -412,23 +416,26 @@ class RaftService : public ::google::protobuf::Service {
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
   virtual void Step(::google::protobuf::RpcController* controller,
-                    const ::consensus::pb::StepRequest* request,
-                    ::consensus::pb::StepResponse* response, ::google::protobuf::Closure* done);
+                       const ::consensus::pb::StepRequest* request,
+                       ::consensus::pb::StepResponse* response,
+                       ::google::protobuf::Closure* done);
   virtual void Status(::google::protobuf::RpcController* controller,
-                      const ::consensus::pb::StatusRequest* request,
-                      ::consensus::pb::StatusResponse* response, ::google::protobuf::Closure* done);
+                       const ::consensus::pb::StatusRequest* request,
+                       ::consensus::pb::StatusResponse* response,
+                       ::google::protobuf::Closure* done);
 
   // implements Service ----------------------------------------------
 
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
   void CallMethod(const ::google::protobuf::MethodDescriptor* method,
                   ::google::protobuf::RpcController* controller,
-                  const ::google::protobuf::Message* request, ::google::protobuf::Message* response,
+                  const ::google::protobuf::Message* request,
+                  ::google::protobuf::Message* response,
                   ::google::protobuf::Closure* done);
   const ::google::protobuf::Message& GetRequestPrototype(
-      const ::google::protobuf::MethodDescriptor* method) const;
+    const ::google::protobuf::MethodDescriptor* method) const;
   const ::google::protobuf::Message& GetResponsePrototype(
-      const ::google::protobuf::MethodDescriptor* method) const;
+    const ::google::protobuf::MethodDescriptor* method) const;
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RaftService);
@@ -441,26 +448,27 @@ class RaftService_Stub : public RaftService {
                    ::google::protobuf::Service::ChannelOwnership ownership);
   ~RaftService_Stub();
 
-  inline ::google::protobuf::RpcChannel* channel() {
-    return channel_;
-  }
+  inline ::google::protobuf::RpcChannel* channel() { return channel_; }
 
   // implements RaftService ------------------------------------------
 
   void Step(::google::protobuf::RpcController* controller,
-            const ::consensus::pb::StepRequest* request, ::consensus::pb::StepResponse* response,
-            ::google::protobuf::Closure* done);
+                       const ::consensus::pb::StepRequest* request,
+                       ::consensus::pb::StepResponse* response,
+                       ::google::protobuf::Closure* done);
   void Status(::google::protobuf::RpcController* controller,
-              const ::consensus::pb::StatusRequest* request,
-              ::consensus::pb::StatusResponse* response, ::google::protobuf::Closure* done);
-
+                       const ::consensus::pb::StatusRequest* request,
+                       ::consensus::pb::StatusResponse* response,
+                       ::google::protobuf::Closure* done);
  private:
   ::google::protobuf::RpcChannel* channel_;
   bool owns_channel_;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(RaftService_Stub);
 };
 
+
 // ===================================================================
+
 
 // ===================================================================
 
@@ -477,8 +485,7 @@ inline void StepRequest::clear_has_message() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void StepRequest::clear_message() {
-  if (message_ != NULL)
-    message_->::yaraft::pb::Message::Clear();
+  if (message_ != NULL) message_->::yaraft::pb::Message::Clear();
   clear_has_message();
 }
 inline const ::yaraft::pb::Message& StepRequest::message() const {
@@ -487,8 +494,7 @@ inline const ::yaraft::pb::Message& StepRequest::message() const {
 }
 inline ::yaraft::pb::Message* StepRequest::mutable_message() {
   set_has_message();
-  if (message_ == NULL)
-    message_ = new ::yaraft::pb::Message;
+  if (message_ == NULL) message_ = new ::yaraft::pb::Message;
   // @@protoc_insertion_point(field_mutable:consensus.pb.StepRequest.message)
   return message_;
 }
@@ -529,7 +535,7 @@ inline void StepResponse::clear_code() {
 }
 inline ::consensus::pb::StatusCode StepResponse::code() const {
   // @@protoc_insertion_point(field_get:consensus.pb.StepResponse.code)
-  return static_cast<::consensus::pb::StatusCode>(code_);
+  return static_cast< ::consensus::pb::StatusCode >(code_);
 }
 inline void StepResponse::set_code(::consensus::pb::StatusCode value) {
   assert(::consensus::pb::StatusCode_IsValid(value));
@@ -546,7 +552,7 @@ inline void StepResponse::set_code(::consensus::pb::StatusCode value) {
 
 // StatusResponse
 
-// optional uint64 leader = 4;
+// optional uint64 leader = 1;
 inline bool StatusResponse::has_leader() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -570,7 +576,7 @@ inline void StatusResponse::set_leader(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:consensus.pb.StatusResponse.leader)
 }
 
-// optional uint64 raftIndex = 5;
+// optional uint64 raftIndex = 2;
 inline bool StatusResponse::has_raftindex() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -594,7 +600,7 @@ inline void StatusResponse::set_raftindex(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:consensus.pb.StatusResponse.raftIndex)
 }
 
-// optional uint64 raftTerm = 6;
+// optional uint64 raftTerm = 3;
 inline bool StatusResponse::has_raftterm() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
@@ -618,6 +624,31 @@ inline void StatusResponse::set_raftterm(::google::protobuf::uint64 value) {
   // @@protoc_insertion_point(field_set:consensus.pb.StatusResponse.raftTerm)
 }
 
+// optional uint64 raftCommit = 4;
+inline bool StatusResponse::has_raftcommit() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void StatusResponse::set_has_raftcommit() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void StatusResponse::clear_has_raftcommit() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void StatusResponse::clear_raftcommit() {
+  raftcommit_ = GOOGLE_ULONGLONG(0);
+  clear_has_raftcommit();
+}
+inline ::google::protobuf::uint64 StatusResponse::raftcommit() const {
+  // @@protoc_insertion_point(field_get:consensus.pb.StatusResponse.raftCommit)
+  return raftcommit_;
+}
+inline void StatusResponse::set_raftcommit(::google::protobuf::uint64 value) {
+  set_has_raftcommit();
+  raftcommit_ = value;
+  // @@protoc_insertion_point(field_set:consensus.pb.StatusResponse.raftCommit)
+}
+
+
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace pb
@@ -627,10 +658,9 @@ inline void StatusResponse::set_raftterm(::google::protobuf::uint64 value) {
 namespace google {
 namespace protobuf {
 
+template <> struct is_proto_enum< ::consensus::pb::StatusCode> : ::google::protobuf::internal::true_type {};
 template <>
-struct is_proto_enum<::consensus::pb::StatusCode> : ::google::protobuf::internal::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor<::consensus::pb::StatusCode>() {
+inline const EnumDescriptor* GetEnumDescriptor< ::consensus::pb::StatusCode>() {
   return ::consensus::pb::StatusCode_descriptor();
 }
 
