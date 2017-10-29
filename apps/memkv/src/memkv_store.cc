@@ -31,6 +31,13 @@ namespace memkv {
 
 struct Node {
   using ChildrenTable = std::unordered_map<std::string, Node *>;
+
+  ~Node() {
+    for(auto& child : children) {
+      delete child.second;
+    }
+  }
+
   ChildrenTable children;
   std::string data;
 };
@@ -38,11 +45,12 @@ struct Node {
 class MemKvStore::Impl {
  public:
   Status Write(const Slice &path, const Slice &value) {
+    std::lock_guard<std::mutex> d(mu_);
+
     std::vector<Slice> pathVec;
     ASSIGN_IF_OK(validatePath(path), pathVec);
 
     Node *n = &root_;
-    Node *parent = n;
     for (const Slice &seg : pathVec) {
       // ignore empty segment
       if (seg.Len() == 0) {
@@ -51,25 +59,28 @@ class MemKvStore::Impl {
 
       auto result = n->children.emplace(std::make_pair(seg.ToString(), nullptr));
       bool nodeNotExist = result.second;
+
+      LOG(INFO) << seg.ToString() << " " << nodeNotExist;
+
       Node **pNode = &result.first->second;
       if (nodeNotExist) {
         *pNode = new Node();
       }
 
-      parent = n;
       n = *pNode;
     }
 
-    parent->data = value.ToString();
+    n->data = value.ToString();
     return Status::OK();
   }
 
   Status Delete(const Slice &path) {
+    std::lock_guard<std::mutex> d(mu_);
+
     std::vector<Slice> pathVec;
     ASSIGN_IF_OK(validatePath(path), pathVec);
 
     Node *n = &root_;
-    Node *parent = n;
     for (auto segIt = pathVec.begin(); segIt != pathVec.end(); segIt++) {
       Slice seg = *segIt;
 
@@ -89,7 +100,6 @@ class MemKvStore::Impl {
         return Status::OK();
       }
 
-      parent = n;
       n = it->second;
     }
 
@@ -97,11 +107,12 @@ class MemKvStore::Impl {
   }
 
   Status Get(const Slice &path, std::string *data) {
+    std::lock_guard<std::mutex> d(mu_);
+
     std::vector<Slice> pathVec;
     ASSIGN_IF_OK(validatePath(path), pathVec);
 
     Node *n = &root_;
-    Node *parent = n;
     for (const Slice &seg : pathVec) {
       if (seg.Len() == 0) {
         continue;
@@ -112,11 +123,10 @@ class MemKvStore::Impl {
         return FMT_Status(NodeNotExist, "node does not exist on path {}", path.data());
       }
 
-      parent = n;
       n = it->second;
     }
 
-    *data = parent->data;
+    *data = n->data;
     return Status::OK();
   }
 
