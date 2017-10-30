@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include "logging.h"
+
 #include <gtest/gtest.h>
 
 #define ASSERT_OK(status)                        \

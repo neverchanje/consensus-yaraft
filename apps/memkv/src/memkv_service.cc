@@ -45,7 +45,6 @@ void MemKVServiceImpl::Write(::google::protobuf::RpcController *controller,
   if (cntl->has_http_request()) {
     Slice path(cntl->http_request().unresolved_path());
     Slice value(*cntl->http_request().uri().GetQuery("value"));
-    LOG(ERROR) << "path: " << path << " value: " << value;
     s = db_->Write(path, value);
   } else {
     s = db_->Write(request->path(), request->value());
@@ -74,7 +73,6 @@ void MemKVServiceImpl::Read(::google::protobuf::RpcController *controller,
     if (cntl->http_request().uri().GetQuery("stale") != nullptr) {
       stale = true;
     }
-    LOG(ERROR) << "path: " << path << " stale: " << stale;
     s = db_->Get(path, stale, result);
   } else {
     s = db_->Get(request->path(), request->stale(), result);

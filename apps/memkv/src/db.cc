@@ -49,13 +49,21 @@ static std::string LogEncode(OpType type, const Slice &path, const Slice &value)
 
 class DB::Impl {
  public:
-  explicit Impl() : kv_(new MemKvStore) {}
+  explicit Impl(consensus::ReplicatedLog *replicatedLog)
+      : kv_(new MemKvStore), log_(replicatedLog) {}
 
   Status Get(const Slice &path, bool stale, std::string *data) {
     bool allowed = false;
-    uint64_t currentLeader;
-    log_->RaftTaskExecutorInstance()->Submit(
-        [&](yaraft::RawNode *node) { currentLeader = node->LeaderHint(); });
+
+    // TODO: use read/write lock to protect `leader`, it's more efficient than using task queue.
+    uint64_t currentLeader = 0;
+    consensus::Barrier barrier;
+    log_->RaftTaskExecutorInstance()->Submit([&](yaraft::RawNode *node) {
+      currentLeader = node->LeaderHint();
+      barrier.Signal();
+    });
+    barrier.Wait();
+
     uint64_t id = log_->Id();
     if (currentLeader != id && !stale) {
       return FMT_Status(ConsensusError,
@@ -101,9 +109,6 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   using consensus::ReplicatedLog;
   using namespace consensus::wal;
 
-  auto db = new DB;
-  db->impl_.reset(new Impl());
-
   ReplicatedLogOptions rlogOptions;
   rlogOptions.id = options.member_id;
   rlogOptions.heartbeat_interval = 100;
@@ -128,7 +133,8 @@ StatusWith<DB *> DB::Bootstrap(const DBOptions &options) {
   }
 
   ReplicatedLog *rlog = sw.GetValue();
-  db->impl_->log_.reset(rlog);
+  auto db = new DB();
+  db->impl_.reset(new DB::Impl(rlog));
   return db;
 }
 

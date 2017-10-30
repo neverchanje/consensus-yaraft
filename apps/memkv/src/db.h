@@ -21,6 +21,7 @@
 
 #include <brpc/server.h>
 #include <consensus/raft_service.h>
+#include <consensus/replicated_log.h>
 
 namespace memkv {
 

@@ -33,7 +33,7 @@ struct Node {
   using ChildrenTable = std::unordered_map<std::string, Node *>;
 
   ~Node() {
-    for(auto& child : children) {
+    for (auto &child : children) {
       delete child.second;
     }
   }
@@ -59,8 +59,6 @@ class MemKvStore::Impl {
 
       auto result = n->children.emplace(std::make_pair(seg.ToString(), nullptr));
       bool nodeNotExist = result.second;
-
-      LOG(INFO) << seg.ToString() << " " << nodeNotExist;
 
       Node **pNode = &result.first->second;
       if (nodeNotExist) {
