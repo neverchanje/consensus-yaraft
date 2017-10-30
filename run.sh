@@ -59,7 +59,7 @@ function run_test() {
     unit_test raft_service_test
     unit_test raft_timer_test
     unit_test raft_task_executor_test
-    unit_test replicated_log_test
+    # unit_test replicated_log_test
 }
 
 ####################################################################

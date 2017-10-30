@@ -4,6 +4,7 @@ import unittest
 import os, shutil
 import requests
 import json
+import string, random
 
 
 class MemKvNode:
@@ -63,6 +64,7 @@ class LocalCluster:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        time.sleep(1)
         for i in range(0, self.server_count):
             self.p[i].process.kill()
             self.p[i].output.close()
@@ -79,16 +81,28 @@ class LocalCluster:
         p = self.p[id - 1]
         p.process.kill()
 
+    # create client for id
+    def client(self, id):
+        return RaftClient(self.node(id).address())
+
 
 class RaftClient:
     def __init__(self, url):
         self.url = url
 
-    def write(self, str):
-        pass
+    def write(self, path, value):
+        return request_with_retry(self._do_write, 2, path, value)
 
-    def _do_read(self):
-        pass
+    def _do_write(self, path, value):
+        resp = requests.get("http://{}/MemKVService/Write/{}?value={}".format(self.url, path, value))
+        return json.loads(resp.content)
+
+    def read(self, path):
+        return request_with_retry(self._do_read, 2, path)
+
+    def _do_read(self, path):
+        resp = requests.get("http://{}/MemKVService/Read/{}".format(self.url, path))
+        return json.loads(resp.content)
 
     def _do_info(self):
         resp = requests.get("http://{}/RaftService/Status".format(self.url))
@@ -97,13 +111,22 @@ class RaftClient:
     def info(self):
         return request_with_retry(self._do_info, 5)
 
+    def wait_until_leader_elected(self, old_leader=0):
+        while self.info()["leader"] == old_leader:
+            time.sleep(1)
+        return self.info()["leader"]
+
 
 # retry for 5 times until the remote node becomes valid or dead.
-def request_with_retry(do_func, retries_num):
+def request_with_retry(do_func, retries_num, *args):
     retry = 0
     while True:
         try:
-            ret = do_func()
+            ret = None
+            if len(args) == 0:
+                ret = do_func()
+            else:
+                ret = do_func(*args)
             if ret is not None:
                 return ret
             break  # break if everything goes ok
@@ -114,16 +137,18 @@ def request_with_retry(do_func, retries_num):
             time.sleep(1)
 
 
+def random_string(length):
+    return ''.join(random.choice(string.lowercase) for x in range(length))
+
+
 class RaftServerTest(unittest.TestCase):
     def test_LeaderElectionBootstrap(self):
         for server_count in range(1, 8):
             with LocalCluster(server_count) as cluster:
-                while RaftClient(cluster.node(1).address()).info()["leader"] == 0:
-                    time.sleep(1)
+                leader = cluster.client(1).wait_until_leader_elected()
 
-                leader = RaftClient(cluster.node(1).address()).info()["leader"]
                 for i in range(0, server_count):
-                    info = RaftClient(cluster.node(i + 1).address()).info()
+                    info = cluster.client(i + 1).info()
 
                     self.assertEqual(info["raftTerm"], 1)
                     self.assertEqual(info["leader"], leader)
@@ -132,11 +157,8 @@ class RaftServerTest(unittest.TestCase):
     def test_LeaderDownReelection(self):
         for server_count in range(3, 6):
             with LocalCluster(server_count) as cluster:
-                while RaftClient(cluster.node(1).address()).info()["leader"] == 0:
-                    time.sleep(1)
-
-                old_leader = RaftClient(cluster.node(1).address()).info()["leader"]
-                info = RaftClient(cluster.node(old_leader).address()).info()
+                old_leader = cluster.client(1).wait_until_leader_elected()
+                info = cluster.client(old_leader).info()
                 self.assertEqual(info["raftTerm"], 1)
 
                 cluster.kill(old_leader)
@@ -149,17 +171,31 @@ class RaftServerTest(unittest.TestCase):
                         break
 
                 # wait until the leadership changes
-                while RaftClient(cluster.node(non_leader).address()).info()["leader"] == old_leader:
-                    time.sleep(1)
+                new_leader = cluster.client(non_leader).wait_until_leader_elected(old_leader)
 
-                new_leader = RaftClient(cluster.node(non_leader).address()).info()["leader"]
                 for i in range(0, server_count):
                     if (i + 1) == old_leader:
                         continue
-                    info = RaftClient(cluster.node(i + 1).address()).info()
+                    info = cluster.client(i + 1).info()
 
                     self.assertEqual(info["raftTerm"], 2)
                     self.assertEqual(info["leader"], new_leader)
+
+    # this test verifies that using the same keys can read the same value.
+    def test_WriteAndRead(self):
+        for server_count in [1, 3, 5, 7]:
+            mem_table = {}
+            for i in range(5):
+                mem_table[random_string(10)] = random_string(20)
+
+            with LocalCluster(server_count) as cluster:
+                leader = cluster.client(1).wait_until_leader_elected()
+
+                for key, value in mem_table.iteritems():
+                    cluster.client(leader).write(key, value)
+
+                for key, value in mem_table.iteritems():
+                    self.assertEqual(cluster.client(leader).read(key)['value'], value)
 
 
 if __name__ == '__main__':

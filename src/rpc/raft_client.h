@@ -34,7 +34,10 @@ static void doneCallBack(pb::StepResponse* response, brpc::Controller* cntl) {
 class AsyncRaftClient {
  public:
   explicit AsyncRaftClient(const std::string& url) {
-    channel_.Init(url.c_str(), nullptr);
+    brpc::ChannelOptions options;
+    options.max_retry = 0;  // no retry
+    options.connect_timeout_ms = 2000;
+    channel_.Init(url.c_str(), &options);
   }
 
   // Asynchronously sending request to specified url.

@@ -9,7 +9,7 @@ git status -s | while read LINE; do
             FILE=${PARAMS[1]}
             EXTENSION=${FILE##*.}
             if [[ ${EXTENSION} == 'h' || ${EXTENSION} == 'cc' || ${EXTENSION} == 'cpp' ]]; then
-                clang-format-3.9 -i ${FILE}
+                clang-format -i ${FILE}
             fi
         fi
     fi

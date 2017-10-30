@@ -157,7 +157,7 @@ build_yaraft() {
   cmake \
     -DCMAKE_INSTALL_PREFIX=$TP_BUILD_DIR \
     -DBUILD_TEST=OFF \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=Debug \
     $YARAFT_SOURCE
   make -j4 && make install
   popd
