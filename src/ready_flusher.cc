@@ -50,21 +50,27 @@ class ReadyFlusher::Impl {
       return;
     }
 
-    // Starts a new round of flushing only after the previous ends.
-    boost::latch latch(logs.size());
     for (auto rl : logs) {
       yaraft::Ready *rd = rl->executor_->GetReady();
       if (rd) {
-        std::async(std::bind(&Impl::flushReady, this, rl, rd, &latch));
-      } else {
-        latch.count_down();
+        std::async(std::bind(&Impl::flushReady, this, rl, rd));
       }
     }
-    latch.wait();
   }
 
-  void flushReady(ReplicatedLogImpl *rl, yaraft::Ready *rd, boost::latch *latch) {
+  void flushReady(ReplicatedLogImpl *rl, yaraft::Ready *rd) {
     yaraft::pb::HardState *hs = nullptr;
+    std::unique_ptr<yaraft::Ready> g(rd);
+
+    // the leader can write to its disk in parallel with replicating to the followers and them
+    // writing to their disks.
+    // For more details, check raft thesis 10.2.1
+    if (rd->currentLeader == rl->Id()) {
+      if (!rd->messages.empty()) {
+        rl->cluster_->Pass(rd->messages);
+        rd->messages.clear();
+      }
+    }
 
     if (rd->hardState) {
       hs = rd->hardState.get();
@@ -72,24 +78,24 @@ class ReadyFlusher::Impl {
 
     if (!rd->entries.empty()) {
       FATAL_NOT_OK(rl->wal_->Write(rd->entries, hs), "Wal::Write");
+    } else {
+      FATAL_NOT_OK(rl->wal_->Write(hs), "Wal::Write");
     }
 
-    if (!rd->messages.empty()) {
-      rl->cluster_->Pass(rd->messages);
-      rd->messages.clear();
-    }
-
-    onReadyFlushed(rl, rd);
-    rd->Advance(rl->memstore_);
-    delete rd;
-
-    latch->count_down();
-  }
-
-  void onReadyFlushed(ReplicatedLogImpl *rl, yaraft::Ready *rd) {
     // committedIndex has changed
     if (rd->hardState && rd->hardState->has_commit()) {
       rl->walCommitObserver_->Notify(rd->hardState->commit());
+    }
+
+    // states have already been persisted.
+    rd->Advance(rl->memstore_);
+
+    // followers should respond only after state persisted
+    if (rd->currentLeader != rl->Id()) {
+      if (!rd->messages.empty()) {
+        rl->cluster_->Pass(rd->messages);
+        rd->messages.clear();
+      }
     }
   }
 

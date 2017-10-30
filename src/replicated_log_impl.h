@@ -97,14 +97,12 @@ class ReplicatedLogImpl {
 
     executor_->Submit([&](yaraft::RawNode *node) {
       uint64_t id = Id();
-      if (node->IsLeader()) {
+      if (!node->IsLeader()) {
         channel <<=
             FMT_Status(WalWriteToNonLeader, "writing to a non-leader node, [id: {}, leader: {}]",
                        id, node->LeaderHint());
         return;
       }
-
-      uint64_t newIndex = node->LastIndex() + 1;
 
       yaraft::Status s = node->Propose(log);
       if (UNLIKELY(!s.IsOK())) {
@@ -113,6 +111,7 @@ class ReplicatedLogImpl {
       }
 
       // listening for the committedIndex to forward to the newly-appended log.
+      uint64_t newIndex = node->LastIndex();
       walCommitObserver_->Register(std::make_pair(newIndex, newIndex), &channel);
     });
 
